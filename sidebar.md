@@ -1,2 +1,3 @@
 - Components
   - [Image](/image/)
+  - [Template](/template/)
