@@ -1,8 +1,9 @@
 iframe {
+    min-width: unset !important;
     position: relative;
-    width: 100%;
+    width: 100% !important;
     aspect-ratio: 3 / 2;
-    border: none;
+    border: none !important;
   }
   
   @media (min-width: 600px) {
@@ -18,7 +19,7 @@ iframe {
     }
   
     .left, .right {
-      width: 50%;
+      width: 50% !important;
       margin-bottom: .5em;
     }
   
@@ -32,11 +33,11 @@ iframe {
     }
   
     .medium {
-      width: 50%;
+      width: 50% !important;
     }
   
     .small {
-      width: 33%;
+      width: 33% !important;
     }
   
   }
