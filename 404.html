@@ -21,8 +21,6 @@
       path = path.join('/')
       let branch = new URL(location.href).searchParams.get('ref') || 'main'
 
-      console.log(acct, repo, branch, path)
-
       if (acct && repo) {
         
         // Get the content from the repo

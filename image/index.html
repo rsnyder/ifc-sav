@@ -104,7 +104,6 @@
       captionText.innerHTML = (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
       annoBadge.innerHTML = annotations.length
       annoIcon.style.visibility = (annotations.length || authToken) ? 'visible' : 'hidden'
-      console.log(annoLayer.style.visibility)
       annoBadge.style.visibility = annotations.length ? 'visible' : 'hidden'
     }
 
