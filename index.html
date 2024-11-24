@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta charset="UTF-8" />
+    <title>Juncture IFC</title>
+    <link href="https://v3.juncture-digital.org/images/favicon.svg" rel="icon" type="image/svg+xml"/>
+    <link href="https://v3.juncture-digital.org/images/favicon.png" rel="icon" type="image/png"/>  </head>
+  <body>
+    <div id="app"></div>
+
+    <script type="module">
+      
+      import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+      import 'https://cdn.jsdelivr.net/npm/marked-footnote/dist/index.umd.min.js'
+
+      let referrer = document.referrer ? new URL(document.referrer) : null
+      if (referrer?.host === 'github.com') {
+        [acct, repo, branch, ...path] = referrer.pathname.split('/').filter(pe => pe && pe !== 'blob' && pe !== 'tree')
+        path = path.join('/').replace(/\/(README|index)\.md$/,'').replace(/\.md$/,'')
+        let redirect = `https://ifc.juncture-digital.org/${acct}/${repo}/${path}${branch !== 'main' ? `?ref=${branch}` : ''}`
+        location.href = redirect
+      }
+
+      let [acct, repo, ...path] = location.pathname.split('/').filter(pe => pe).slice(location.hostname.indexOf('github.io') > -1 ? 1 : 0)
+      path = path.join('/')
+      let branch = new URL(location.href).searchParams.get('ref') || 'main'
+
+      console.log(acct, repo, branch, path)
+
+      if (acct && repo) {
+        
+        // Get the content from the repo
+        let locationsToCheck = []
+        if (/\.md$/.test(path)) {
+          locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path}`))
+        } else {
+          if (path.length) locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path}.md`))
+          locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}${path || '/'}README.md`))
+          locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}${path || '/'}index.md`))
+        }
+        const markdown = await Promise.all(locationsToCheck).then(resp => resp.find(r => r?.status === 200)?.text())
+        document.body.innerHTML = marked.use(window.markedFootnote()).parse(markdown)
+
+      } else {
+        // Add Docsify
+        let cssLink = document.createElement('link')
+        cssLink.rel = 'stylesheet'
+        cssLink.href = 'https://cdn.jsdelivr.net/npm/docsify@4/themes/pure.css'
+        document.head.appendChild(cssLink)
+        let script = document.createElement('script')
+        script.src = 'https://cdn.jsdelivr.net/npm/docsify@4'
+        document.head.appendChild(script)
+        window.$docsify = {
+          name: 'Juncture IFC',
+          logo: 'https://v3.juncture-digital.org/images/logo.svg',
+          homepage: '/README.md',
+          
+          auto2top: true,
+          alias: { '.*/_sidebar.md': '/_sidebar.md' },
+          loadSidebar: true,
+
+          routerMode: 'hash', // hash or history
+        };
+      }
+    </script>
+  </body>
+</html>
