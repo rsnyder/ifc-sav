@@ -111,7 +111,7 @@
     const pathElems = location.pathname.split('/').filter(e => e)
     const isGhp = location.hostname.indexOf('.github.io') > 0
 
-    const imageSource = pathElems.slice(isGhp ? 1 : 0).join('/')
+    const imageSource = pathElems.slice(isGhp ? 2 : 1).join('/')
     let imageUrl 
 
     if (imageSource.indexOf('wc:') === 0) {
