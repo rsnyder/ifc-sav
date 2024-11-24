@@ -1,3 +1,5 @@
+<style>@import "components.css";</style>
+
 # image
 
 <iframe 
