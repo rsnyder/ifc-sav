@@ -25,55 +25,24 @@
         routerMode: 'hash', // hash or history
       };
 
-      var observeDOM = (function() {
-        var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
-      
-        return function(obj, callback) {
-          if (!obj || obj.nodeType !== 1) {
-            return;
-          }
-      
-          if (MutationObserver) {
-            // define a new observer
-            var mutationObserver = new MutationObserver(callback);
-      
-            // have the observer observe for changes in children
-            mutationObserver.observe(obj, {childList: true, subtree: true});
-            return mutationObserver;
-          } else if (window.addEventListener) { // browser support fallback
-            obj.addEventListener('DOMNodeInserted', callback, false);
-            obj.addEventListener('DOMNodeRemoved', callback, false);
-          }
-        }
-      })()
-
-      observeDOM(document.body, function(m) {
-        console.log('DOM changed')
-        setupActionLinks()
-      })
-
-      const setupActionLinks = () => {
+      // setup action links to iframes on DOM mutations (e.g., zoomto, flyto, play)
+      new MutationObserver(() => {
         const actions = new Set('zoomto flyto play'.split(' '))
-        setTimeout(() => {
-          document.querySelectorAll('a').forEach(a => {
-            let href = a.href || a.getAttribute('data-href')
-            let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
-            if (actions.has(path[0])) {
-              let action = path[0]
-              let targetId = path[1]
-              let args = path.slice(2)
-              a.setAttribute('data-href', href)
-              a.removeAttribute('href')
-              a.style.cursor = 'pointer'
-              a.style.color = 'blue'
-              a.addEventListener('click', () => {
-                const iframe = document.getElementById(targetId)
-                iframe.contentWindow.postMessage({ action, args }, '*')
-              });
-            }
-          })
-        }, 0)
-      }
+        document.querySelectorAll('a').forEach(a => {
+          let href = a.href || a.getAttribute('data-href')
+          let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
+          if (actions.has(path[0])) {
+            let action = path[0]
+            let targetId = path[1]
+            let args = path.slice(2)
+            a.setAttribute('data-href', href)
+            a.removeAttribute('href')
+            a.style.cursor = 'pointer'
+            a.style.color = 'blue'
+            a.addEventListener('click', () => { document.getElementById(targetId).contentWindow.postMessage({ action, args }, '*')})
+          }
+        })
+      }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
 
     </script>
   </body>
