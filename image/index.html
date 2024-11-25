@@ -100,7 +100,6 @@
     }
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
-      console.log('docReady', props)
       window.addEventListener('message', (event) => {
         let action = event.data.action
         if (action === 'zoomto') {
@@ -110,8 +109,6 @@
     });
       main.style.visibility = 'visible'
     })
-
-    console.log(props)
 
     const drawer = document.querySelector('.drawer')
     const drawerButton = caption.querySelector('.drawerToggle')
@@ -177,7 +174,6 @@
       annotations = annotorious.getAnnotations()
       let _hash = md5(JSON.stringify(annotations))
       if (!annotationsInitialHash) annotationsInitialHash = _hash
-      console.log('annotationsChanged', _hash, annotations)
       if (_hash !== annotationsCurrentHash) {
         annotationsCurrentHash = _hash
         setCaption()
