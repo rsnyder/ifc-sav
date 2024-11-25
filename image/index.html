@@ -11,7 +11,7 @@
     @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
     body { margin: 0; padding: 0; font-family: sans-serif; animation: fadeInOpacity ease 1s; }    
     main { display: flex; flex-direction: column; width: 100%; height: 100dvh; visibility: hidden; }
-    #osd { flex: 1; }
+    #osd { flex: 1; position: relative; }
     .a9s-annotationlayer { visibility: hidden; }
     svg.a9s-annotationlayer .a9s-selection .a9s-inner, svg.a9s-annotationlayer .a9s-annotation .a9s-inner  { stroke-width: 3; stroke: rgba(255,255,0,1.0); }
     .a9s-selection-mask { stroke: none; fill: rgba(0,0,0,0.4); pointer-events: none; }
@@ -28,11 +28,14 @@
     .drawerToggle { width: 1.3em; height: 1.3em; cursor: pointer; }
     pre {   white-space: pre-wrap; word-wrap: break-word; }
     .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
+    .coords { opacity: 0; position: absolute; bottom: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out;}
+    .coords:hover { opacity: 1; cursor: copy; }
   </style>
 </head>
 <body>
   <main>
     <div id="osd">
+      <div class="coords">region</div>
       <sl-drawer contained class="drawer" no-header placement="start" style="--size: 90%;">
         <sl-tab-group placement="start">
           <sl-tab slot="nav" active panel="manifest">Manifest</sl-tab>
@@ -69,11 +72,14 @@
 
     const main = document.querySelector('main')
     const osd = document.querySelector('#osd')
+    const coords = document.querySelector('.coords')
+    coords.onclick = () => navigator.clipboard.writeText(coords.innerHTML)
     const caption = document.querySelector('.caption')
     const captionText = caption.querySelector('.label')
     const annosEl = caption.querySelector('.annos')
     const annoIcon = annosEl.querySelector('svg')
     const annoBadge = annosEl.querySelector('sl-badge')
+    let viewer
     let annoLayer
     let iiifManifest
     
@@ -95,6 +101,10 @@
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
       console.log('docReady', props)
+      window.addEventListener('message', (event) => {
+        console.log(event)
+        zoomto(event.data.region)
+    });
       main.style.visibility = 'visible'
     })
 
@@ -171,14 +181,59 @@
       }
     }
 
+    const parseRegionString = (region) => {
+      let viewportRect
+      const s1 = region.split(':')
+      let [x,y,w,h] = s1[s1.length-1].split(',').map(v => parseInt(v))
+      const size = viewer.world.getItemAt(0).getContentSize()
+      if (s1.length === 2 && (s1[0] === 'pct' || s1[0] === 'percent')) {
+        x = Math.round(size.x * x/100),
+        y = Math.round(size.y * y/100),
+        w = Math.round(size.x * w/100), 
+        h = Math.round(size.y * h/100)
+      }
+      return viewer.viewport.imageToViewportRectangle(x,y,w,h)
+    }
+
+    let zoomedToRegion = ''
+    const zoomto = (region) => {
+      if (region) {
+        if (zoomedToRegion === region) {
+          viewer.viewport.goHome()
+          zoomedToRegion = ''
+        } else {
+          zoomedToRegion = region
+          let rect = parseRegionString(region, viewer)
+          viewer.viewport.fitBounds(rect, false)
+        }
+      }
+    }
+
     const init = async (tileSources) => {
       // create the OpenSeadragon viewer
-      let viewer = OpenSeadragon({
+      viewer = OpenSeadragon({
         id: 'osd',
         prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
         homeFillsViewer: props.cover,
         tileSources,
         crossOriginPolicy: 'Anonymous'
+      })
+
+      // display the region coordinates
+      let debounce = null
+      viewer.addHandler('viewport-change', () => {
+        if (debounce !== null) {
+          clearTimeout(debounce)
+          debounce = null
+        }
+        debounce = window.setTimeout(() => {
+          const tiledImage = viewer.world.getItemAt(0)
+          if (tiledImage) {
+            let bounds = viewer.viewport.getBounds()
+            const imageBounds = bounds ? tiledImage.viewportToImageRectangle(bounds) : null
+            coords.innerHTML = imageBounds ? `${Math.ceil(imageBounds.x)},${Math.ceil(imageBounds.y)},${Math.ceil(imageBounds.width)},${Math.ceil(imageBounds.height)}` : ''
+          }
+        }, 100)
       })
   
       // Initialize the Annotorious plugin
