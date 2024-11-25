@@ -220,20 +220,23 @@
 
       // display the region coordinates
       let debounce = null
+      const setCoords = () => {
+        const tiledImage = viewer.world.getItemAt(0)
+        if (tiledImage) {
+          let bounds = viewer.viewport.getBounds()
+          const imageBounds = bounds ? tiledImage.viewportToImageRectangle(bounds) : null
+          coords.innerHTML = imageBounds ? `${Math.ceil(imageBounds.x)},${Math.ceil(imageBounds.y)},${Math.ceil(imageBounds.width)},${Math.ceil(imageBounds.height)}` : ''
+        }
+      }
+
       viewer.addHandler('viewport-change', () => {
         if (debounce !== null) {
           clearTimeout(debounce)
           debounce = null
         }
-        debounce = window.setTimeout(() => {
-          const tiledImage = viewer.world.getItemAt(0)
-          if (tiledImage) {
-            let bounds = viewer.viewport.getBounds()
-            const imageBounds = bounds ? tiledImage.viewportToImageRectangle(bounds) : null
-            coords.innerHTML = imageBounds ? `${Math.ceil(imageBounds.x)},${Math.ceil(imageBounds.y)},${Math.ceil(imageBounds.width)},${Math.ceil(imageBounds.height)}` : ''
-          }
-        }, 100)
+        debounce = window.setTimeout(() => setCoords(), 100)
       })
+      setCoords() // initial coords
   
       // Initialize the Annotorious plugin
       annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: false })
