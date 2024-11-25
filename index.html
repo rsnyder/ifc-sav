@@ -25,25 +25,25 @@
         routerMode: 'hash', // hash or history
       };
 
+      const actions = new Set('zoomto flyto play'.split(' '))
       setTimeout(() => {
-        console.log('Setting up action links');
+        console.log('Setting up action links')
         document.querySelectorAll('a').forEach(a => {
-          let path = a.href.split('/').slice(3)
-          let idx = path.indexOf('zoomto')
-          if (idx > -1) {
-            let targetId = path[idx + 1]
-            let region = path[idx + 2]
-            a.removeAttribute('href');
-            a.style.cursor = 'pointer';
-            a.style.color = 'blue';
+          let path = a.href.split('/').slice(3).filter(p => p !== '#' && p !== '')
+          if (actions.has(path[0])) {
+            let action = path[0]
+            let targetId = path[1]
+            let args = path.slice(2)
+            a.removeAttribute('href')
+            a.style.cursor = 'pointer'
+            a.style.color = 'blue'
             a.addEventListener('click', () => {
-              const iframe = document.getElementById(targetId);
-              // Send a message to the iframe
-              iframe.contentWindow.postMessage({action: 'zoomto', region }, '*'); 
+              const iframe = document.getElementById(targetId)
+              iframe.contentWindow.postMessage({ action, args }, '*')
             });
           }
         })
-      }, 2000);
+      }, 2000)
 
     </script>
   </body>

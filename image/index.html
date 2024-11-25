@@ -102,8 +102,11 @@
     docReady(function() {
       console.log('docReady', props)
       window.addEventListener('message', (event) => {
-        console.log(event)
-        zoomto(event.data.region)
+        let action = event.data.action
+        if (action === 'zoomto') {
+          let region = event.data.args[0]
+          zoomto(region)
+        }
     });
       main.style.visibility = 'visible'
     })
