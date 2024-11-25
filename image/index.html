@@ -7,35 +7,49 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@recogito/annotorious-openseadragon@2.7.14/dist/annotorious.min.css">
   <style>
-    body { margin: 0; padding: 0; font-family: sans-serif; }
-    main { display: flex; flex-direction: column; width: 100%; height: 100dvh; }
-    #osd { width: 100%; height: 100%; }
+    *, *::before, *::after { box-sizing: border-box; }
+    @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
+    body { margin: 0; padding: 0; font-family: sans-serif; animation: fadeInOpacity ease 1s; }    
+    main { display: flex; flex-direction: column; width: 100%; height: 100dvh; visibility: hidden; }
+    #osd { flex: 1; }
     .a9s-annotationlayer { visibility: hidden; }
     svg.a9s-annotationlayer .a9s-selection .a9s-inner, svg.a9s-annotationlayer .a9s-annotation .a9s-inner  { stroke-width: 3; stroke: rgba(255,255,0,1.0); }
     .a9s-selection-mask { stroke: none; fill: rgba(0,0,0,0.4); pointer-events: none; }
-    .caption { display: flex; align-items: center; gap: 0.2em; background-color: white; } 
-    .annos { display: flex; position: relative; width: 1.8em; padding: 0.5em; cursor: pointer; }
+    .caption { display: none; align-items: center; gap: 0.2em; background-color: white; } 
+    .annos { margin-left: auto; display: flex; position: relative; width: 1.8em; padding: 0.5em; cursor: pointer; }
     .manifestButton { width: 1.3em; height: 1.3em; cursor: pointer; }
-    .annos svg { visibility: hidden; }
-    .annos sl-badge { position: absolute; top: 0; right: 0; visibility: hidden; }
-    .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;}
+    .annos svg {  width: 1.2em; height: 1.2em; fill: #aaa; cursor: pointer; }
+    .annos sl-badge { position: absolute; top: 0; right: 0; }
+    .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    /* sl-drawer::part(base) { height: calc(100% - 32px); } */
+    sl-drawer::part(body) { padding: 0; }
+    sl-tab::part(base) { padding: 0.5em 1em; }
+    sl-tab-panel::part(base) { padding: 0.5em; }
+    .drawerToggle { width: 1.3em; height: 1.3em; cursor: pointer; }
+    pre {   white-space: pre-wrap; word-wrap: break-word; }
+    .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
   </style>
 </head>
 <body>
   <main>
-    <div id="osd"></div>
+    <div id="osd">
+      <sl-drawer contained class="drawer" no-header placement="start" style="--size: 90%;">
+        <sl-tab-group placement="start">
+          <sl-tab slot="nav" active panel="manifest">Manifest</sl-tab>
+          <sl-tab slot="nav" panel="annotations">Annotations</sl-tab>
+          <sl-tab-panel active name="manifest">IIIF manifest</sl-tab-panel>
+          <sl-tab-panel name="annotations">Image annotations</sl-tab-panel>
+        </sl-tab-group>
+      </sl-drawer>  
+    </div>
     <div class="caption">
-      <div class="annos">
+      <svg class="drawerToggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
+      <div class="label clamp"></div>
+            <div class="annos">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M160 368c26.5 0 48 21.5 48 48v16l72.5-54.4c8.3-6.2 18.4-9.6 28.8-9.6H448c8.8 0 16-7.2 16-16V64c0-8.8-7.2-16-16-16H64c-8.8 0-16 7.2-16 16V352c0 8.8 7.2 16 16 16h96zm48 124l-.2 .2-5.1 3.8-17.1 12.8c-4.8 3.6-11.3 4.2-16.8 1.5s-8.8-8.2-8.8-14.3V474.7v-6.4V468v-4V416H112 64c-35.3 0-64-28.7-64-64V64C0 28.7 28.7 0 64 0H448c35.3 0 64 28.7 64 64V352c0 35.3-28.7 64-64 64H309.3L208 492z"/></svg>
         <sl-badge variant="primary" pill>1</sl-badge>
       </div>
-      <div class="label clamp"></div>
-      <svg class="manifestButton" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
     </div>
-    <sl-dialog label="IIIF Manifest">
-      <pre><slot>IIIF Manifest will go here...</slot></pre>
-      <sl-button slot="footer" variant="primary">Close</sl-button>
-    </sl-dialog>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/openseadragon@5.0.0/build/openseadragon/openseadragon.min.js"></script>
@@ -44,31 +58,51 @@
 
   <script type="module">
 
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+    import 'https://cdn.jsdelivr.net/npm/marked-footnote/dist/index.umd.min.js'
+
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/badge/badge.js';
-    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/button/button.js';
-    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/dialog/dialog.js';
-    
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/drawer/drawer.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
+
+    const main = document.querySelector('main')
     const osd = document.querySelector('#osd')
     const caption = document.querySelector('.caption')
     const captionText = caption.querySelector('.label')
     const annosEl = caption.querySelector('.annos')
     const annoIcon = annosEl.querySelector('svg')
     const annoBadge = annosEl.querySelector('sl-badge')
-    const manifestDialog = document.querySelector('sl-dialog')
     let annoLayer
     let iiifManifest
-    let annotations = []
     
-    const md5Id = (url) => md5(url).slice(0,8)
-    const sha256 = async (str) => {
-      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str))
-      return Array.prototype.map.call(new Uint8Array(buf), x=>(('00'+x.toString(16)).slice(-2))).join('')
+    const props = {
+      ...{ // default properties
+        annos: null,   // URL to image annotations
+        caption: null,   // caption text
+        cover: false,
+        manifest: null,
+        nocaption: false,
+        showannos: false,
+        src: null
+      },
+      ...Object.fromEntries(
+        Array.from(new URLSearchParams(location.search).entries())
+        .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
+      )
     }
-    const b64EncodeUnicode = (str) => btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)))
-    const b64DecodeUnicode = (str) => decodeURIComponent(Array.prototype.map.call(atob(str), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''))
+    const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
+    docReady(function() {
+      console.log('docReady', props)
+      main.style.visibility = 'visible'
+    })
 
-    const annotationsBaseLocation = 'rsnyder/image-viewer/main/annotations'
-    const authToken = window.localStorage.getItem('gh-auth-token') || window.localStorage.getItem('gh-unscoped-token')
+    console.log(props)
+
+    const drawer = document.querySelector('.drawer')
+    const drawerButton = caption.querySelector('.drawerToggle')
+    drawerButton.addEventListener('click', e => drawer.open = !drawer.open)
 
     // recursive helper for finding items in a IIIF manifest
     const _findItems = (toMatch, current, found) => {
@@ -90,6 +124,7 @@
       const found = _findItems(toMatch, current)
       return found.length >= seq ? found[seq-1] : null
     }
+    let annotations = []
 
     const showAnnotations = () => annoLayer.style.visibility = 'visible'
     const hideAnnotations = () => annoLayer.style.visibility = 'hidden'
@@ -97,121 +132,71 @@
       annoLayer.style.visibility === 'visible' ? hideAnnotations() : showAnnotations()
       annoBadge.style.visibility = annotations.length ? annoLayer.style.visibility === 'hidden' ? 'visible' : 'hidden' : 'hidden'
     }
-    manifestDialog.querySelector('sl-button[slot="footer"]').onclick = () => manifestDialog.hide()
-    caption.querySelector('.manifestButton').onclick = () => manifestDialog.show()
 
     const setCaption = () => {
-      captionText.innerHTML = (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
+      if (!props.nocaption) {
+        captionText.innerHTML = props.caption || (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
+        caption.style.display = 'flex'
+      }
       annoBadge.innerHTML = annotations.length
-      annoIcon.style.visibility = (annotations.length || authToken) ? 'visible' : 'hidden'
+      annoIcon.style.visibility = annotations.length ? 'visible' : 'hidden'
       annoBadge.style.visibility = annotations.length ? 'visible' : 'hidden'
     }
 
-    const pathElems = location.pathname.split('/').filter(e => e)
-    const isGhp = location.hostname.indexOf('.github.io') > 0
+    if (props.src?.indexOf('wc:') === 0 || props.src?.indexOf('gh:') === 0) {
+      props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+    }
 
-    // const imageSource = pathElems.slice(isGhp ? 2 : 1).join('/')
+    fetch(props.manifest).then(resp => resp.json()).then(manifest => {
+      iiifManifest = manifest
+      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, 1)?.body
+      const tileSource = itemInfo.service
+        ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+        : { url: itemInfo.id, type: 'image', buildPyramid: true }
+      init(tileSource)
+      setCaption()
+    })
 
-    const imageSource = new URLSearchParams(location.search).get('src')
-    let imageUrl 
-
-    if (imageSource.indexOf('wc:') === 0) {
-      const wcFile = decodeURIComponent(imageSource.slice(3).replace(/File:/,'')).replace(/ /g,'_')
-      window.history.replaceState({}, '', `${isGhp ? '/' + pathElems[0] : ''}/wc:${wcFile}`)
-      const hash = md5(wcFile)
-      imageUrl = `https://upload.wikimedia.org/wikipedia/commons/${hash.slice(0,1)}/${hash.slice(0,2)}/${wcFile}`
-      fetch(`https://iiif.mdpress.io/wc:${wcFile}/manifest.json`).then(resp => resp.json()).then(manifest => {
-        iiifManifest = manifest
-        manifestDialog.querySelector('slot').innerHTML = JSON.stringify(manifest, null, 2)
-        const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, 1)?.body
-        const tileSource = itemInfo.service
-          ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
-          : { url: itemInfo.id, type: 'image', buildPyramid: true }
-        init(tileSource)
+    let annotorious
+    let annotationsInitialHash
+    let annotationsCurrentHash
+    const annotationsChanged = () => {
+      annotations = annotorious.getAnnotations()
+      let _hash = md5(JSON.stringify(annotations))
+      if (!annotationsInitialHash) annotationsInitialHash = _hash
+      console.log('annotationsChanged', _hash, annotations)
+      if (_hash !== annotationsCurrentHash) {
+        annotationsCurrentHash = _hash
         setCaption()
-      })
+      }
     }
 
-    const shas = {}
-
-    async function getFile(location) {
-      let [ acct, repo, branch, ...path ] = location.split('/')
-      path = path.join('/')
-      // console.log(`getGhFile: acct=${acct} repo=${repo} branch=${branch} path='${path} token=${authToken}`)
-      let url = `https://api.github.com/repos/${acct}/${repo}/contents/${path}?ref=${branch}`
-      let resp = authToken ? await fetch(url, { headers: {Authorization: `Token ${authToken}`} }) : await fetch(url)
-      if (resp.status === 200) {
-        resp = await resp.json()
-        shas[location] = resp.sha
-        return { sha: resp.sha, content: JSON.parse(decodeURIComponent(escape(atob(resp.content)))) }
-      } else if (resp.status === 403 || resp.status === 401) { // access problem, possibly api rate limit exceeded
-        url = `https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path}`
-        resp = await fetch(url)
-        return resp.ok ? { sha: null, content: await resp.json() } : null
-      } else return null
-    }
-
-    async function getSha(location) {
-      if (shas[location]) return shas[location]
-      let [ acct, repo, branch, ...path ] = location.split('/')
-      path = path.join('/')
-      // console.log(`getSha: acct=${acct} repo=${repo} branch=${branch} path='${path} token=${authToken}`)
-      let url = `https://api.github.com/repos/${acct}/${repo}/contents/${path}?ref=${branch}`
-      let resp = authToken ? await fetch(url, { cache: 'no-cache', headers: {Authorization: `Token ${authToken}`} }) : await fetch(url, { cache: 'no-cache'} )
-      if (resp.ok) {
-        resp = await resp.json()
-        shas[location] = resp.sha
-        return resp.sha
-      } else return null
-    }
-
-    async function putFile(location, content, sha) {
-      let [ acct, repo, branch, ...path ] = location.split('/')
-      path = path.join('/')
-      let url = `https://api.github.com/repos/${acct}/${repo}/contents/${path}`
-      sha = sha || shas[location] || await getSha(location)
-      // console.log(`putFile: acct=${acct} repo=${repo} branch=${branch} path='${path} sha=${sha} token=${authToken}`)
-      let payload = { branch, content: b64EncodeUnicode(content), message: 'API commit'}
-      if (sha) payload.sha = sha
-      let resp = authToken 
-        ? await fetch(url, { method: 'PUT', body: JSON.stringify(payload), headers: {Authorization: `Token ${authToken}`} }) 
-        : await fetch(url, { method: 'PUT', body: JSON.stringify(payload) }) 
-      if (resp.ok) shas[location] = (await resp.json()).content.sha
-      return {status:resp.status, statusText:resp.statusText, sha}
-    }
-    
-    let imageId = md5Id(imageUrl)
-    let annotationsLocation = `${annotationsBaseLocation}/${imageId}.json`
-
-    const init = (tileSources) => {
+    const init = async (tileSources) => {
       // create the OpenSeadragon viewer
       let viewer = OpenSeadragon({
         id: 'osd',
         prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
-        // homeFillsViewer: true,
+        homeFillsViewer: props.cover,
         tileSources,
         crossOriginPolicy: 'Anonymous'
       })
   
       // Initialize the Annotorious plugin
-      let annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: true })
-      annotorious.on('createAnnotation', async (anno) => {
-        anno.id = md5Id(anno.id)
-        anno.target.id = imageId
-        putFile(annotationsLocation, JSON.stringify(annotorious.getAnnotations(), null, 2))
-      })
-      annotorious.on('updateAnnotation', async (anno) => putFile(annotationsLocation, JSON.stringify(annotorious.getAnnotations(), null, 2)))
-      annotorious.on('deleteAnnotation', async (anno) => putFile(annotationsLocation, JSON.stringify(annotorious.getAnnotations(), null, 2)))
-  
+      annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: false })
+      annotorious.on('createAnnotation', () => annotationsChanged())
+      annotorious.on('updateAnnotation', () => annotationsChanged())
+      annotorious.on('deleteAnnotation', () => annotationsChanged())
+
       annoLayer = osd.querySelector('.a9s-annotationlayer')
+      if (props.showannos) showAnnotations()
 
-      // Load annotations from the GH repo
-      getFile(annotationsLocation).then(annos => { 
-        annotations = annos?.content || []
-        annotations.forEach(anno => annotorious.addAnnotation(anno))
-        setCaption()
-      })
-
+      if (props.annos) {
+        if (props.annos.indexOf('gh:') === 0) {
+          let [acct, repo, branch, ...path] = props.annos.slice(3).split('/')
+          props.annos = `https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path.join('/')}`
+        }
+        annotorious.loadAnnotations(props.annos).then(loaded => { setTimeout(() => annotationsChanged(), 500) })
+      }
     }
 
   </script>

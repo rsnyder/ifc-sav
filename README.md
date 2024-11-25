@@ -1,8 +1,6 @@
 # ifc
 IFrame Components
 
-## Running local server
+# Embedding components
 
-```bash
-python3 -m http.server
-```
+TODO...
