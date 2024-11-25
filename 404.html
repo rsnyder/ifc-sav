@@ -26,13 +26,17 @@
         // Get the content from the repo
         let locationsToCheck = []
         if (/\.md$/.test(path)) {
-          locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path}`))
+          locationsToCheck.push(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path}`)
         } else {
-          if (path.length) locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path}.md`))
-          locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}${path || '/'}README.md`))
-          locationsToCheck.push(fetch(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}${path || '/'}index.md`))
+          if (path.length) locationsToCheck.push(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path}.md`)
+          locationsToCheck.push(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}${path || '/'}README.md`)
+          locationsToCheck.push(`https://raw.githubusercontent.com/${acct}/${repo}/${branch}${path || '/'}index.md`)
         }
-        const markdown = await Promise.all(locationsToCheck).then(resp => resp.find(r => r?.status === 200)?.text())
+
+        console.log(locationsToCheck)
+
+        const markdown = await Promise.all(locationsToCheck.map(loc => fetch(loc))).then(resp => resp.find(r => r?.status === 200)?.text())
+        console.log(markdown)
         document.body.innerHTML = marked.use(window.markedFootnote()).parse(markdown)
       }
         
