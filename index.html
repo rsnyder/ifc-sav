@@ -26,6 +26,7 @@
       };
 
       setTimeout(() => {
+        console.log('Setting up action links');
         document.querySelectorAll('a').forEach(a => {
           let path = a.href.split('/').slice(3)
           let idx = path.indexOf('zoomto')
@@ -42,7 +43,7 @@
             });
           }
         })
-      }, 1000);
+      }, 2000);
 
     </script>
   </body>
