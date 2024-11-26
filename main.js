@@ -1,4 +1,4 @@
-const classes = new Set()
+const classes = new Set('left right center medium small box-shadow'.split(' '))
 const components = {
   image: {
     booleans: 'cover nocaption showannos',
@@ -130,6 +130,7 @@ const convertTags = () => {
     let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
     let iframe = document.createElement('iframe')
     if (parsed.id) iframe.id = parsed.id
+    if (parsed.class) iframe.className = parsed.class
     iframe.setAttribute('allowfullscreen', '')
     iframe.src = `${parsed.tag}?${componentArgs}`
     code.parentElement.replaceWith(iframe)
