@@ -85,13 +85,13 @@
     
     const props = {
       ...{ // default properties
-        annos: null,   // URL to image annotations
-        caption: null,   // caption text
+        annos: null,    // URL to image annotations
+        caption: null,  // caption text
         cover: false,
         manifest: null,
         nocaption: false,
+        seq: 1,         // sequence number of image in multi-image manifest, default is 1 for first image
         showannos: false,
-        seq: 1,
         src: null
       },
       ...Object.fromEntries(
@@ -166,20 +166,16 @@
         props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
       }
     }
-
-    const isV3Manifest = (manifest) => {
-      let contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
-      return contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
-    }
     
     fetch(props.manifest).then(resp => resp.json())
     .then( async manifest => {
-      if (!isV3Manifest(manifest))
-        manifest = await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
-      return manifest
+      const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
+      const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
+      return isV3Manifest 
+        ? manifest 
+        : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
     })
     .then(manifest => {
-      console.log(manifest)
       iiifManifest = manifest
       const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
       const tileSource = itemInfo.service
@@ -277,6 +273,7 @@
       annotorious.on('createAnnotation', () => annotationsChanged())
       annotorious.on('updateAnnotation', () => annotationsChanged())
       annotorious.on('deleteAnnotation', () => annotationsChanged())
+      annotorious.on('selectAnnotation', async (anno) => { if (navigator.clipboard) navigator.clipboard.writeText(anno.id.split('-')[0].slice(1)) })
 
       annoLayer = osd.querySelector('.a9s-annotationlayer')
       if (props.showannos) showAnnotations()

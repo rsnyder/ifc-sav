@@ -12,6 +12,7 @@
     <div id="app"></div>
 
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+    <script src="main.js"></script>
     <script>
       window.$docsify = {
         name: 'Juncture IFC',
@@ -24,26 +25,6 @@
 
         routerMode: 'hash', // hash or history
       };
-
-      // setup action links to iframes on DOM mutations (e.g., zoomto, flyto, play)
-      new MutationObserver(() => {
-        const actions = new Set('zoomto flyto play'.split(' '))
-        document.querySelectorAll('a').forEach(a => {
-          let href = a.href || a.getAttribute('data-href')
-          let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
-          if (actions.has(path[0])) {
-            let action = path[0]
-            let targetId = path[1]
-            let args = path.slice(2)
-            a.setAttribute('data-href', href)
-            a.removeAttribute('href')
-            a.style.cursor = 'pointer'
-            a.style.color = 'blue'
-            a.addEventListener('click', () => { document.getElementById(targetId).contentWindow.postMessage({ action, args }, '*')})
-          }
-        })
-      }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
-
     </script>
   </body>
 </html>

@@ -1,4 +1,4 @@
-<style>@import "components.css";</style>
+<style>@import "main.css";</style>
 
 # template
 
