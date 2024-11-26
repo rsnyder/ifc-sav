@@ -17,3 +17,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do [eiusmod](/zoomt
   class="center box-shadow"
   allowfullscreen
 ></iframe>
+
+<iframe
+  src="image/?src=https://commons.wikimedia.org/wiki/Commons:Picture_of_the_day#/media/File:003_Olive-bellied_Sunbird_in_flight_at_Kibale_forest_National_Park_Photo_by_Giles_Laurent.jpg"
+  class="center box-shadow"
+  allowfullscreen
+></iframe>

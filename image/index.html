@@ -28,7 +28,7 @@
     .drawerToggle { width: 1.3em; height: 1.3em; cursor: pointer; }
     pre {   white-space: pre-wrap; word-wrap: break-word; }
     .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
-    .coords { opacity: 0; position: absolute; bottom: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out;}
+    .coords { font-size: .8em; opacity: 0; position: absolute; bottom: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out;}
     .coords:hover { opacity: 1; cursor: copy; }
   </style>
 </head>
@@ -91,13 +91,18 @@
         manifest: null,
         nocaption: false,
         showannos: false,
+        seq: 1,
         src: null
       },
       ...Object.fromEntries(
-        Array.from(new URLSearchParams(location.search).entries())
-        .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
+        location.href.split('?')[1]
+        .split('&')
+        .map(p => p.split('='))
+        .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
       )
     }
+    // console.log(props)
+
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
       window.addEventListener('message', (event) => {
@@ -153,13 +158,30 @@
       annoBadge.style.visibility = annotations.length ? 'visible' : 'hidden'
     }
 
-    if (props.src?.indexOf('wc:') === 0 || props.src?.indexOf('gh:') === 0) {
-      props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+    if (props.src) {
+      if (props.src.indexOf('wc:') === 0 || props.src.indexOf('gh:') === 0)
+        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+      else if (props.src.indexOf('wikimedia.org') > -1 || (props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1)) {
+        const mwFile = props.src.split('/').pop().replace(/File:/, '')
+        props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
+      }
     }
 
-    fetch(props.manifest).then(resp => resp.json()).then(manifest => {
+    const isV3Manifest = (manifest) => {
+      let contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
+      return contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
+    }
+    
+    fetch(props.manifest).then(resp => resp.json())
+    .then( async manifest => {
+      if (!isV3Manifest(manifest))
+        manifest = await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
+      return manifest
+    })
+    .then(manifest => {
+      console.log(manifest)
       iiifManifest = manifest
-      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, 1)?.body
+      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
       const tileSource = itemInfo.service
         ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
         : { url: itemInfo.id, type: 'image', buildPyramid: true }
@@ -208,6 +230,25 @@
       }
     }
 
+    const setCoords = () => {
+      const tiledImage = viewer.world.getItemAt(0)
+      const round = (val) => val % 1 === 0 ? val : parseFloat(val.toFixed(2))
+      if (tiledImage) {
+        let bounds = viewer.viewport.getBounds()
+        const imageBounds = bounds ? tiledImage.viewportToImageRectangle(bounds) : null
+        const imageDimensions = tiledImage.getContentSize()
+        const boundingBoxPct = {
+          x: (imageBounds.x / imageDimensions.x) * 100,
+          y: (imageBounds.y / imageDimensions.y) * 100,
+          width: (imageBounds.width / imageDimensions.x) * 100,
+          height: (imageBounds.height / imageDimensions.y) * 100
+        }
+        const asCoords = `${Math.ceil(imageBounds.x)},${Math.ceil(imageBounds.y)},${Math.ceil(imageBounds.width)},${Math.ceil(imageBounds.height)}`
+        const asPct = `pct:${round(boundingBoxPct.x)},${round(boundingBoxPct.y)},${round(boundingBoxPct.width)},${round(boundingBoxPct.height)}`
+        coords.innerHTML = asPct
+      }
+    }
+
     const init = async (tileSources) => {
       // create the OpenSeadragon viewer
       viewer = OpenSeadragon({
@@ -220,14 +261,6 @@
 
       // display the region coordinates
       let debounce = null
-      const setCoords = () => {
-        const tiledImage = viewer.world.getItemAt(0)
-        if (tiledImage) {
-          let bounds = viewer.viewport.getBounds()
-          const imageBounds = bounds ? tiledImage.viewportToImageRectangle(bounds) : null
-          coords.innerHTML = imageBounds ? `${Math.ceil(imageBounds.x)},${Math.ceil(imageBounds.y)},${Math.ceil(imageBounds.width)},${Math.ceil(imageBounds.height)}` : ''
-        }
-      }
 
       viewer.addHandler('viewport-change', () => {
         if (debounce !== null) {
@@ -236,8 +269,9 @@
         }
         debounce = window.setTimeout(() => setCoords(), 100)
       })
-      setCoords() // initial coords
-  
+      // viewer.addHandler('page', (e) => { console.log('page') })
+      viewer.world.addHandler('add-item', (e) => setCoords() )
+
       // Initialize the Annotorious plugin
       annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: false })
       annotorious.on('createAnnotation', () => annotationsChanged())

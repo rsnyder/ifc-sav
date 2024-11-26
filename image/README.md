@@ -2,7 +2,7 @@
 
 # image
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do [eiusmod](/zoomto/iframe1/1055,880,380,221) tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui [officia](zoomto/iframe2/582,1231,758,473) deserunt mollit anim id est laborum.
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do [eiusmod](/zoomto/iframe1/pct:52.17,60.36,15.46,12.6) tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui [officia](zoomto/iframe2/pct:33.63,11.77,40.19,27.94) deserunt mollit anim id est laborum.
 
 <iframe
   id="iframe1"
@@ -13,7 +13,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do [eiusmod](/zoomt
 
 <iframe
   id="iframe2"
-  src="image/?src=gh:rsnyder/media/Bird.jpg&cover"
+  src="image/?manifest=https://iiif.harvardartmuseums.org/manifests/object/299843&seq=3"
   class="center box-shadow"
   allowfullscreen
 ></iframe>
