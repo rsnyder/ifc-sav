@@ -1,4 +1,4 @@
-<style>@import "main.css";</style>
+<style>@import "css/index.css";</style>
 
 # template
 

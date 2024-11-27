@@ -8,7 +8,7 @@
     <link href="https://v3.juncture-digital.org/images/favicon.svg" rel="icon" type="image/svg+xml"/>
     <link href="https://v3.juncture-digital.org/images/favicon.png" rel="icon" type="image/png"/>
     <link rel="apple-touch-icon" href="https://v3.juncture-digital.org/images/mobile-icon.png">
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="css/index.css" />
   </head
   <body>
     <main></main>
@@ -35,9 +35,9 @@
         }
 
         const markdown = await Promise.all(locationsToCheck.map(loc => fetch(loc))).then(resp => resp.find(r => r?.status === 200)?.text())
-        document.body.innerHTML = marked.use(window.markedFootnote()).parse(markdown)
-
-        console.log(restructure(document.body))
+        let html = marked.use(window.markedFootnote()).parse(markdown)
+        let rootEl = new DOMParser().parseFromString(html, 'text/html').querySelector('html')
+        document.body.innerHTML = restructure(rootEl).outerHTML
       }
         
     </script>

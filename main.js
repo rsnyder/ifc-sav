@@ -177,13 +177,17 @@ function restructure(rootEl) {
   if (styleSheet) {
     main.appendChild(styleSheet.cloneNode(true))
   }
-  
   main.className = 'page-content markdown-body'
   main.setAttribute('aria-label', 'Content')
   main.setAttribute('data-theme', 'light')
-  if (rootEl.style) main.setAttribute('style', rootEl.style.cssText)
-  let currentSection = main;
+
+  let article = document.createElement('article')
+  main.appendChild(article)
+  
+  let currentSection = article;
   let sectionParam
+
+  rootEl = rootEl.querySelector('body') || rootEl
 
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
   Array.from(rootEl?.querySelectorAll('p'))
@@ -249,7 +253,7 @@ function restructure(rootEl) {
       }
 
       let parent = (sectionLevel === 1 || headings.length === 0) 
-        ? main 
+        ? article 
         : headings.pop()?.parentElement
       parent?.appendChild(currentSection)
       currentSection.setAttribute('data-id', '2-' + computeDataId(currentSection))
@@ -268,11 +272,7 @@ function restructure(rootEl) {
     }
   })
 
-  let article = document.createElement('article')
-
-  article.appendChild(main)
-
-  return article
+  return main
 }
 
 export { restructure }
