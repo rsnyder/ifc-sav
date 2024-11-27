@@ -136,8 +136,113 @@ const convertTags = () => {
     code.parentElement.replaceWith(iframe)
   })}
 
+
 new MutationObserver(() => {
   convertTags()
   setupActionLinks()
 }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
 
+// Restructure the content to have hierarchical sections and segments
+function restructure(rootEl) {
+  let styleSheet = rootEl.querySelector('style')
+  let main = document.createElement('main')
+  if (styleSheet) {
+    main.appendChild(styleSheet.cloneNode(true))
+  }
+  
+  main.className = 'page-content markdown-body'
+  main.setAttribute('aria-label', 'Content')
+  main.setAttribute('data-theme', 'light')
+  if (rootEl.style) main.setAttribute('style', rootEl.style.cssText)
+  let currentSection = main;
+  let sectionParam
+
+  // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
+  Array.from(rootEl?.querySelectorAll('p'))
+  .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
+  .forEach(p => {
+    let ptext = p.childNodes.item(0).nodeValue?.trim()
+    let codeEl = p.querySelector('code')
+    let heading = document.createElement(`h${ptext?.length}`)
+    p.replaceWith(heading)
+    if (codeEl) {
+      let codeWrapper = document.createElement('p')
+      heading.parentElement?.insertBefore(codeWrapper, heading.nextSibling)
+    }
+  })
+
+  Array.from(rootEl?.children || []).forEach(el => {
+    if (el.tagName[0] === 'H' && isNumeric(el.tagName.slice(1))) {
+      let heading = el
+      let sectionAttrs
+
+      let sectionLevel = parseInt(heading.tagName.slice(1))
+      if (currentSection) {
+        (Array.from(currentSection.children))
+          .filter(child => !/^H\d/.test(child.tagName))
+          .filter(child => !/PARAM/.test(child.tagName))
+          .filter(child => !/STYLE/.test(child.tagName))
+          .forEach((child, idx) => { 
+            if (['DIV', 'P', 'UL', 'OL'].includes(child.tagName)) {
+              let segId = `${currentSection.getAttribute('data-id') || 0}.${idx+1}`
+              child.setAttribute('data-id', '1-' + segId)
+              child.id = child.id || segId
+              child.classList.add('segment')
+            }
+          })
+      }
+
+      currentSection = document.createElement('section')
+      currentSection.classList.add(`section${sectionLevel}`)
+      Array.from(heading.classList).forEach(c => currentSection.classList.add(c))
+      heading.className = ''
+      let headingStyle = heading.getAttribute('style')
+      if (headingStyle) {
+        currentSection.setAttribute('style', headingStyle)
+        heading.removeAttribute('style')
+      }
+      currentSection.id = heading.id || makeId(heading.textContent)
+      if (heading.id) heading.removeAttribute('id')
+
+      if (sectionAttrs) {
+        if (sectionAttrs.id) currentSection.id = sectionAttrs.id
+        if (sectionAttrs.class) sectionAttrs.class.split(' ').forEach(c => currentSection.classList.add(c))
+        if (sectionAttrs.style) currentSection.setAttribute('style', Object.entries(sectionAttrs.style).map(([k,v]) => `${k}:${v}`).join(';'))
+        if (sectionAttrs.kwargs) for (const [k,v] of Object.entries(sectionAttrs.kwargs)) currentSection.setAttribute(k, v === true ? '' : v)
+        if (sectionAttrs.args) {
+        }
+      }
+
+      currentSection.innerHTML += heading.outerHTML
+
+      let headings = []
+      for (let lvl = 1; lvl < sectionLevel; lvl++) {
+        headings = [...headings, ...Array.from(main.querySelectorAll(`H${lvl}`)).filter(h => h.parentElement.tagName === 'SECTION')]
+      }
+
+      let parent = (sectionLevel === 1 || headings.length === 0) 
+        ? main 
+        : headings.pop()?.parentElement
+      parent?.appendChild(currentSection)
+      currentSection.setAttribute('data-id', '2-' + computeDataId(currentSection))
+
+    } else  {
+      // if (el.tagName !== 'PARAM') {
+      if (['DIV', 'P', 'UL', 'OL'].includes(el.tagName)) {
+        let segId = `${currentSection.getAttribute('data-id') || 0}.${currentSection.children.length}`
+        el.setAttribute('data-id', '3-' + segId)
+        el.id = el.id || segId
+        el.classList.add('segment')
+      }
+      if (el !== sectionParam) {
+        currentSection.innerHTML += el.outerHTML
+      }
+    }
+  })
+
+  let article = document.createElement('article')
+
+  article.appendChild(main)
+
+  return article
+}
