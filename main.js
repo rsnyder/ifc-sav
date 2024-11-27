@@ -170,7 +170,7 @@ function computeDataId(el) {
   return dataId.reverse().join('.')
 }
 
-// Restructure the content to have hierarchical sections and segments
+// Restructure the content to have hierarchical sections
 function restructure(rootEl) {
   let styleSheet = rootEl.querySelector('style')
   let main = document.createElement('main')
@@ -209,21 +209,6 @@ function restructure(rootEl) {
       let sectionAttrs
 
       let sectionLevel = parseInt(heading.tagName.slice(1))
-      if (currentSection) {
-        (Array.from(currentSection.children))
-          .filter(child => !/^H\d/.test(child.tagName))
-          .filter(child => !/PARAM/.test(child.tagName))
-          .filter(child => !/STYLE/.test(child.tagName))
-          .forEach((child, idx) => { 
-            if (['DIV', 'P', 'UL', 'OL'].includes(child.tagName)) {
-              let segId = `${currentSection.getAttribute('data-id') || 0}.${idx+1}`
-              child.setAttribute('data-id', '1-' + segId)
-              child.id = child.id || segId
-              child.classList.add('segment')
-            }
-          })
-      }
-
       currentSection = document.createElement('section')
       currentSection.classList.add(`section${sectionLevel}`)
       Array.from(heading.classList).forEach(c => currentSection.classList.add(c))
@@ -256,16 +241,8 @@ function restructure(rootEl) {
         ? article 
         : headings.pop()?.parentElement
       parent?.appendChild(currentSection)
-      currentSection.setAttribute('data-id', '2-' + computeDataId(currentSection))
 
     } else  {
-      // if (el.tagName !== 'PARAM') {
-      if (['DIV', 'P', 'UL', 'OL'].includes(el.tagName)) {
-        let segId = `${currentSection.getAttribute('data-id') || 0}.${currentSection.children.length}`
-        el.setAttribute('data-id', '3-' + segId)
-        el.id = el.id || segId
-        el.classList.add('segment')
-      }
       if (el !== sectionParam) {
         currentSection.innerHTML += el.outerHTML
       }
