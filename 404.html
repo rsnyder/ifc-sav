@@ -13,9 +13,8 @@
   <body>
     <main></main>
 
-    <script src="main.js"></script>
     <script type="module">
-      console.log('here')
+      import { restructure } from './main.js'
       import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
       import 'https://cdn.jsdelivr.net/npm/marked-footnote/dist/index.umd.min.js'
   
@@ -37,6 +36,8 @@
 
         const markdown = await Promise.all(locationsToCheck.map(loc => fetch(loc))).then(resp => resp.find(r => r?.status === 200)?.text())
         document.body.innerHTML = marked.use(window.markedFootnote()).parse(markdown)
+
+        console.log(restructure(document.body))
       }
         
     </script>

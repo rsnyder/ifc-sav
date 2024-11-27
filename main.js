@@ -142,6 +142,34 @@ new MutationObserver(() => {
   setupActionLinks()
 }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
 
+function isNumeric(arg) { return !isNaN(arg) }
+
+let ids = {}
+function makeId(str) {
+  let slug = slugify(str)
+  ids[slug] = ids[slug] ? ids[slug] + 1 : 1
+  return ids[slug] > 1 ? `${slug}-${ids[slug]-1}` : slug
+}
+
+function slugify(str) {
+  str = str.replace(/^\s+|\s+$/g, ''); // trim leading/trailing white space
+  str = str.toLowerCase(); // convert string to lowercase
+  str = str.replace(/[^a-z0-9 -]/g, '') // remove any non-alphanumeric characters
+           .replace(/\s+/g, '-') // replace spaces with hyphens
+           .replace(/-+/g, '-'); // remove consecutive hyphens
+  return str
+}
+
+function computeDataId(el) {
+  let dataId = []
+  while (el.parentElement) {
+    let siblings = Array.from(el.parentElement.children).filter(c => c.tagName === el.tagName)
+    dataId.push(siblings.indexOf(el) + 1)
+    el = el.parentElement
+  }
+  return dataId.reverse().join('.')
+}
+
 // Restructure the content to have hierarchical sections and segments
 function restructure(rootEl) {
   let styleSheet = rootEl.querySelector('style')
@@ -246,3 +274,5 @@ function restructure(rootEl) {
 
   return article
 }
+
+export { restructure }
