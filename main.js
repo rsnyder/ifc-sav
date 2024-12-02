@@ -14,7 +14,7 @@ Object.entries(components).forEach(([tag, attrs]) => {
 })
 
 // setup action links to iframes on DOM mutations (e.g., zoomto, flyto, play)
-const setupActionLinks = () => {
+const setupActionLinks = (id) => {
   const actions = new Set('zoomto flyto play'.split(' '))
   document.querySelectorAll('a').forEach(a => {
     let href = a.href || a.getAttribute('data-href')
@@ -23,13 +23,16 @@ const setupActionLinks = () => {
       let action = path[0]
       let targetId = path[1]
       let args = path.slice(2)
-      if (a.href) {
-        a.setAttribute('data-href', href)
-        a.removeAttribute('href')
-        a.style.cursor = 'pointer'
-        a.style.color = 'blue'
-        a.addEventListener('click', () => { document.getElementById(targetId).contentWindow.postMessage({ action, args }, '*')})
-      } 
+      if (targetId === id) {
+        console.log(action, targetId, args)
+        if (a.href) {
+          a.setAttribute('data-href', href)
+          a.removeAttribute('href')
+          a.style.cursor = 'pointer'
+          a.style.color = 'blue'
+          a.addEventListener('click', () => { document.getElementById(targetId).contentWindow.postMessage({ action, args }, '*')})
+        }
+      }
     }
   })
 }
@@ -119,8 +122,9 @@ const parseCodeEl = (el) => {
 }
 
 // convert <code> tags to HTML iframe elements
-const convertTags = () => {
-  document.querySelectorAll('p code').forEach(code => {
+const convertTags = (rootEl) => {
+  rootEl.querySelectorAll('p code').forEach(code => {
+    console.log(code)
     let tokens = []
     code.textContent.replace(/”/g,'"').replace(/”/g,'"').replace(/’/g,"'").match(/[^\s"]+|"([^"]*)"/gmi)?.filter(t => t).forEach(token => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
@@ -137,9 +141,13 @@ const convertTags = () => {
   })}
 
 
-new MutationObserver(() => {
-  convertTags()
-  setupActionLinks()
+new MutationObserver((mutations) => {
+  mutations.forEach(mutation => {
+    if (mutation.target.tagName === 'ARTICLE') convertTags(mutation.target);
+    Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
+      if (iframe.id) setupActionLinks(iframe.id)
+    })
+  })
 }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
 
 function isNumeric(arg) { return !isNaN(arg) }

@@ -14,7 +14,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
             super().send_error(code, message, explain)
 
 if __name__ == "__main__":
-    port = 8000
+    port = 8080
     server = HTTPServer(('localhost', port), CustomHTTPRequestHandler)
     print(f"Serving on port {port}...")
     server.serve_forever()
