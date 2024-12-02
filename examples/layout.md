@@ -1,5 +1,5 @@
 <style>
-    section { margin: 1em; border: 1px solid red; }
+    article section { margin: 1em; border: 1px solid red; }
 </style>
 
 # Heading 1

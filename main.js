@@ -24,7 +24,7 @@ const setupActionLinks = (id) => {
       let targetId = path[1]
       let args = path.slice(2)
       if (targetId === id) {
-        console.log(action, targetId, args)
+        console.log(`adding action link for ${action} to ${targetId} with args ${args}`)
         if (a.href) {
           a.setAttribute('data-href', href)
           a.removeAttribute('href')
@@ -124,7 +124,7 @@ const parseCodeEl = (el) => {
 // convert <code> tags to HTML iframe elements
 const convertTags = (rootEl) => {
   rootEl.querySelectorAll('p code').forEach(code => {
-    console.log(code)
+    console.log(`converting code element to iframe: ${code.textContent}`)
     let tokens = []
     code.textContent.replace(/”/g,'"').replace(/”/g,'"').replace(/’/g,"'").match(/[^\s"]+|"([^"]*)"/gmi)?.filter(t => t).forEach(token => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
@@ -140,10 +140,19 @@ const convertTags = (rootEl) => {
     code.parentElement.replaceWith(iframe)
   })}
 
+console.log('main.js loaded')
 
 new MutationObserver((mutations) => {
   mutations.forEach(mutation => {
-    if (mutation.target.tagName === 'ARTICLE') convertTags(mutation.target);
+    console.log(mutation)
+    if (mutation.target.tagName === 'BODY' || mutation.target.tagName === 'ARTICLE') {
+      console.log('here')
+      convertTags(mutation.target)
+    }
+
+    if (mutation.target.tagName === 'ARTICLE') {
+      convertTags(mutation.target)
+    }
     Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
       if (iframe.id) setupActionLinks(iframe.id)
     })
