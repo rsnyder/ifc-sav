@@ -131,6 +131,7 @@ const convertTags = (rootEl) => {
       else tokens.push(token)
     })
     let parsed = parseCodeEl(code)
+    if (!parsed.tag) return
     let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
     let iframe = document.createElement('iframe')
     if (parsed.id) iframe.id = parsed.id
@@ -144,13 +145,7 @@ console.log('main.js loaded')
 
 new MutationObserver((mutations) => {
   mutations.forEach(mutation => {
-    console.log(mutation)
     if (mutation.target.tagName === 'BODY' || mutation.target.tagName === 'ARTICLE') {
-      console.log('here')
-      convertTags(mutation.target)
-    }
-
-    if (mutation.target.tagName === 'ARTICLE') {
       convertTags(mutation.target)
     }
     Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
@@ -177,36 +172,78 @@ function slugify(str) {
   return str
 }
 
-function computeDataId(el) {
-  let dataId = []
-  while (el.parentElement) {
-    let siblings = Array.from(el.parentElement.children).filter(c => c.tagName === el.tagName)
-    dataId.push(siblings.indexOf(el) + 1)
-    el = el.parentElement
-  }
-  return dataId.reverse().join('.')
+const applyStyle = (el, styleObj) => {
+  let styles = [
+    ...(el.getAttribute('style') || '').split(';').filter(s => s), 
+    ...Object.entries(styleObj).map(([k,v]) => {
+      if (k == 'background-image') {
+        v = `url('${expandShorthandUrl(v)}')`
+      }
+      return `${k}:${v}`
+    })
+  ]
+  el.setAttribute('style', styles.join(';'))
 }
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
-  let styleSheet = rootEl.querySelector('style')
+  Array.from(rootEl?.querySelectorAll('p, li'))
+  .forEach(el => {
+    let matches = Array.from(el.innerHTML.matchAll(/==(?<text>[^=}{]+)==/g))
+    if (matches.length) {
+      let replHtml = []
+      matches.forEach((match, idx) => {
+        if (idx === 0) replHtml.push(el.innerHTML.slice(0, match.index))
+        if (match.groups) {
+          let {text} = match.groups
+          replHtml.push(`<mark>${text}</mark>`)
+          replHtml.push(el.innerHTML.slice(match.index + match[0].length, matches[idx+1]?.index || el.innerHTML.length))
+        }
+      })
+      el.innerHTML = replHtml.join('')
+    }
+  })
+
+  rootEl.querySelectorAll('code').forEach(codeEl => {
+    let parsed = parseCodeEl(codeEl)
+    if (parsed.tag || (!parsed.id && !parsed.class && !parsed.style && !parsed.kwargs)) return
+    console.log(parsed)
+    // console.log(codeEl.parentElement.childNodes)
+    codeEl = (codeEl.parentElement.tagName === 'P' && codeEl.parentElement.childNodes.length === 1 && codeEl.parentElement.childNodes[0] === codeEl) ? codeEl.parentElement : codeEl
+    let parentEl = codeEl.parentElement
+    let priorEl = codeEl.previousElementSibling
+    // console.log(codeEl, parentEl, priorEl)
+    let target
+    if (priorEl?.tagName?.[0] === 'H') target = priorEl
+    else if (['STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
+    else target = parentEl
+    console.log(target)
+
+    if (parsed.class) target.className = parsed.class
+    if (parsed.id) target.id = parsed.id
+    if (parsed.style) applyStyle(target, parsed.style)
+    if (parsed.kwargs) for (const [k,v] of Object.entries(parsed.kwargs)) target.setAttribute(k, v === 'true' ? '' : v)
+    codeEl.remove()
+  })
+
   let main = document.createElement('main')
-  if (styleSheet) {
-    main.appendChild(styleSheet.cloneNode(true))
-  }
+
   main.className = 'page-content markdown-body'
   main.setAttribute('aria-label', 'Content')
   main.setAttribute('data-theme', 'light')
+
+  let styleSheet = rootEl.querySelector('style')
+  if (styleSheet) main.appendChild(styleSheet.cloneNode(true))
 
   let article = document.createElement('article')
   main.appendChild(article)
   
   let currentSection = article;
-  let sectionParam
 
   rootEl = rootEl.querySelector('body') || rootEl
 
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
+  /*
   Array.from(rootEl?.querySelectorAll('p'))
   .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
   .forEach(p => {
@@ -219,15 +256,18 @@ function restructure(rootEl) {
       heading.parentElement?.insertBefore(codeWrapper, heading.nextSibling)
     }
   })
+  */
 
   Array.from(rootEl?.children || []).forEach(el => {
     if (el.tagName[0] === 'H' && isNumeric(el.tagName.slice(1))) {
       let heading = el
-      let sectionAttrs
-
       let sectionLevel = parseInt(heading.tagName.slice(1))
+      
       currentSection = document.createElement('section')
       currentSection.classList.add(`section${sectionLevel}`)
+      if (heading.id) currentSection.id = heading.id
+      if (heading.className) currentSection.className = heading.className
+      /*
       Array.from(heading.classList).forEach(c => currentSection.classList.add(c))
       heading.className = ''
       let headingStyle = heading.getAttribute('style')
@@ -237,32 +277,18 @@ function restructure(rootEl) {
       }
       currentSection.id = heading.id || makeId(heading.textContent)
       if (heading.id) heading.removeAttribute('id')
-
-      if (sectionAttrs) {
-        if (sectionAttrs.id) currentSection.id = sectionAttrs.id
-        if (sectionAttrs.class) sectionAttrs.class.split(' ').forEach(c => currentSection.classList.add(c))
-        if (sectionAttrs.style) currentSection.setAttribute('style', Object.entries(sectionAttrs.style).map(([k,v]) => `${k}:${v}`).join(';'))
-        if (sectionAttrs.kwargs) for (const [k,v] of Object.entries(sectionAttrs.kwargs)) currentSection.setAttribute(k, v === true ? '' : v)
-        if (sectionAttrs.args) {
-        }
-      }
+      */
 
       currentSection.innerHTML += heading.outerHTML
 
       let headings = []
-      for (let lvl = 1; lvl < sectionLevel; lvl++) {
+      for (let lvl = 1; lvl < sectionLevel; lvl++)
         headings = [...headings, ...Array.from(main.querySelectorAll(`H${lvl}`)).filter(h => h.parentElement.tagName === 'SECTION')]
-      }
-
-      let parent = (sectionLevel === 1 || headings.length === 0) 
-        ? article 
-        : headings.pop()?.parentElement
+      let parent = (sectionLevel === 1 || headings.length === 0) ? article : headings.pop()?.parentElement
       parent?.appendChild(currentSection)
 
     } else  {
-      if (el !== sectionParam) {
-        currentSection.innerHTML += el.outerHTML
-      }
+      currentSection.innerHTML += el.outerHTML
     }
   })
 

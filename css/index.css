@@ -13,6 +13,11 @@ iframe {
     aspect-ratio: 3 / 2;
     border: none !important;
   }
+
+  iframe.wrapper {
+    height: calc(100dvh - 140px) !important;
+    aspect-ratio: unset;
+  }
   
   @media (min-width: 600px) {
   

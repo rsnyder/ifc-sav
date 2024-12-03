@@ -5,5 +5,5 @@
 - [Information for developers](/developers)
 
 - Examples
-  - [Image](/examples/image ':ignore')
-  - [Layout](/examples/layout ':ignore')
+  - [Image](/examples/image)
+  - [Layout](/examples/layout)
