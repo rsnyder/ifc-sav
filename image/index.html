@@ -101,8 +101,6 @@
         .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
       )
     }
-    // console.log(props)
-
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
       window.addEventListener('message', (event) => {
@@ -265,7 +263,6 @@
         }
         debounce = window.setTimeout(() => setCoords(), 100)
       })
-      // viewer.addHandler('page', (e) => { console.log('page') })
       viewer.world.addHandler('add-item', (e) => setCoords() )
 
       // Initialize the Annotorious plugin
