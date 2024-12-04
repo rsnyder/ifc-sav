@@ -10,10 +10,10 @@ For example,
 ## Markdown
 
 ```markup
-### Places 
+# Places 
 `.cards`
 
-####
+##
 
 [Ancient Lavatory](#)
 
@@ -21,7 +21,7 @@ For example,
 
 The ancient lavatory at Canterbury Cathedral where the monks washed before and after eating.
 
-####
+##
 
 [St Augustine's Abbey](#)
 
@@ -29,7 +29,7 @@ The ancient lavatory at Canterbury Cathedral where the monks washed before and a
 
 St Augustine's Abbey was a Benedictine monastery in Canterbury. The abbey was founded in 598.
 
-####
+##
 
 [Canterbury High Street](#)
 
@@ -37,7 +37,7 @@ St Augustine's Abbey was a Benedictine monastery in Canterbury. The abbey was fo
 
 The first Archbishop of Canterbury, Augustine, arrived in Kent as a missionary in 597AD. 
 
-####
+##
 
 [Canterbury Cathedral](#)
 
@@ -45,7 +45,7 @@ The first Archbishop of Canterbury, Augustine, arrived in Kent as a missionary i
 
 Founded in 597, the cathedral is the oldest Christian structure in England.
 
-####
+##
 
 [Dane John Gardens](#)
 
@@ -53,7 +53,7 @@ Founded in 597, the cathedral is the oldest Christian structure in England.
 
 The Dane John Gardens were created on common land by Alderman James Simmons in 1790.
 
-####
+##
 
 [Dane John Mound](#)
 
