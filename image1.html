@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@recogito/annotorious-openseadragon@2.7.14/dist/annotorious.min.css">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
+    body { margin: 0; padding: 0;   font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; }    
+    main { display: flex; flex-direction: column; width: 100%; height: 100dvh; visibility: hidden; }
+    #osd { flex: 1; position: relative; }
+    .a9s-annotationlayer { visibility: hidden; }
+    svg.a9s-annotationlayer .a9s-selection .a9s-inner, svg.a9s-annotationlayer .a9s-annotation .a9s-inner  { stroke-width: 3; stroke: rgba(255,255,0,1.0); }
+    .a9s-selection-mask { stroke: none; fill: rgba(0,0,0,0.4); pointer-events: none; }
+    .caption { display: none; align-items: center; gap: 0.2em; background-color: white; } 
+    .annos { margin-left: auto; display: flex; position: relative; width: 1.8em; padding: 0.5em; cursor: pointer; }
+    .manifestButton { width: 1.3em; height: 1.3em; cursor: pointer; }
+    .annos svg {  width: 1.2em; height: 1.2em; fill: #aaa; cursor: pointer; }
+    .annos sl-badge { position: absolute; top: 0; right: 0; }
+    .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    /* sl-drawer::part(base) { height: calc(100% - 32px); } */
+    sl-drawer::part(body) { padding: 0; }
+    sl-tab::part(base) { padding: 0.5em 1em; }
+    sl-tab-panel::part(base) { padding: 0.5em; }
+    .drawerToggle { width: 1.3em; height: 1.3em; cursor: pointer; }
+    pre {   white-space: pre-wrap; word-wrap: break-word; }
+    .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
+    .coords { font-size: .8em; opacity: 0; position: absolute; bottom: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out;}
+    .coords:hover { opacity: 1; cursor: copy; }
+  </style>
+</head>
+<body>
+  <main>
+    <div id="osd">
+      <div class="coords">region</div>
+      <sl-drawer contained class="drawer" no-header placement="start" style="--size: 90%;">
+        <sl-tab-group placement="start">
+          <sl-tab slot="nav" active panel="manifest">Manifest</sl-tab>
+          <sl-tab slot="nav" panel="annotations">Annotations</sl-tab>
+          <sl-tab-panel active name="manifest">IIIF manifest</sl-tab-panel>
+          <sl-tab-panel name="annotations">Image annotations</sl-tab-panel>
+        </sl-tab-group>
+      </sl-drawer>  
+    </div>
+    <div class="caption">
+      <svg class="drawerToggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
+      <div class="label clamp"></div>
+            <div class="annos">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M160 368c26.5 0 48 21.5 48 48v16l72.5-54.4c8.3-6.2 18.4-9.6 28.8-9.6H448c8.8 0 16-7.2 16-16V64c0-8.8-7.2-16-16-16H64c-8.8 0-16 7.2-16 16V352c0 8.8 7.2 16 16 16h96zm48 124l-.2 .2-5.1 3.8-17.1 12.8c-4.8 3.6-11.3 4.2-16.8 1.5s-8.8-8.2-8.8-14.3V474.7v-6.4V468v-4V416H112 64c-35.3 0-64-28.7-64-64V64C0 28.7 28.7 0 64 0H448c35.3 0 64 28.7 64 64V352c0 35.3-28.7 64-64 64H309.3L208 492z"/></svg>
+        <sl-badge variant="primary" pill>1</sl-badge>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/openseadragon@5.0.0/build/openseadragon/openseadragon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious-openseadragon@2.7.14/dist/openseadragon-annotorious.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
+
+  <script type="module">
+
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+    import 'https://cdn.jsdelivr.net/npm/marked-footnote/dist/index.umd.min.js'
+
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/badge/badge.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/drawer/drawer.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
+
+    const main = document.querySelector('main')
+    const osd = document.querySelector('#osd')
+    const coords = document.querySelector('.coords')
+    coords.onclick = () => navigator.clipboard.writeText(coords.innerHTML)
+    const caption = document.querySelector('.caption')
+    const captionText = caption.querySelector('.label')
+    const annosEl = caption.querySelector('.annos')
+    const annoIcon = annosEl.querySelector('svg')
+    const annoBadge = annosEl.querySelector('sl-badge')
+    let viewer
+    let annoLayer
+    let iiifManifest
+    
+    const props = {
+      ...{ // default properties
+        annos: null,    // URL to image annotations
+        caption: null,  // caption text
+        cover: false,
+        manifest: null,
+        nocaption: false,
+        seq: 1,         // sequence number of image in multi-image manifest, default is 1 for first image
+        showannos: false,
+        src: null
+      },
+      ...Object.fromEntries(
+        location.href.split('?')[1]
+        .split('&')
+        .map(p => p.split('='))
+        .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
+      )
+    }
+    const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
+    docReady(function() {
+      window.addEventListener('message', (event) => {
+        let action = event.data.action
+        if (action === 'zoomto') {
+          let region = event.data.args[0]
+          zoomto(region)
+        }
+    });
+      main.style.visibility = 'visible'
+    })
+
+    const drawer = document.querySelector('.drawer')
+    const drawerButton = caption.querySelector('.drawerToggle')
+    drawerButton.addEventListener('click', e => drawer.open = !drawer.open)
+
+    // recursive helper for finding items in a IIIF manifest
+    const _findItems = (toMatch, current, found) => {
+      found = found || []
+      if (current?.items) {
+        for (let i = 0; i < current.items.length; i++ ) {
+          let item = current.items[i]
+          let isMatch = !Object.entries(toMatch).find(([attr, val]) => item[attr] && item[attr] !== val)
+          if (isMatch) found.push(item)
+          else _findItems(toMatch, item, found)
+        }
+      }
+      return found
+    }
+
+    // find an item in a IIIF manifest
+    const findItem = (toMatch, current, seq) => {
+      seq = seq || 1
+      const found = _findItems(toMatch, current)
+      return found.length >= seq ? found[seq-1] : null
+    }
+    let annotations = []
+
+    const showAnnotations = () => annoLayer.style.visibility = 'visible'
+    const hideAnnotations = () => annoLayer.style.visibility = 'hidden'
+    annosEl.onclick = () => {
+      annoLayer.style.visibility === 'visible' ? hideAnnotations() : showAnnotations()
+      annoBadge.style.visibility = annotations.length ? annoLayer.style.visibility === 'hidden' ? 'visible' : 'hidden' : 'hidden'
+    }
+
+    const setCaption = () => {
+      if (!props.nocaption) {
+        captionText.innerHTML = props.caption || (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
+        caption.style.display = 'flex'
+      }
+      annoBadge.innerHTML = annotations.length
+      annoIcon.style.visibility = annotations.length ? 'visible' : 'hidden'
+      annoBadge.style.visibility = annotations.length ? 'visible' : 'hidden'
+    }
+
+    if (props.src) {
+      if (props.src.indexOf('wc:') === 0 || props.src.indexOf('gh:') === 0)
+        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+      else if (props.src.indexOf('wikimedia.org') > -1 || (props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1)) {
+        const mwFile = props.src.split('/').pop().replace(/File:/, '')
+        props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
+      }
+    }
+    
+    fetch(props.manifest).then(resp => resp.json())
+    .then( async manifest => {
+      const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
+      const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
+      return isV3Manifest 
+        ? manifest 
+        : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
+    })
+    .then(manifest => {
+      iiifManifest = manifest
+      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
+      const tileSource = itemInfo.service
+        ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+        : { url: itemInfo.id, type: 'image', buildPyramid: true }
+      init(tileSource)
+      setCaption()
+    })
+
+    let annotorious
+    let annotationsInitialHash
+    let annotationsCurrentHash
+    const annotationsChanged = () => {
+      annotations = annotorious.getAnnotations()
+      let _hash = md5(JSON.stringify(annotations))
+      if (!annotationsInitialHash) annotationsInitialHash = _hash
+      if (_hash !== annotationsCurrentHash) {
+        annotationsCurrentHash = _hash
+        setCaption()
+      }
+    }
+
+    const parseRegionString = (region) => {
+      let viewportRect
+      const s1 = region.split(':')
+      let [x,y,w,h] = s1[s1.length-1].split(',').map(v => parseInt(v))
+      const size = viewer.world.getItemAt(0).getContentSize()
+      if (s1.length === 2 && (s1[0] === 'pct' || s1[0] === 'percent')) {
+        x = Math.round(size.x * x/100),
+        y = Math.round(size.y * y/100),
+        w = Math.round(size.x * w/100), 
+        h = Math.round(size.y * h/100)
+      }
+      return viewer.viewport.imageToViewportRectangle(x,y,w,h)
+    }
+
+    let zoomedToRegion = ''
+    const zoomto = (region) => {
+      if (region) {
+        if (zoomedToRegion === region) {
+          viewer.viewport.goHome()
+          zoomedToRegion = ''
+        } else {
+          zoomedToRegion = region
+          let rect = parseRegionString(region, viewer)
+          viewer.viewport.fitBounds(rect, false)
+        }
+      }
+    }
+
+    const setCoords = () => {
+      const tiledImage = viewer.world.getItemAt(0)
+      const round = (val) => val % 1 === 0 ? val : parseFloat(val.toFixed(2))
+      if (tiledImage) {
+        let bounds = viewer.viewport.getBounds()
+        const imageBounds = bounds ? tiledImage.viewportToImageRectangle(bounds) : null
+        const imageDimensions = tiledImage.getContentSize()
+        const boundingBoxPct = {
+          x: (imageBounds.x / imageDimensions.x) * 100,
+          y: (imageBounds.y / imageDimensions.y) * 100,
+          width: (imageBounds.width / imageDimensions.x) * 100,
+          height: (imageBounds.height / imageDimensions.y) * 100
+        }
+        const asCoords = `${Math.ceil(imageBounds.x)},${Math.ceil(imageBounds.y)},${Math.ceil(imageBounds.width)},${Math.ceil(imageBounds.height)}`
+        const asPct = `pct:${round(boundingBoxPct.x)},${round(boundingBoxPct.y)},${round(boundingBoxPct.width)},${round(boundingBoxPct.height)}`
+        coords.innerHTML = asPct
+      }
+    }
+
+    const init = async (tileSources) => {
+      // create the OpenSeadragon viewer
+      viewer = OpenSeadragon({
+        id: 'osd',
+        prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
+        homeFillsViewer: props.cover,
+        tileSources,
+        crossOriginPolicy: 'Anonymous'
+      })
+
+      // display the region coordinates
+      let debounce = null
+
+      viewer.addHandler('viewport-change', () => {
+        if (debounce !== null) {
+          clearTimeout(debounce)
+          debounce = null
+        }
+        debounce = window.setTimeout(() => setCoords(), 100)
+      })
+      viewer.world.addHandler('add-item', (e) => setCoords() )
+
+      // Initialize the Annotorious plugin
+      annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: false })
+      annotorious.on('createAnnotation', () => annotationsChanged())
+      annotorious.on('updateAnnotation', () => annotationsChanged())
+      annotorious.on('deleteAnnotation', () => annotationsChanged())
+      annotorious.on('selectAnnotation', async (anno) => { if (navigator.clipboard) navigator.clipboard.writeText(anno.id.split('-')[0].slice(1)) })
+
+      annoLayer = osd.querySelector('.a9s-annotationlayer')
+      if (props.showannos) showAnnotations()
+
+      if (props.annos) {
+        if (props.annos.indexOf('gh:') === 0) {
+          let [acct, repo, branch, ...path] = props.annos.slice(3).split('/')
+          props.annos = `https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path.join('/')}`
+        }
+        annotorious.loadAnnotations(props.annos).then(loaded => { setTimeout(() => annotationsChanged(), 500) })
+      }
+    }
+
+  </script>
+</body>
+</html>
