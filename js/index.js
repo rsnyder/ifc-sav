@@ -19,7 +19,6 @@ Object.entries(components).forEach(([tag, attrs]) => {
 
 // setup action links to iframes on DOM mutations (e.g., zoomto, flyto, play)
 const setupActionLinks = (id) => {
-  console.log('setupActionLinks', id)
   const actions = new Set('zoomto flyto play'.split(' '))
   document.querySelectorAll('a').forEach(a => {
     let href = a.href || a.getAttribute('data-href')
@@ -30,7 +29,6 @@ const setupActionLinks = (id) => {
       let action = path[0]
       let targetId = path[1]
       let args = path.slice(2)
-      console.log(`action: ${action}, targetId: ${targetId}, args: ${args}`)
       if (targetId === id) {
         if (a.href) {
           a.setAttribute('data-href', href)
@@ -255,23 +253,12 @@ const makeColumns = (rootEl) => {
   })
 }
 
-function docReady(fn) {
-  if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1)
-  else document.addEventListener('DOMContentLoaded', fn)
-}
-docReady(() => {
-  console.log('docReady', document.querySelector('main'))
-})
-
 let main = document.querySelector('main.ghp')
-console.log('main', main)
 if (main) {
 
   new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
-      // console.log(mutation)
       Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
-        console.log(iframe)
         if (iframe.id) setupActionLinks(iframe.id)
       })
     })
