@@ -251,9 +251,17 @@ const makeColumns = (rootEl) => {
   })
 }
 
+let main = document.querySelector('main')
+console.log(main)
+let restructured = restructure(main)
+main.replaceWith(restructured)
+convertTags(restructured)
+makeTabs(restructured)
+makeCards(restructured)
+makeColumns(restructured)
+
 new MutationObserver((mutations) => {
   mutations.forEach(mutation => {
-    console.log(mutation)
     if (mutation.target.tagName === 'ARTICLE') {
       let restructuredArticle = restructure(mutation.target).querySelector('article')
       restructuredArticle.id = mutation.target.id
