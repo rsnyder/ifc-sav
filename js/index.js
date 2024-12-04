@@ -40,19 +40,26 @@ const setupActionLinks = (id) => {
     let href = a.href || a.getAttribute('data-href')
     let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
     const actionIdx = path?.findIndex(p => actions.has(p))
-    if (actionIdx >= 0) path = path.slice(actionIdx)
-    if (actions.has(path[0])) {
+    if (actionIdx >= 0) {
+      path = path.slice(actionIdx)
       let action = path[0]
       let targetId = path[1]
       let args = path.slice(2)
-      if (targetId === id) {
-        if (a.href) {
-          a.setAttribute('data-href', href)
-          a.removeAttribute('href')
-          a.style.cursor = 'pointer'
-          a.style.color = 'blue'
-          a.addEventListener('click', () => { document.getElementById(targetId).contentWindow.postMessage({ action, args }, '*')})
-        }
+      if (a.href) {
+        a.setAttribute('data-href', href)
+        a.removeAttribute('href')
+        a.style.cursor = 'pointer'
+        a.style.color = 'blue'
+        a.addEventListener('click', () => { document.getElementById(targetId)?.contentWindow.postMessage({ action, args }, '*')})
+      }
+    } else {
+      let qidIdx = path?.findIndex(p => /^Q\d+$/.test(p))
+      if (qidIdx >= 0) {
+        let qid = path[qidIdx]
+        a.removeAttribute('href')
+        a.style.cursor = 'pointer'
+        a.style.color = 'blue'
+        a.addEventListener('click', () => { alert(`Entity popup for ${qid}`) })
       }
     }
   })
