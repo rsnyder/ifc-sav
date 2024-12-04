@@ -122,7 +122,7 @@ const parseCodeEl = (el) => {
 
 // convert <code> tags to HTML iframe elements
 const convertTags = (rootEl) => {
-  rootEl.querySelectorAll('p code').forEach(code => {
+  rootEl.querySelectorAll('p > code').forEach(code => {
     let tokens = []
     code.textContent.replace(/”/g,'"').replace(/”/g,'"').replace(/’/g,"'").match(/[^\s"]+|"([^"]*)"/gmi)?.filter(t => t).forEach(token => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
@@ -141,7 +141,15 @@ const convertTags = (rootEl) => {
 
 new MutationObserver((mutations) => {
   mutations.forEach(mutation => {
-    if (mutation.target.tagName === 'BODY' || mutation.target.tagName === 'ARTICLE') {
+    if (mutation.target.tagName === 'ARTICLE') {
+      let restructuredArticle = restructure(mutation.target).querySelector('article')
+      restructuredArticle.id = mutation.target.id
+      restructuredArticle.className = mutation.target.className
+      restructuredArticle.classList.add('markdown-body')
+      // restructuredArticle.classList.remove('markdown-section')
+      mutation.target.replaceWith(restructuredArticle)
+      convertTags(restructuredArticle)
+    } else if (mutation.target.tagName === 'BODY') {
       convertTags(mutation.target)
     }
     Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
@@ -200,7 +208,11 @@ function restructure(rootEl) {
     }
   })
 
+  Array.from(rootEl?.querySelectorAll('.anchor'))
+  .forEach(a => { a.parentElement.innerHTML = a.textContent})
+
   rootEl.querySelectorAll('code').forEach(codeEl => {
+    if (codeEl.parentElement.tagName === 'PRE') return
     let parsed = parseCodeEl(codeEl)
     if (parsed.tag || (!parsed.id && !parsed.class && !parsed.style && !parsed.kwargs)) return
     codeEl = (codeEl.parentElement.tagName === 'P' && codeEl.parentElement.childNodes.length === 1 && codeEl.parentElement.childNodes[0] === codeEl) ? codeEl.parentElement : codeEl
@@ -243,7 +255,9 @@ function restructure(rootEl) {
       currentSection.classList.add(`section${sectionLevel}`)
       if (heading.id) currentSection.id = heading.id
       if (heading.className) currentSection.className = heading.className
-
+      if (!heading.textContent) heading.style.display = 'none'
+      heading.removeAttribute('id')
+      heading.removeAttribute('class')
       currentSection.innerHTML += heading.outerHTML
 
       let headings = []

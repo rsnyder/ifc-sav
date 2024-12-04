@@ -53,4 +53,8 @@ iframe {
       width: 33% !important;
     }
   
+    .markdown-section {
+      max-width: unset;
+      padding: 0;
+    }
   }
