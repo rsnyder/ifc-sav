@@ -255,11 +255,14 @@ function docReady(fn) {
   if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1)
   else document.addEventListener('DOMContentLoaded', fn)
 }
+docReady(() => {
+  console.log('docReady', document.querySelector('main.ghp'))
+})
 
-docReady(function() {
+// docReady(function() {
 
   let main = document.querySelector('main.ghp')
-  console.log(main)
+  console.log('main', main)
   if (main) {
 
     let restructured = restructure(main)
@@ -297,7 +300,7 @@ docReady(function() {
 
   }
 
-})
+// })
 
 function isNumeric(arg) { return !isNaN(arg) }
 
