@@ -19,10 +19,12 @@ Object.entries(components).forEach(([tag, attrs]) => {
 
 // setup action links to iframes on DOM mutations (e.g., zoomto, flyto, play)
 const setupActionLinks = (id) => {
+  console.log('setupActionLinks', id)
   const actions = new Set('zoomto flyto play'.split(' '))
   document.querySelectorAll('a').forEach(a => {
     let href = a.href || a.getAttribute('data-href')
     let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
+    console.log(path)
     if (actions.has(path[0])) {
       let action = path[0]
       let targetId = path[1]
@@ -265,7 +267,7 @@ if (main) {
 
   new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
-      console.log(mutation)
+      // console.log(mutation)
       Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
         console.log(iframe)
         if (iframe.id) setupActionLinks(iframe.id)
