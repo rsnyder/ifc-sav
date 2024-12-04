@@ -8,60 +8,65 @@ body {
 }
 
 iframe {
-    min-width: unset !important;
-    position: relative;
-    width: 100% !important;
-    aspect-ratio: 3 / 2;
-    border: none !important;
+  min-width: unset !important;
+  position: relative;
+  width: 100% !important;
+  aspect-ratio: 3 / 2;
+  border: none !important;
+}
+
+iframe.wrapper {
+  height: calc(100dvh - 140px) !important;
+  aspect-ratio: unset;
+}
+
+@media (min-width: 600px) {
+
+  .left {
+    float: left;
+    margin-right: 1em;
   }
 
-  iframe.wrapper {
-    height: calc(100dvh - 140px) !important;
-    aspect-ratio: unset;
-  }
-  
-  @media (min-width: 600px) {
-  
-    .left {
-      float: left;
-      margin-right: 1em;
-    }
-  
-    .right {
-      float: right;
-      margin-left: 1em;
-    }
-  
-    .left, .right {
-      width: 50% !important;
-      margin-bottom: .5em;
-    }
-  
-    .center {
-      display: block;
-      margin: 0 auto;
-    }
-  
-    .box-shadow {
-      box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px;
-    }
-  
-    .medium {
-      width: 50% !important;
-    }
-  
-    .small {
-      width: 33% !important;
-    }
-  
-    .markdown-section {
-      max-width: unset;
-      padding: 0;
-    }
+  .right {
+    float: right;
+    margin-left: 1em;
   }
 
-  .columns { /* multiple columns */
-    display: grid;
-    gap: 1em;
-    grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+  .left, .right {
+    width: 50% !important;
+    margin-bottom: .5em;
   }
+
+  .center {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .box-shadow {
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px;
+  }
+
+  .medium {
+    width: 50% !important;
+  }
+
+  .small {
+    width: 33% !important;
+  }
+
+  .markdown-section {
+    max-width: unset;
+    padding: 0;
+  }
+}
+
+.columns { /* multiple columns */
+  display: grid;
+  gap: 1em;
+  grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
+}
+
+pre code {
+  white-space: pre-wrap !important; 
+  word-wrap: break-word; 
+}
