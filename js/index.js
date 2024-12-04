@@ -4,16 +4,32 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 
 const classes = new Set('left right center medium small box-shadow'.split(' '))
 const components = {
+  header: {
+    booleans: '',
+    positional: '',
+    disabled: true
+  },
   image: {
     booleans: 'cover nocaption showannos',
     positional: 'src caption'
+  },
+  map: {
+    booleans: 'nocaption',
+    positional: 'location caption',
+    disabled: true
+  },
+  video: {
+    booleans: 'nocaption',
+    positional: 'src caption',
+    disabled: true
   }
 }
 const tagMap = {}
 Object.entries(components).forEach(([tag, attrs]) => {
   tagMap[tag] = { 
     booleans : new Set((attrs.booleans || '').split(' ').filter(s => s)),
-    positional: (attrs.positional || '').split(' ').filter(s => s)
+    positional: (attrs.positional || '').split(' ').filter(s => s),
+    disabled: attrs.disabled || false
   }
 })
 
@@ -135,7 +151,7 @@ const convertTags = (rootEl) => {
       else tokens.push(token)
     })
     let parsed = parseCodeEl(code)
-    if (!parsed.tag) return
+    if (!parsed.tag || tagMap[parsed.tag].disabled) return
     let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
     let iframe = document.createElement('iframe')
     if (parsed.id) iframe.id = parsed.id
@@ -368,7 +384,7 @@ function restructure(rootEl) {
     if (priorEl?.tagName?.[0] === 'H') target = priorEl
     else if (['A', 'STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
     else target = parentEl
-
+    console.log(target)
     if (parsed.class) target.className = parsed.class
     if (parsed.id) target.id = parsed.id
     if (parsed.style) applyStyle(target, parsed.style)
