@@ -251,44 +251,53 @@ const makeColumns = (rootEl) => {
   })
 }
 
-let main = document.querySelector('main.ghp')
-console.log(main)
-if (main) {
-
-  let restructured = restructure(main)
-  main.replaceWith(restructured)
-  convertTags(restructured)
-  makeTabs(restructured)
-  makeCards(restructured)
-  makeColumns(restructured);
-  Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
-    if (iframe.id) setupActionLinks(iframe.id)
-  })
-} else {
-
-  new MutationObserver((mutations) => {
-    mutations.forEach(mutation => {
-      if (mutation.target.tagName === 'ARTICLE') {
-        let restructuredArticle = restructure(mutation.target).querySelector('article')
-        restructuredArticle.id = mutation.target.id
-        restructuredArticle.className = mutation.target.className
-        restructuredArticle.classList.add('markdown-body')
-        // restructuredArticle.classList.remove('markdown-section')
-        mutation.target.replaceWith(restructuredArticle)
-        convertTags(restructuredArticle)
-        makeTabs(restructuredArticle)
-        makeCards(restructuredArticle)
-        makeColumns(restructuredArticle)
-      } else if (mutation.target.tagName === 'BODY') {
-        convertTags(mutation.target)
-      }
-      Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
-        if (iframe.id) setupActionLinks(iframe.id)
-      })
-    })
-  }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
-
+function docReady(fn) {
+  if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1)
+  else document.addEventListener('DOMContentLoaded', fn)
 }
+
+docReady(function() {
+
+  let main = document.querySelector('main.ghp')
+  console.log(main)
+  if (main) {
+
+    let restructured = restructure(main)
+    main.replaceWith(restructured)
+    convertTags(restructured)
+    makeTabs(restructured)
+    makeCards(restructured)
+    makeColumns(restructured);
+    Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
+      if (iframe.id) setupActionLinks(iframe.id)
+    })
+  } else {
+
+    new MutationObserver((mutations) => {
+      mutations.forEach(mutation => {
+        if (mutation.target.tagName === 'ARTICLE') {
+          let restructuredArticle = restructure(mutation.target).querySelector('article')
+          restructuredArticle.id = mutation.target.id
+          restructuredArticle.className = mutation.target.className
+          restructuredArticle.classList.add('markdown-body')
+          // restructuredArticle.classList.remove('markdown-section')
+          mutation.target.replaceWith(restructuredArticle)
+          convertTags(restructuredArticle)
+          makeTabs(restructuredArticle)
+          makeCards(restructuredArticle)
+          makeColumns(restructuredArticle)
+        } else if (mutation.target.tagName === 'BODY') {
+          convertTags(mutation.target)
+        }
+        Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
+          if (iframe.id) setupActionLinks(iframe.id)
+        })
+      })
+    }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
+
+  }
+
+})
 
 function isNumeric(arg) { return !isNaN(arg) }
 
