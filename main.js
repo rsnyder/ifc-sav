@@ -1,3 +1,7 @@
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
+
 const classes = new Set('left right center medium small box-shadow'.split(' '))
 const components = {
   image: {
@@ -139,6 +143,114 @@ const convertTags = (rootEl) => {
     code.parentElement.replaceWith(iframe)
   })}
 
+const makeTabs = (rootEl) => {
+  rootEl.querySelectorAll('section.tabs').forEach(section => {
+    let tabGroup = document.createElement('sl-tab-group');
+    Array.from(section.classList).forEach(cls => tabGroup.classList.add(cls))
+    Array.from(section.attributes).forEach(attr => tabGroup.setAttribute(attr.name, attr.value))
+    
+    Array.from(section.querySelectorAll(':scope > section'))
+    .forEach((tabSection, idx) => {
+      let tab = document.createElement('sl-tab')
+      tab.setAttribute('slot', 'nav')
+      tab.setAttribute('panel', `tab${idx+1}`)
+      if (idx === 0) tab.setAttribute('active', '')
+      tab.innerHTML = tabSection.querySelector('h1, h2, h3, h4, h5, h6')?.innerHTML || ''
+      tabGroup.appendChild(tab)      
+    })
+
+    Array.from(section.querySelectorAll(':scope > section'))
+    .forEach((tabSection, idx) => {
+      let tabPanel = document.createElement('sl-tab-panel')
+      tabPanel.setAttribute('name', `tab${idx+1}`)
+      if (idx === 0) tabPanel.setAttribute('active', '')
+      let tabContent = Array.from(tabSection.children).slice(1).map(el => el.outerHTML).join(' ')
+      tabPanel.innerHTML = tabContent
+      tabGroup.appendChild(tabPanel)
+    })
+
+    section.replaceWith(tabGroup)
+  })
+}
+
+let cardCtr = 0
+const makeCards = (rootEl) => {
+  rootEl.querySelectorAll('section.cards').forEach(section => {
+    if (!section.classList.contains('wrapper')) {
+      section.classList.remove('cards')
+      let wrapper = document.createElement('section')
+      wrapper.className = 'cards wrapper'
+      Array.from(section.children).slice(1).forEach(card => {
+        wrapper.appendChild(card)
+        card.classList.add('card')
+        let heading = card.querySelector('h1, h2, h3, h4, h5, h6')
+        let img = card.querySelector('p > img')
+        let link
+        if (card.getAttribute('href')) {
+          link = document.createElement('a')
+          link.href = card.getAttribute('href')
+          link.textContent = heading?.textContent
+          card.appendChild(link)
+          card.removeAttribute('href')
+        }
+        if (img) {
+          img.parentElement?.replaceWith(img)
+        } else {
+          let veImage = card.querySelector('ve-image')
+          if (veImage) {
+            veImage.setAttribute('static', '')
+            veImage.setAttribute('no-caption', '')
+          }
+        }
+        if (!link) {
+          link = card.querySelector('p > a')
+          if (link) {
+            link.textContent = heading?.textContent || link.textContent
+            link.parentElement?.replaceWith(link)
+          }
+        }
+        heading.remove()
+        card.querySelectorAll('p').forEach(p => {
+          ++cardCtr
+          let readMoreWrapper = document.createElement('div')
+          readMoreWrapper.className = 'read-more'
+          let input = document.createElement('input')
+          input.setAttribute('type', 'checkbox')
+          input.id = `read-more-${cardCtr}`
+          readMoreWrapper.appendChild(input)
+          let para = document.createElement('p')
+          para.innerHTML = p.innerHTML
+          readMoreWrapper.appendChild(para)
+          let label = document.createElement('label')
+          label.setAttribute('for', `read-more-${cardCtr}`)
+          label.setAttribute('role', 'button')
+          label.innerHTML = 'More'
+          readMoreWrapper.appendChild(label)
+          p.replaceWith(readMoreWrapper)
+        })
+      })
+      section.appendChild(wrapper)
+    }
+  })
+}
+
+const makeColumns = (rootEl) => {
+  rootEl.querySelectorAll('section.cards').forEach(section => {
+    if (!section.classList.contains('wrapper')) {
+      let wrapper = document.createElement('section')
+      wrapper.className = 'columns wrapper'
+      section.classList.remove('columns')
+      Array.from(section.childNodes)
+        .filter(c => c.tagName[0] !== 'H')
+        .forEach((col, idz) => {
+          wrapper.appendChild(col)
+          col.classList.add(`col-${idz+1}`)
+      })
+      section.appendChild(wrapper)
+    }
+  })
+}
+
 new MutationObserver((mutations) => {
   mutations.forEach(mutation => {
     if (mutation.target.tagName === 'ARTICLE') {
@@ -149,6 +261,9 @@ new MutationObserver((mutations) => {
       // restructuredArticle.classList.remove('markdown-section')
       mutation.target.replaceWith(restructuredArticle)
       convertTags(restructuredArticle)
+      makeTabs(restructuredArticle)
+      makeCards(restructuredArticle)
+      makeColumns(restructuredArticle)
     } else if (mutation.target.tagName === 'BODY') {
       convertTags(mutation.target)
     }
