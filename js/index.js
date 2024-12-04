@@ -263,7 +263,6 @@ let main = document.querySelector('main.ghp')
 console.log('main', main)
 if (main) {
 
-  /*
   new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
       console.log(mutation)
@@ -273,7 +272,6 @@ if (main) {
       })
     })
   }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
-  */
 
   let restructured = restructure(main)
   main.replaceWith(restructured)
@@ -346,7 +344,7 @@ function restructure(rootEl) {
   Array.from(rootEl.querySelectorAll('a > img'))
   .map(img => img.parentElement)
   .find(link => link.href.indexOf('juncture-digital.org') > 0)
-  ?.parentElement?.parentElement?.remove()
+  ?.parentElement?.remove()
 
   Array.from(rootEl?.querySelectorAll('p, li'))
   .forEach(el => {

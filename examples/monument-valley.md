@@ -4,11 +4,11 @@
 
 # Monument Valley
 
-`image wc:Monument_Valley,_Utah,_USA_(23611451292).jpg "Monument Valley" right`
+`image #iframe1 wc:Monument_Valley,_Utah,_USA_(23611451292).jpg "Monument Valley" right`
 
 **Monument Valley**, meaning "valley of the rocks", is a region of the Colorado Plateau characterized by a cluster of sandstone buttes, with the largest reaching 1,000 ft (300 m) above the valley floor.[^1] The most famous butte formations are located in northeastern Arizona along the Utah–Arizona state line. The valley is considered sacred by the [Navajo Nation](Q1783171), the Native American people within whose reservation it lies.[^2]
 
-Major rock formations include [West and East Mitten Buttes](zoomto/675,518,2909,1937), [Merrick Butte](zoomto/3759,1040,1455,969/f8d317c8), Hunts Mesa, Eagle Mesa, Sentinel Mesa, Brighams Tomb, Castle Rock, Stagecoach, Big Indian, Rain God Mesa, Spearhead Mesa, Mitchell Mesa, Mitchell Butte, Gray Whiskers, Elephant Butte, Camel Butte, Cly Butte, King-on-his-Throne, Rooster Rock, and Setting Hen. Another notable formation is [Totem Pole](Q7828304), a highly eroded butte remanent. The valley also includes large stone structures, such as the "Eye of the Sun".
+Major rock formations include [West and East Mitten Buttes](zoomto/iframe1/675,518,2909,1937), [Merrick Butte](zoomto/iframe1/3759,1040,1455,969/f8d317c8), Hunts Mesa, Eagle Mesa, Sentinel Mesa, Brighams Tomb, Castle Rock, Stagecoach, Big Indian, Rain God Mesa, Spearhead Mesa, Mitchell Mesa, Mitchell Butte, Gray Whiskers, Elephant Butte, Camel Butte, Cly Butte, King-on-his-Throne, Rooster Rock, and Setting Hen. Another notable formation is [Totem Pole](Q7828304), a highly eroded butte remanent. The valley also includes large stone structures, such as the "Eye of the Sun".
 
 ## Geography and geology
 
