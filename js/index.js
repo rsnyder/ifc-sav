@@ -256,51 +256,47 @@ function docReady(fn) {
   else document.addEventListener('DOMContentLoaded', fn)
 }
 docReady(() => {
-  console.log('docReady', document.querySelector('main.ghp'))
+  console.log('docReady', document.querySelector('main'))
 })
 
-// docReady(function() {
+let main = document.querySelector('main.ghp')
+console.log('main', main)
+if (main) {
 
-  let main = document.querySelector('main.ghp')
-  console.log('main', main)
-  if (main) {
+  let restructured = restructure(main)
+  main.replaceWith(restructured)
+  convertTags(restructured)
+  makeTabs(restructured)
+  makeCards(restructured)
+  makeColumns(restructured);
+  Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
+    if (iframe.id) setupActionLinks(iframe.id)
+  })
+} else {
 
-    let restructured = restructure(main)
-    main.replaceWith(restructured)
-    convertTags(restructured)
-    makeTabs(restructured)
-    makeCards(restructured)
-    makeColumns(restructured);
-    Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
-      if (iframe.id) setupActionLinks(iframe.id)
-    })
-  } else {
-
-    new MutationObserver((mutations) => {
-      mutations.forEach(mutation => {
-        if (mutation.target.tagName === 'ARTICLE') {
-          let restructuredArticle = restructure(mutation.target).querySelector('article')
-          restructuredArticle.id = mutation.target.id
-          restructuredArticle.className = mutation.target.className
-          restructuredArticle.classList.add('markdown-body')
-          // restructuredArticle.classList.remove('markdown-section')
-          mutation.target.replaceWith(restructuredArticle)
-          convertTags(restructuredArticle)
-          makeTabs(restructuredArticle)
-          makeCards(restructuredArticle)
-          makeColumns(restructuredArticle)
-        } else if (mutation.target.tagName === 'BODY') {
-          convertTags(mutation.target)
-        }
-        Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
-          if (iframe.id) setupActionLinks(iframe.id)
-        })
+  new MutationObserver((mutations) => {
+    mutations.forEach(mutation => {
+      if (mutation.target.tagName === 'ARTICLE') {
+        let restructuredArticle = restructure(mutation.target).querySelector('article')
+        restructuredArticle.id = mutation.target.id
+        restructuredArticle.className = mutation.target.className
+        restructuredArticle.classList.add('markdown-body')
+        // restructuredArticle.classList.remove('markdown-section')
+        mutation.target.replaceWith(restructuredArticle)
+        convertTags(restructuredArticle)
+        makeTabs(restructuredArticle)
+        makeCards(restructuredArticle)
+        makeColumns(restructuredArticle)
+      } else if (mutation.target.tagName === 'BODY') {
+        convertTags(mutation.target)
+      }
+      Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
+        if (iframe.id) setupActionLinks(iframe.id)
       })
-    }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
+    })
+  }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
 
-  }
-
-// })
+}
 
 function isNumeric(arg) { return !isNaN(arg) }
 
@@ -335,6 +331,13 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
+  
+  // remove "view as" buttons
+  Array.from(rootEl.querySelectorAll('a > img'))
+  .map(img => img.parentElement)
+  .find(link => link.href.indexOf('juncture-digital.org') > 0)
+  ?.parentElement?.parentElement?.remove()
+
   Array.from(rootEl?.querySelectorAll('p, li'))
   .forEach(el => {
     let matches = Array.from(el.innerHTML.matchAll(/==(?<text>[^=}{]+)==/g))
