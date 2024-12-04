@@ -263,15 +263,23 @@ let main = document.querySelector('main.ghp')
 console.log('main', main)
 if (main) {
 
+  new MutationObserver((mutations) => {
+    mutations.forEach(mutation => {
+      console.log(mutation)
+      Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
+        console.log(iframe)
+        if (iframe.id) setupActionLinks(iframe.id)
+      })
+    })
+  }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
+
   let restructured = restructure(main)
   main.replaceWith(restructured)
   convertTags(restructured)
   makeTabs(restructured)
   makeCards(restructured)
   makeColumns(restructured);
-  Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
-    if (iframe.id) setupActionLinks(iframe.id)
-  })
+
 } else {
 
   new MutationObserver((mutations) => {
