@@ -263,6 +263,7 @@ let main = document.querySelector('main.ghp')
 console.log('main', main)
 if (main) {
 
+  /*
   new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
       console.log(mutation)
@@ -272,6 +273,7 @@ if (main) {
       })
     })
   }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
+  */
 
   let restructured = restructure(main)
   main.replaceWith(restructured)
