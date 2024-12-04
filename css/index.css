@@ -20,6 +20,22 @@ iframe.wrapper {
   aspect-ratio: unset;
 }
 
+
+.markdown-section {
+  max-width: unset;
+  padding: 0 .8em 1em .8em;
+}
+
+.markdown-body pre>code {
+  white-space: pre-wrap !important; 
+  word-wrap: break-word; 
+}
+
+.markdown-body mark {
+  background-color: inherit;
+  color: inherit;
+}
+
 @media (min-width: 600px) {
 
   .left {
@@ -54,19 +70,10 @@ iframe.wrapper {
     width: 33% !important;
   }
 
-  .markdown-section {
-    max-width: unset;
-    padding: 0;
-  }
 }
 
 .columns { /* multiple columns */
   display: grid;
   gap: 1em;
   grid-template-columns: repeat(auto-fit, minmax(275px, 1fr));
-}
-
-pre code {
-  white-space: pre-wrap !important; 
-  word-wrap: break-word; 
 }

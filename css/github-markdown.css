@@ -79,11 +79,8 @@
 }
 
 .markdown-body mark {
-  background-color: inherit
-  /*
   background-color: #fff8c5;
   color: #1F2328;
-  */
 }
 
 .markdown-body small {

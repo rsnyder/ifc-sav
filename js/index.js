@@ -139,7 +139,7 @@ const convertTags = (rootEl) => {
     if (parsed.id) iframe.id = parsed.id
     if (parsed.class) iframe.className = parsed.class
     iframe.setAttribute('allowfullscreen', '')
-    iframe.src = `${parsed.tag}?${componentArgs}`
+    iframe.src = `/${parsed.tag}?${componentArgs}`
     code.parentElement.replaceWith(iframe)
   })}
 
