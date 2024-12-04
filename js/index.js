@@ -24,11 +24,13 @@ const setupActionLinks = (id) => {
   document.querySelectorAll('a').forEach(a => {
     let href = a.href || a.getAttribute('data-href')
     let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
-    console.log(path)
+    const actionIdx = path?.findIndex(p => actions.has(p))
+    if (actionIdx >= 0) path = path.slice(actionIdx)
     if (actions.has(path[0])) {
       let action = path[0]
       let targetId = path[1]
       let args = path.slice(2)
+      console.log(`action: ${action}, targetId: ${targetId}, args: ${args}`)
       if (targetId === id) {
         if (a.href) {
           a.setAttribute('data-href', href)
