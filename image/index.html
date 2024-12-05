@@ -271,7 +271,7 @@
       viewer.world.addHandler('add-item', (e) => setCoords() )
 
       // Initialize the Annotorious plugin
-      annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: false })
+      annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: true })
       annotorious.on('createAnnotation', () => annotationsChanged())
       annotorious.on('updateAnnotation', () => annotationsChanged())
       annotorious.on('deleteAnnotation', () => annotationsChanged())
