@@ -150,7 +150,7 @@ const parseCodeEl = (el) => {
 
 // convert <code> tags to HTML iframe elements
 const convertTags = (rootEl) => {
-  let base = document.querySelector('base').getAttribute('href')
+  let base = document.querySelector('base')?.getAttribute('href')
   rootEl.querySelectorAll('p > code').forEach(code => {
     let tokens = []
     code.textContent.replace(/”/g,'"').replace(/”/g,'"').replace(/’/g,"'").match(/[^\s"]+|"([^"]*)"/gmi)?.filter(t => t).forEach(token => {
@@ -159,7 +159,7 @@ const convertTags = (rootEl) => {
     })
     let parsed = parseCodeEl(code)
     if (!parsed.tag || tagMap[parsed.tag].disabled) return
-    parsed.kwargs.annos = base
+    if (base) parsed.kwargs.annos = base
     let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
     let iframe = document.createElement('iframe')
     if (parsed.id) iframe.id = parsed.id

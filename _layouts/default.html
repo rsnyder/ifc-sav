@@ -1,5 +1,10 @@
 <!doctype html>
+<base href="/">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="/css/index.css" />
 <main class="ghp">{{ content }}</main>
 <script src="/js/index.js" type="module"></script>
+<script>
+    let base = '{{page.dir}}'
+    console.log(base)
+</script>
