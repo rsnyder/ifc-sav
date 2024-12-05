@@ -4,7 +4,9 @@
 
 # Monument Valley
 
-`image #iframe1 wc:Monument_Valley,_Utah,_USA_(23611451292).jpg "Monument Valley" right`
+##
+
+`image #iframe1 wc:Monument_Valley,_Utah,_USA_(23611451292).jpg "Monument Valley" cover right  box-shadow`
 
 **Monument Valley**, meaning "valley of the rocks", is a region of the Colorado Plateau characterized by a cluster of sandstone buttes, with the largest reaching 1,000 ft (300 m) above the valley floor.[^1] The most famous butte formations are located in northeastern Arizona along the Utah–Arizona state line. The valley is considered sacred by the [Navajo Nation](Q1783171), the Native American people within whose reservation it lies.[^2]
 
@@ -12,7 +14,7 @@ Major rock formations include [West and East Mitten Buttes](zoomto/iframe1/675,5
 
 ## Geography and geology
 
-`map #iframe2 Q192017,4 "Monument Valley" marker right`
+`map #iframe2 Q192017,4 "Monument Valley" marker right box-shadow`
 
 [Monument Valley](flyto/iframe2/Q192017,11) is part of the Colorado Plateau. The elevation of the valley floor ranges from 5,000 to 6,000 feet (1,500 to 1,800 m) above sea level. The floor is largely siltstone of the Cutler Group, or sand derived from it, deposited by the meandering rivers that carved the valley. The valley's vivid red coloration comes from iron oxide exposed in the weathered siltstone. The darker, blue-gray rocks in the valley get their color from manganese oxide.
 

@@ -15,8 +15,7 @@ const components = {
   },
   map: {
     booleans: 'nocaption',
-    positional: 'location caption',
-    disabled: true
+    positional: 'location caption'
   },
   video: {
     booleans: 'nocaption',

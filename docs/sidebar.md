@@ -1,6 +1,6 @@
 - [Components](/docs/components/)
-  - [Image](/docs/components/image/)
-  - [Template](/docs/components/template/)
+  - [Image](/docs/components/image)
+  - [Map](/docs/components/map)
 
 - [Layout](/docs/layout/)
   - [Cards](/docs/layout/cards)
