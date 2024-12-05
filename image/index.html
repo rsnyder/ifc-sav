@@ -288,7 +288,6 @@
         } else {
           annosUrl = props.annos[props.annos.length-1] === '/' ? `${props.annos}${annoId}.json` : props.annos
         }
-        console.log(annosUrl)
         annotorious.loadAnnotations(annosUrl).then(loaded => { setTimeout(() => annotationsChanged(), 500) })
       }
     }
