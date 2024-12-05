@@ -50,7 +50,7 @@
     <div class="captionBar">
       <svg class="drawerToggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
       <div class="label clamp"></div>
-            <div class="annos">
+      <div class="annos">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M160 368c26.5 0 48 21.5 48 48v16l72.5-54.4c8.3-6.2 18.4-9.6 28.8-9.6H448c8.8 0 16-7.2 16-16V64c0-8.8-7.2-16-16-16H64c-8.8 0-16 7.2-16 16V352c0 8.8 7.2 16 16 16h96zm48 124l-.2 .2-5.1 3.8-17.1 12.8c-4.8 3.6-11.3 4.2-16.8 1.5s-8.8-8.2-8.8-14.3V474.7v-6.4V468v-4V416H112 64c-35.3 0-64-28.7-64-64V64C0 28.7 28.7 0 64 0H448c35.3 0 64 28.7 64 64V352c0 35.3-28.7 64-64 64H309.3L208 492z"/></svg>
         <sl-badge variant="primary" pill>1</sl-badge>
       </div>
@@ -85,6 +85,7 @@
     let viewer
     let annoLayer
     let iiifManifest
+    let annoId
     
     const props = {
       ...{ // default properties
@@ -179,6 +180,7 @@
     .then(manifest => {
       iiifManifest = manifest
       const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
+      annoId = md5(itemInfo.id).slice(0,8)
       const tileSource = itemInfo.service
         ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
         : { url: itemInfo.id, type: 'image', buildPyramid: true }
@@ -279,11 +281,15 @@
       if (props.showannos) showAnnotations()
 
       if (props.annos) {
+        let annosUrl
         if (props.annos.indexOf('gh:') === 0) {
           let [acct, repo, branch, ...path] = props.annos.slice(3).split('/')
-          props.annos = `https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path.join('/')}`
+          annosUrl = `https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path.join('/')}`
+        } else {
+          annosUrl = props.annos[props.annos.length-1] === '/' ? `${props.annos}${annoId}.json` : props.annos
         }
-        annotorious.loadAnnotations(props.annos).then(loaded => { setTimeout(() => annotationsChanged(), 500) })
+        console.log(annosUrl)
+        annotorious.loadAnnotations(annosUrl).then(loaded => { setTimeout(() => annotationsChanged(), 500) })
       }
     }
 

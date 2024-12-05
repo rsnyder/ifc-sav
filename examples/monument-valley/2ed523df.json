@@ -1,0 +1,65 @@
+[
+  {
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "West Mitten Butte - This formation is named because its shape resembles a mitten, with an extended \"thumb\" on one side.",
+        "purpose": "commenting"
+      }
+    ],
+    "target": {
+      "source": "https://editor.juncture-digital.org/undefined",
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=pixel:868.2450561523438,863.8038940429688,1007.8534545898438,981.1243286132812"
+      },
+      "id": "c1f0bc7c"
+    },
+    "id": "65c7e4dc"
+  },
+  {
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "East Mitten Butte - Similar in shape to West Mitten Butte, this formation is its counterpart, creating a mirrored mitten-like appearance.",
+        "purpose": "commenting"
+      }
+    ],
+    "target": {
+      "source": "https://editor.juncture-digital.org/undefined",
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=pixel:2524.5888671875,1143.1029052734375,985.113037109375,886.2974853515625"
+      },
+      "id": "c1f0bc7c"
+    },
+    "id": "0fa8ce75"
+  },
+  {
+    "@context": "http://www.w3.org/ns/anno.jsonld",
+    "type": "Annotation",
+    "body": [
+      {
+        "type": "TextualBody",
+        "value": "Merrick Butte - This butte is broader and less \"mitten-like\" compared to the other two. It is named after gold prospector Thomas Merrick, who explored the area.",
+        "purpose": "commenting"
+      }
+    ],
+    "target": {
+      "source": "https://editor.juncture-digital.org/undefined",
+      "selector": {
+        "type": "FragmentSelector",
+        "conformsTo": "http://www.w3.org/TR/media-frags/",
+        "value": "xywh=pixel:3971.704833984375,1048.6051025390625,1149.230224609375,1004.3992919921875"
+      },
+      "id": "c1f0bc7c"
+    },
+    "id": "f8d317c8"
+  }
+]

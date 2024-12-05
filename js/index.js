@@ -150,6 +150,7 @@ const parseCodeEl = (el) => {
 
 // convert <code> tags to HTML iframe elements
 const convertTags = (rootEl) => {
+  let base = document.querySelector('base').getAttribute('href')
   rootEl.querySelectorAll('p > code').forEach(code => {
     let tokens = []
     code.textContent.replace(/”/g,'"').replace(/”/g,'"').replace(/’/g,"'").match(/[^\s"]+|"([^"]*)"/gmi)?.filter(t => t).forEach(token => {
@@ -158,6 +159,7 @@ const convertTags = (rootEl) => {
     })
     let parsed = parseCodeEl(code)
     if (!parsed.tag || tagMap[parsed.tag].disabled) return
+    parsed.kwargs.annos = base
     let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
     let iframe = document.createElement('iframe')
     if (parsed.id) iframe.id = parsed.id
@@ -404,7 +406,6 @@ function restructure(rootEl) {
     if (priorEl?.tagName?.[0] === 'H') target = priorEl
     else if (['A', 'STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
     else target = parentEl
-    console.log(target)
     if (parsed.class) target.className = parsed.class
     if (parsed.id) target.id = parsed.id
     if (parsed.style) applyStyle(target, parsed.style)
