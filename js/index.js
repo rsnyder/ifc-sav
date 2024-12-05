@@ -353,6 +353,20 @@ const applyStyle = (el, styleObj) => {
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
   
+  // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
+  Array.from(rootEl?.querySelectorAll('p'))
+  .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
+  .forEach(p => {
+    let ptext = p.childNodes.item(0).nodeValue?.trim()
+    let codeEl = p.querySelector('code')
+    let heading = document.createElement(`h${ptext?.length}`)
+    p.replaceWith(heading)
+    if (codeEl) {
+      let codeWrapper = document.createElement('p')
+      heading.parentElement?.insertBefore(codeWrapper, heading.nextSibling)
+    }
+  })
+
   // remove "view as" buttons
   Array.from(rootEl.querySelectorAll('a > img'))
   .map(img => img.parentElement)
