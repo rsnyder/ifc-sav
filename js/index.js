@@ -212,6 +212,7 @@ const makeBreadcrumbs = () => {
     let breadcrumb = document.createElement('sl-breadcrumb-item')
     let label = idx === 0 ? 'home' : p
     let href = (idx < path.length - 1) ? `/${path.slice(0,idx+1).join('/')}` : null
+    href = 'http://localhost:8888'
     console.log(`breadcrumb idx=${idx} label=${label} href=${href}`)
     breadcrumb.textContent = label
     if (href) breadcrumb.href = href
