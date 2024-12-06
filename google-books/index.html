@@ -30,7 +30,7 @@
           .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
         )
       }
-      console.log(props)
+      // console.log(props)
 
       const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
       docReady(function() {
@@ -48,10 +48,7 @@
 
       let viewer
 
-      new ResizeObserver(() => {
-        console.log(`${window.innerWidth} x ${window.innerHeight}`)
-        viewer?.resize()
-      }).observe(document.body)
+      new ResizeObserver(() => { viewer?.resize() }).observe(document.body) // viewer.resize() doesn't appear to work
 
       google.books.load()
       google.books.setOnLoadCallback(() => {

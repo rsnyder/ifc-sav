@@ -103,7 +103,7 @@ const setupActionLinks = (targetId) => {
       path = path.slice(targetIdx)
       let action = path[1]
       let args = path.slice(2)
-      console.log(`target=${targetId} action=${action} args=${args}`)
+      // console.log(`target=${targetId} action=${action} args=${args}`)
       if (a.href) {
         a.setAttribute('data-href', href)
         a.removeAttribute('href')
@@ -664,7 +664,6 @@ export async function imageDataUrl(url, region, dest) {
 }
 
 async function getEntity(qid, language) {
-  console.log(`getEntity: qid=${qid}`)
   language = language || 'en'
   let entities = await getEntityData([qid], language)
   let entity = entities[qid]
