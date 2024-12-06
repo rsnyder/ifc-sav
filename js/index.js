@@ -491,7 +491,7 @@ function restructure(rootEl) {
     if (priorEl?.tagName?.[0] === 'H') target = priorEl
     else if (['A', 'STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
     else target = parentEl
-    console.log(parsed, target)
+    // console.log(parsed, target)
     if (parsed.class) target.className = parsed.class
     if (parsed.id) target.id = parsed.id
     if (parsed.style) applyStyle(target, parsed.style)
