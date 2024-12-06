@@ -217,6 +217,7 @@ const makeBreadcrumbs = () => {
     if (href) breadcrumb.href = href
     breadcrumbs.appendChild(breadcrumb)
   })
+  console.log(breadcrumbs.cloneNode(true))
   return breadcrumbs
 }
 
