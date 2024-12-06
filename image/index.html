@@ -170,7 +170,7 @@
       } else if (props.src.indexOf('wikimedia.org') > -1 || (props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1)) {
         const mwFile = props.src.split('/').pop().replace(/File:/, '')
         props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
-      } else if (src.indexOf('http') === 0) {
+      } else if (props.src.indexOf('http') === 0) {
         props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
       } else {
         props.manifest = `https://iiif.mdpress.io${props.base}${props.src}/manifest.json`
