@@ -206,7 +206,6 @@ const parseCodeEl = (el) => {
 const makeBreadcrumbs = () => {
   // let path = location.pathname.split('/').filter(p => p !== '').slice(isGHP ? 1 : 0)
   let path = location.pathname.split('/').filter(p => p !== '')
-  console.log(path)
   let breadcrumbs = document.createElement('sl-breadcrumb')
   if (!isGHP) {
     let breadcrumb = document.createElement('sl-breadcrumb-item')

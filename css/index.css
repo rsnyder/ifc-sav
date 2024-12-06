@@ -159,3 +159,7 @@ section::after {
   align-items: center;
   padding: 0.5em;
 }
+
+.fixed {
+  font-family: 'Courier New', Courier, monospace;
+}
