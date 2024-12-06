@@ -438,6 +438,7 @@ function restructure(rootEl) {
     let ptext = p.childNodes.item(0).nodeValue?.trim()
     let codeEl = p.querySelector('code')
     let heading = document.createElement(`h${ptext?.length}`)
+    heading.className = 'test'
     p.replaceWith(heading)
     if (codeEl) {
       let codeWrapper = document.createElement('p')
