@@ -204,13 +204,19 @@ const parseCodeEl = (el) => {
 }
 
 const makeBreadcrumbs = () => {
+  // let path = location.pathname.split('/').filter(p => p !== '').slice(isGHP ? 1 : 0)
   let path = location.pathname.split('/').filter(p => p !== '')
-  if (!isGHP) path.unshift('home')
-    console.log(path)
+  console.log(path)
   let breadcrumbs = document.createElement('sl-breadcrumb')
+  if (!isGHP) {
+    let breadcrumb = document.createElement('sl-breadcrumb-item')
+    breadcrumb.textContent = 'home'
+    breadcrumb.setAttribute('href', '/')
+    breadcrumbs.appendChild(breadcrumb)
+  }
   path.forEach((p, idx) => {
     let breadcrumb = document.createElement('sl-breadcrumb-item')
-    let label = idx === 0 ? 'home' : p
+    let label = idx === 0 && isGHP ? 'home' : p
     let href = (idx < path.length - 1) ? `/${path.slice(0,idx+1).join('/')}` : null
     breadcrumb.textContent = label
     if (href) breadcrumb.setAttribute('href', href)
