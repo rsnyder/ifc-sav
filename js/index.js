@@ -438,12 +438,15 @@ function restructure(rootEl) {
     let ptext = p.childNodes.item(0).nodeValue?.trim()
     let codeEl = p.querySelector('code')
     let heading = document.createElement(`h${ptext?.length}`)
-    heading.className = 'test'
-    p.replaceWith(heading)
     if (codeEl) {
-      let codeWrapper = document.createElement('p')
-      heading.parentElement?.insertBefore(codeWrapper, heading.nextSibling)
+      parsed = parseCodeEl(codeEl)
+      console.log(parsed)
+      if (parsed.class) heading.className = parsed.class
+      if (parsed.id) heading.id = parsed.id
+      if (parsed.style) applyStyle(heading, parsed.style)
+      if (parsed.kwargs) for (const [k,v] of Object.entries(parsed.kwargs)) heading.setAttribute(k, v === 'true' ? '' : v)
     }
+    p.replaceWith(heading)
   })
 
   // remove "view as" buttons
