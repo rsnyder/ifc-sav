@@ -1,4 +1,5 @@
 - [Components](/docs/components/)
+  - [Google Books](/docs/components/google-books)
   - [Image](/docs/components/image)
   - [Map](/docs/components/map)
 
@@ -9,5 +10,6 @@
 
 - Examples
   - [Monument Valley](/docs/examples/monument-valley)
+  - [Mattioli Herbal](/docs/examples/mattioli-herbal)
 
 - [Information for developers](/docs/developers)

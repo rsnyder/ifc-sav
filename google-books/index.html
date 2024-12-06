@@ -1,0 +1,69 @@
+<!DOCTYPE html "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>Google Books Viewer</title>
+    <style>
+      #viewerCanvas {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="viewerCanvas"></div>
+    <script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
+    <script type="text/javascript">
+
+      const props = {
+        ...{ // default properties
+          caption: null,      // caption text
+          id: 'cDBgAAAAcAAJ', // identifier of book to display
+          nocaption: false,
+          page: null,         // page number to display
+          pageId: null        // page identifier to display
+        },
+        ...Object.fromEntries(
+          (location.href.split('?')[1] || '')
+          .split('&')
+          .map(p => p.split('='))
+          .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
+        )
+      }
+      console.log(props)
+
+      const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
+      docReady(function() {
+        window.addEventListener('message', (event) => {
+          let action = event.data.action
+          if (action === 'gotopage') {
+            let page = parseInt(event.data.args[0])
+            viewer.goToPage(pageId)
+          } else if (action === 'gotopageid') {
+            let pageId = event.data.args[0]
+            viewer.goToPageId(pageId)
+          }
+        });
+      })
+
+      let viewer
+
+      new ResizeObserver(() => {
+        console.log(`${window.innerWidth} x ${window.innerHeight}`)
+        viewer?.resize()
+      }).observe(document.body)
+
+      google.books.load()
+      google.books.setOnLoadCallback(() => {
+        viewer = new google.books.DefaultViewer(document.getElementById('viewerCanvas'))
+        viewer.load(props.id)
+        setTimeout(() => {
+          if (props.page) viewer.goToPage(props.page)
+          else if (props.pageId) viewer.goToPageId(props.page)
+          viewer.resize()
+        }, 1000)
+      })
+
+    </script>
+  </body>
+</html>

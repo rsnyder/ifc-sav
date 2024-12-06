@@ -100,12 +100,13 @@
         src: null
       },
       ...Object.fromEntries(
-        location.href.split('?')[1]
+        (location.href.split('?')[1] || '')
         .split('&')
         .map(p => p.split('='))
         .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
       )
     }
+
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
       window.addEventListener('message', (event) => {
@@ -170,24 +171,26 @@
       }
     }
     
-    fetch(props.manifest).then(resp => resp.json())
-    .then( async manifest => {
-      const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
-      const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
-      return isV3Manifest 
-        ? manifest 
-        : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
-    })
-    .then(manifest => {
-      iiifManifest = manifest
-      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
-      annoId = md5(itemInfo.id).slice(0,8)
-      const tileSource = itemInfo.service
-        ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
-        : { url: itemInfo.id, type: 'image', buildPyramid: true }
-      init(tileSource)
-      setCaption()
-    })
+    if (props.manifest) {
+      fetch(props.manifest).then(resp => resp.json())
+      .then( async manifest => {
+        const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
+        const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
+        return isV3Manifest 
+          ? manifest 
+          : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
+      })
+      .then(manifest => {
+        iiifManifest = manifest
+        const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
+        annoId = md5(itemInfo.id).slice(0,8)
+        const tileSource = itemInfo.service
+          ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+          : { url: itemInfo.id, type: 'image', buildPyramid: true }
+        init(tileSource)
+        setCaption()
+      })
+    }
 
     let annotorious
     let annotationsInitialHash

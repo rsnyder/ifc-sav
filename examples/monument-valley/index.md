@@ -10,13 +10,13 @@
 
 **Monument Valley**, meaning "valley of the rocks", is a region of the Colorado Plateau characterized by a cluster of sandstone buttes, with the largest reaching 1,000 ft (300 m) above the valley floor.[^1] The most famous butte formations are located in northeastern Arizona along the Utah–Arizona state line. The valley is considered sacred by the [Navajo Nation](Q1783171), the Native American people within whose reservation it lies.[^2]
 
-Major rock formations include [West and East Mitten Buttes](zoomto/iframe1/675,518,2909,1937), [Merrick Butte](zoomto/iframe1/3759,1040,1455,969/f8d317c8), Hunts Mesa, Eagle Mesa, Sentinel Mesa, Brighams Tomb, Castle Rock, Stagecoach, Big Indian, Rain God Mesa, Spearhead Mesa, Mitchell Mesa, Mitchell Butte, Gray Whiskers, Elephant Butte, Camel Butte, Cly Butte, King-on-his-Throne, Rooster Rock, and Setting Hen. Another notable formation is [Totem Pole](Q7828304), a highly eroded butte remanent. The valley also includes large stone structures, such as the "Eye of the Sun".
+Major rock formations include [West and East Mitten Buttes](iframe1/zoomto/675,518,2909,1937), [Merrick Butte](iframe1/zoomto/3759,1040,1455,969/f8d317c8), Hunts Mesa, Eagle Mesa, Sentinel Mesa, Brighams Tomb, Castle Rock, Stagecoach, Big Indian, Rain God Mesa, Spearhead Mesa, Mitchell Mesa, Mitchell Butte, Gray Whiskers, Elephant Butte, Camel Butte, Cly Butte, King-on-his-Throne, Rooster Rock, and Setting Hen. Another notable formation is [Totem Pole](Q7828304), a highly eroded butte remanent. The valley also includes large stone structures, such as the "Eye of the Sun".
 
 ## Geography and geology
 
 `map #iframe2 Q192017,4 "Monument Valley" marker right box-shadow`
 
-[Monument Valley](flyto/iframe2/Q192017,11) is part of the Colorado Plateau. The elevation of the valley floor ranges from 5,000 to 6,000 feet (1,500 to 1,800 m) above sea level. The floor is largely siltstone of the Cutler Group, or sand derived from it, deposited by the meandering rivers that carved the valley. The valley's vivid red coloration comes from iron oxide exposed in the weathered siltstone. The darker, blue-gray rocks in the valley get their color from manganese oxide.
+[Monument Valley](iframe2/flyto/Q192017,11) is part of the Colorado Plateau. The elevation of the valley floor ranges from 5,000 to 6,000 feet (1,500 to 1,800 m) above sea level. The floor is largely siltstone of the Cutler Group, or sand derived from it, deposited by the meandering rivers that carved the valley. The valley's vivid red coloration comes from iron oxide exposed in the weathered siltstone. The darker, blue-gray rocks in the valley get their color from manganese oxide.
 
 The buttes arising from the valley floor are clearly stratified, with three principal layers. The lowest layer is the Organ Rock Shale, the middle is de Chelly Sandstone, and the top layer is the Moenkopi Formation capped by Shinarump Conglomerate. 
 
