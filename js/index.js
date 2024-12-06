@@ -204,7 +204,8 @@ const parseCodeEl = (el) => {
 }
 
 const makeBreadcrumbs = () => {
-  let path = location.pathname.split('/').filter(p => p !== '').slice(isGHP ? 1 : 0)
+  // let path = location.pathname.split('/').filter(p => p !== '').slice(isGHP ? 1 : 0)
+  let path = location.pathname.split('/').filter(p => p !== '')
   let breadcrumbs = document.createElement('sl-breadcrumb')
   path.forEach((p, idx) => {
     let breadcrumb = document.createElement('sl-breadcrumb-item')
