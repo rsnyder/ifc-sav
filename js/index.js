@@ -439,7 +439,7 @@ function restructure(rootEl) {
     let codeEl = p.querySelector('code')
     let heading = document.createElement(`h${ptext?.length}`)
     if (codeEl) {
-      parsed = parseCodeEl(codeEl)
+      const parsed = parseCodeEl(codeEl)
       console.log(parsed)
       if (parsed.class) heading.className = parsed.class
       if (parsed.id) heading.id = parsed.id
