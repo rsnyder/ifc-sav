@@ -21,7 +21,7 @@
           id: 'cDBgAAAAcAAJ', // identifier of book to display
           nocaption: false,
           page: null,         // page number to display
-          pageId: null        // page identifier to display
+          pageid: null        // page identifier to display
         },
         ...Object.fromEntries(
           (location.href.split('?')[1] || '')
@@ -30,7 +30,7 @@
           .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
         )
       }
-      // console.log(props)
+      console.log(props)
 
       const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
       docReady(function() {
@@ -56,7 +56,7 @@
         viewer.load(props.id)
         setTimeout(() => {
           if (props.page) viewer.goToPage(props.page)
-          else if (props.pageId) viewer.goToPageId(props.page)
+          else if (props.pageid) viewer.goToPageId(props.pageid)
           viewer.resize()
         }, 1000)
       })
