@@ -214,7 +214,8 @@ const makeBreadcrumbs = () => {
     let href = (idx < path.length - 1) ? `/${path.slice(0,idx+1).join('/')}` : null
     console.log(`breadcrumb idx=${idx} label=${label} href=${href}`)
     breadcrumb.textContent = label
-    if (href) breadcrumb.href = href
+    // if (href) breadcrumb.href = href
+    if (href) breadcrumb.setAttribute('href', href)
     breadcrumbs.appendChild(breadcrumb)
   })
   console.log(breadcrumbs.cloneNode(true))
