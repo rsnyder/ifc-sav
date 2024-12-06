@@ -428,11 +428,13 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
+  console.log('restructure')
   
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
   Array.from(rootEl?.querySelectorAll('p'))
   .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
   .forEach(p => {
+    console.log(p.cloneNode(true))
     let ptext = p.childNodes.item(0).nodeValue?.trim()
     let codeEl = p.querySelector('code')
     let heading = document.createElement(`h${ptext?.length}`)
@@ -480,6 +482,7 @@ function restructure(rootEl) {
     if (priorEl?.tagName?.[0] === 'H') target = priorEl
     else if (['A', 'STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
     else target = parentEl
+    console.log(parsed, target)
     if (parsed.class) target.className = parsed.class
     if (parsed.id) target.id = parsed.id
     if (parsed.style) applyStyle(target, parsed.style)
