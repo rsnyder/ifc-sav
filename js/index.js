@@ -206,19 +206,15 @@ const parseCodeEl = (el) => {
 const makeBreadcrumbs = () => {
   // let path = location.pathname.split('/').filter(p => p !== '').slice(isGHP ? 1 : 0)
   let path = location.pathname.split('/').filter(p => p !== '')
-  console.log('breadcrumbs', path)
   let breadcrumbs = document.createElement('sl-breadcrumb')
   path.forEach((p, idx) => {
     let breadcrumb = document.createElement('sl-breadcrumb-item')
     let label = idx === 0 ? 'home' : p
     let href = (idx < path.length - 1) ? `/${path.slice(0,idx+1).join('/')}` : null
-    console.log(`breadcrumb idx=${idx} label=${label} href=${href}`)
     breadcrumb.textContent = label
-    // if (href) breadcrumb.href = href
     if (href) breadcrumb.setAttribute('href', href)
     breadcrumbs.appendChild(breadcrumb)
   })
-  console.log(breadcrumbs.cloneNode(true))
   return breadcrumbs
 }
 
@@ -434,19 +430,16 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
-  console.log('restructure')
   
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
   Array.from(rootEl?.querySelectorAll('p'))
   .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
   .forEach(p => {
-    console.log(p.cloneNode(true))
     let ptext = p.childNodes.item(0).nodeValue?.trim()
     let codeEl = p.querySelector('code')
     let heading = document.createElement(`h${ptext?.length}`)
     if (codeEl) {
       const parsed = parseCodeEl(codeEl)
-      console.log(parsed)
       if (parsed.class) heading.className = parsed.class
       if (parsed.id) heading.id = parsed.id
       if (parsed.style) applyStyle(heading, parsed.style)
