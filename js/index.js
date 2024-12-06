@@ -206,11 +206,15 @@ const parseCodeEl = (el) => {
 const makeBreadcrumbs = () => {
   // let path = location.pathname.split('/').filter(p => p !== '').slice(isGHP ? 1 : 0)
   let path = location.pathname.split('/').filter(p => p !== '')
+  console.log('breadcrumbs', path)
   let breadcrumbs = document.createElement('sl-breadcrumb')
   path.forEach((p, idx) => {
     let breadcrumb = document.createElement('sl-breadcrumb-item')
-    breadcrumb.textContent = idx === 0 ? 'home' : p
-    if (idx < path.length - 1) breadcrumb.href = `/${path.slice(0,idx+1).join('/')}`
+    let label = idx === 0 ? 'home' : p
+    let href = (idx < path.length - 1) ? `/${path.slice(0,idx+1).join('/')}` : null
+    console.log(`breadcrumb idx=${idx} label=${label} href=${href}`)
+    breadcrumb.textContent = label
+    if (href) breadcrumb.href = href
     breadcrumbs.appendChild(breadcrumb)
   })
   return breadcrumbs
@@ -229,7 +233,7 @@ const convertTags = (rootEl) => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
       else tokens.push(token)
     })
-    let ifcPrefix = location.hostname === 'localhost' ? '' : 'https://ifc.juncture-digital.org/'
+    let ifcPrefix = location.host === 'localhost:8080' ? '' : 'https://ifc.juncture-digital.org/'
     let parsed = parseCodeEl(code)
     if (!parsed.tag || tagMap[parsed.tag].disabled) return
     if (base) parsed.kwargs.annos = base
