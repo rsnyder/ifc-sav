@@ -1,9 +1,13 @@
 import 'https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js'
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/breadcrumb/breadcrumb.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/breadcrumb-item/breadcrumb-item.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/card/card.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/dropdown/dropdown.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
+
+const isGHP = location.hostname.indexOf('github.io') > 0
 
 const classes = new Set('left right center medium small box-shadow'.split(' '))
 const components = {
@@ -199,10 +203,26 @@ const parseCodeEl = (el) => {
   return parsed
 }
 
+const makeBreadcrumbs = () => {
+  let path = location.pathname.split('/').slice(1).filter(p => p !== '').slice(isGHP ? 1 : 0)
+  let breadcrumbs = document.createElement('sl-breadcrumb')
+  path.forEach((p, idx) => {
+    let breadcrumb = document.createElement('sl-breadcrumb-item')
+    breadcrumb.textContent = p
+    if (idx < path.length - 1) breadcrumb.href = `/${path.slice(0,idx+1).join('/')}`
+    breadcrumbs.appendChild(breadcrumb)
+  })
+  return breadcrumbs
+}
+
 // convert <code> tags to HTML iframe elements
 const convertTags = (rootEl) => {
   let base = document.querySelector('base')?.getAttribute('href')
   rootEl.querySelectorAll('p > code').forEach(code => {
+    if (code.textContent === 'breadcrumbs') {
+      code.parentElement.replaceWith(makeBreadcrumbs())
+      return
+    }
     let tokens = []
     code.textContent.replace(/”/g,'"').replace(/”/g,'"').replace(/’/g,"'").match(/[^\s"]+|"([^"]*)"/gmi)?.filter(t => t).forEach(token => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
