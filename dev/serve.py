@@ -9,6 +9,7 @@ class CustomHTTPRequestHandler(SimpleHTTPRequestHandler):
     def do_GET(self):
         local_path = f'.{self.path}'
         is_dir = os.path.isdir(local_path)
+        print(f'{local_path} {os.path.exists(local_path)} {is_dir}')
         if is_dir and os.path.exists(f'{local_path}/index.html'):
             return super().do_GET()
         if not self.path == '/' and is_dir:
