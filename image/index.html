@@ -128,6 +128,8 @@
         manifest: null,
         nocaption: false,
         options: null,  // IIIF region, size, rotation, quality, format
+        page: null,     // page number to display (same as seq)
+        pageid: null,   // page identifier to display
         quality: null,
         region: null,   // initial region to zoom to
         rotation: 0,
@@ -156,24 +158,46 @@
         if (action === 'zoomto') {
           let region = event.data.args[0]
           zoomto(region)
-        }
+        } else if (action === 'gotopage') {
+          gotopage(parseInt(event.data.args[0]))
+        } else if (action === 'gotopageid') {
+          gotopageid(event.data.args[0])
+       }
     });
       main.style.visibility = 'visible'
     })
+
+    const setTileSource = (canvas) => {
+      const page = findItem({type:'AnnotationPage'}, canvas)
+      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
+      const tileSource = itemInfo.service
+      ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+      : { url: itemInfo.id, type: 'image', buildPyramid: true }
+      viewer.open(tileSource)
+    }
+
+    const gotopage = (pageNum) => {
+      setTileSource(findItems({type:'Canvas'}, iiifManifest)[pageNum-1])
+    }
+
+    const gotopageid = (pageId) => {
+      setTileSource(findItems({type:'Canvas'}, iiifManifest)
+        .find(c => (c.label[props.language] || c.label.none || Object.values(c.label))?.[0] === pageId))
+    }
 
     const drawer = document.querySelector('.drawer')
     const drawerButton = caption.querySelector('.drawerToggle')
     drawerButton.addEventListener('click', e => drawer.open = !drawer.open)
 
     // recursive helper for finding items in a IIIF manifest
-    const _findItems = (toMatch, current, found) => {
+    const findItems = (toMatch, current, found) => {
       found = found || []
       if (current?.items) {
         for (let i = 0; i < current.items.length; i++ ) {
           let item = current.items[i]
           let isMatch = !Object.entries(toMatch).find(([attr, val]) => item[attr] && item[attr] !== val)
           if (isMatch) found.push(item)
-          else _findItems(toMatch, item, found)
+          else findItems(toMatch, item, found)
         }
       }
       return found
@@ -182,7 +206,7 @@
     // find an item in a IIIF manifest
     const findItem = (toMatch, current, seq) => {
       seq = seq || 1
-      const found = _findItems(toMatch, current)
+      const found = findItems(toMatch, current)
       return found.length >= seq ? found[seq-1] : null
     }
     let annotations = []
@@ -244,7 +268,6 @@
       if (props.src.indexOf('wc:') === 0 || props.src.indexOf('gh:') === 0) {
         props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
       } else if (props.src.indexOf('ia:') === 0) {
-        console.log(props.src)
         props.manifest = `https://iiif.archive.org/iiif/3/${props.src.replace('ia:', '')}/manifest.json`
       } else if (props.src.indexOf('wikimedia.org') > -1 || (props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1)) {
         const mwFile = props.src.split('/').pop().replace(/File:/, '')
@@ -271,11 +294,22 @@
           // document.querySelector('#static').src = staticImageUrl()
           location.href = staticImageUrl()
         } else {
+          const canvases = findItems({type:'Canvas'}, iiifManifest)
+          const tiledSources = canvases.map(canvas => {
+            const page = findItem({type:'AnnotationPage'}, canvas)
+            const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
+            return itemInfo.service
+              ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+              : { url: itemInfo.id, type: 'image', buildPyramid: true }
+          })
+          
+          /*
           const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
           const tileSource = itemInfo.service
             ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
             : { url: itemInfo.id, type: 'image', buildPyramid: true }
-          init(tileSource)
+          */
+          init(tiledSources)
         }
         setCaption()
         updateManifestPanel()
@@ -382,10 +416,7 @@
     }
 
     const updateManifestPanel = () => {
-      console.log(iiifManifest)
-      let parsed = parseManifest()
-      console.log(parsed)
-      
+      let parsed = parseManifest()      
       if (parsed.label) document.querySelector('.manifest .label').innerHTML = parsed.label.join(' ')
       if (parsed.summary) document.querySelector('.manifest .summary').innerHTML = parsed.summary.join(' ')
       if (parsed.requiredStatement) document.querySelector('.manifest .required').innerHTML = `<span><b>Attribution:</b></span> <span>${parsed.requiredStatement.value.join(' ')}</span>`
@@ -500,7 +531,37 @@
         prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
         homeFillsViewer: props.cover,
         tileSources,
-        crossOriginPolicy: 'Anonymous'
+        crossOriginPolicy: 'Anonymous',
+        sequenceMode: tileSources.length > 1,
+        initialPage: (props.page || props.seq) - 1,
+        showReferenceStrip: tileSources.length > 1,
+        zoomPerClick: 1.25,
+        gestureSettingsMouse: {
+          dragToPan: true,
+          scrollToZoom: false,
+          clickToZoom: true,
+          dblClickToZoom: false,
+          dblClickDragToZoom: false,
+          pinchToZoom: false,
+          zoomToRefPoint: false,
+          flickEnabled: false,
+          flickMinSpeed: 120,
+          flickMomentum: 0.25,
+          pinchRotate: false
+        },
+        gestureSettingsTouch: {
+          dragToPan: true,
+          scrollToZoom: false,
+          clickToZoom: true,
+          dblClickToZoom: true,
+          dblClickDragToZoom: true,
+          pinchToZoom: true,
+          zoomToRefPoint: true,
+          flickEnabled: false,
+          flickMinSpeed: 120,
+          flickMomentum: 0.25,
+          pinchRotate: false
+        }
       })
 
       // display the region coordinates
