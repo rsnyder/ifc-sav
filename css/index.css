@@ -39,11 +39,13 @@ body {
   aspect-ratio: unset;
 }
 
+/*
 section::after {
   content: "";
   display: block;
   clear: both;
 }
+*/
 
 .markdown-section {
   max-width: unset;

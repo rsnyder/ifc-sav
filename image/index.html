@@ -34,6 +34,10 @@
     .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
     .coords { font-size: .8em; opacity: 0; position: absolute; bottom: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out;}
     .coords:hover { opacity: 1; cursor: copy; }
+    .manifest > * { margin: 0.5em; display: none; }
+    .manifest > div:not(:empty) { display: block; }
+    .manifest .label { font-size: 1.2em; font-weight: bold; }
+    .manifest .rights, .manifest .required  { display: flex !important; align-items: center; gap: 1em;}
   </style>
 </head>
 <body>
@@ -47,9 +51,17 @@
 
     <sl-drawer contained class="drawer" no-header style="--size: calc(100% - 30px);">
       <sl-tab-group>
-        <sl-tab slot="nav" active panel="manifest">Manifest</sl-tab>
+        <sl-tab slot="nav" active panel="manifest">Image info</sl-tab>
         <sl-tab slot="nav" panel="annotations">Annotations</sl-tab>
-        <sl-tab-panel active name="manifest">IIIF manifest</sl-tab-panel>
+        <sl-tab-panel active name="manifest">
+          <div class="manifest">
+            <div class="label"></div>
+            <div class="summary"></div>
+            <div class="required"></div>
+            <div class="rights"></div>
+            <div class="source"></div>
+          </div>
+        </sl-tab-panel>
         <sl-tab-panel name="annotations">
           <sl-button id="copyAnnos">Copy annotations to clipboard</sl-button>
           <sl-button id="showAnnos">Enable annotator</sl-button>
@@ -111,6 +123,8 @@
         caption: null,  // caption text
         cover: false,
         format: null,
+        height: null,
+        language: 'en',
         manifest: null,
         nocaption: false,
         options: null,  // IIIF region, size, rotation, quality, format
@@ -121,7 +135,8 @@
         size: null,     // size of image to display
         showannos: false,
         src: null,
-        static: false
+        static: false,
+        width: null
       },
       ...Object.fromEntries(
         (location.href.split('?')[1] || '')
@@ -129,7 +144,8 @@
         .map(p => p.split('='))
         .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
       )
-    }
+    };
+    ['height', 'rotation', 'seq', 'width'].forEach(prop => props[prop] = parseInt(props[prop]) || props[prop]) // convert to number if possible
     if (props.options || props.size || props.quality || props.format) props.static = true
     console.log(props)
 
@@ -179,7 +195,12 @@
       let [quality, format] = rest?.split('.') || []
       region = props.region || region || 'full'
       size = props.size || size || 'max'
-      if (/^\d+$/.test(size)) size = `${size},`
+      if (props.width) {
+        size = props.height
+          ? `${props.width},${props.height}`
+          : `${props.width},`
+      } else if (props.height) size = `,${props.height}`
+
       rotation = parseInt(props.rotation || rotation || 0)
       quality = props.quality || quality || 'default'
       format = props.format || format || 'jpg'
@@ -222,6 +243,9 @@
     if (props.src) {
       if (props.src.indexOf('wc:') === 0 || props.src.indexOf('gh:') === 0) {
         props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+      } else if (props.src.indexOf('ia:') === 0) {
+        console.log(props.src)
+        props.manifest = `https://iiif.archive.org/iiif/3/${props.src.replace('ia:', '')}/manifest.json`
       } else if (props.src.indexOf('wikimedia.org') > -1 || (props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1)) {
         const mwFile = props.src.split('/').pop().replace(/File:/, '')
         props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
@@ -244,7 +268,8 @@
       .then(manifest => {
         iiifManifest = manifest
         if (props.static) {
-          document.querySelector('#static').src = staticImageUrl()
+          // document.querySelector('#static').src = staticImageUrl()
+          location.href = staticImageUrl()
         } else {
           const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
           const tileSource = itemInfo.service
@@ -253,7 +278,119 @@
           init(tileSource)
         }
         setCaption()
+        updateManifestPanel()
       })
+    }
+
+    const parseManifest = () =>{
+
+      const valueOf = (langObj, language) => {
+        language = language || props.language
+        return typeof langObj === 'object' && !Array.isArray(langObj)
+          ? langObj[language] || langObj.none || langObj[Object.keys(langObj).sort()[0]]
+          : langObj
+      }
+
+      const licenseBadge = (rights) => {
+        let config = {
+          cc: {
+            badgeWidth: 88,
+            badgeHeight: 31,
+            badgeTemplate: 'https://licensebuttons.net/l/${this.rightsCode}${this.rightsCode === "publicdomain" ? "" : "/"+this.version}/${this.badgeWidth}x${this.badgeHeight}.png'
+          },
+          rs: {
+            badgeTemplate: 'https://rightsstatements.org/files/buttons/${this.rightsCode}.white.svg',
+            backgroundColor: '318ac7'
+          }
+        }
+        const fillTemplate = (templateString, templateVars) => new Function("return `"+templateString +"`;").call(templateVars)
+  
+        let badgeHtml = ''
+        let [rightsType, _, rightsCode, version] = rights.split('/').slice(2)
+        if (rightsType === 'creativecommons.org') {
+          rightsCode = rightsCode === 'zero' ? 'publicdomain' : rightsCode
+          // rightsCode = rightsCode === 'zero' ? 'publicdomain' : `CC ${rightsCode}`
+          badgeHtml = `<img src="${fillTemplate(config.cc.badgeTemplate, {...config.cc, ...{rightsCode, version}})}"/>` 
+        } else if (rightsType === 'rightsstatements.org') {
+          badgeHtml = `<div style="display:inline-block;height:25px;padding:3px;background-color:#${config.rs.backgroundColor};"><img style="height:100%;" src="${fillTemplate(config.rs.badgeTemplate, {...config.rs, ...{rightsCode}})}"/></div>`
+        }
+        return badgeHtml
+      }  
+
+      let parsed = {}
+  
+      parsed.id = valueOf(iiifManifest.id)
+      parsed.label = valueOf(iiifManifest.label)
+  
+      if (iiifManifest.summary) parsed.summary = valueOf(iiifManifest.summary)
+      if (iiifManifest.rights) {
+        let [rightsType, _, rightsCode, version] = iiifManifest.rights.split('/').slice(2)
+        if (rightsType === 'creativecommons.org') rightsCode = rightsCode === 'zero' ? 'publicdomain' : `CC ${rightsCode}`
+        parsed.rights = {
+          code: `${rightsCode} ${version}`.toUpperCase(),
+          url: iiifManifest.rights,
+          badge: licenseBadge(iiifManifest.rights)
+        }
+      }
+      if (iiifManifest.thumbnail) parsed.thumbnail = iiifManifest.thumbnail[0].id || iiifManifest.thumbnail
+      
+      if (iiifManifest.metadata) {
+        parsed.metadata = iiifManifest.metadata.map((item) => ({label: valueOf(item.label)[0], value: valueOf(item.value)}))
+        let sourceUrl = parsed.metadata.find((item) => item.label == 'source_url' || item.label == 'source')
+        parsed.sourceUrl = sourceUrl ? sourceUrl.value[0] : null
+  
+        let depicts = parsed.metadata.find((md) => md.label === 'depicts')
+        if (depicts) parsed.depicts = depicts.value
+      }
+  
+      if (iiifManifest.provider) {
+        parsed.provider = iiifManifest.provider.map((provider) => {
+          let entry = {label: valueOf(provider.label), href:provider.id}
+          if (provider.logo) entry.logo = {src:provider.logo[0].id}
+          return entry
+        })
+      }
+  
+      if (iiifManifest.logo) {
+        parsed.logo = iiifManifest.logo.map((item) => {
+          let logoObj = { src: typeof item === 'object' ? item.id || item['@id'] : item }
+          if (typeof item === 'object') {
+            if (item.width) logoObj.width = item.width
+            if (item.height) logoObj.height = item.height
+          }
+          return logoObj
+        })
+      }
+  
+      parsed.imageData = findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq)?.body
+      parsed.service = parsed.imageData.service && `${(parsed.imageData.service[0].id || parsed.imageData.service[0]['@id'])
+        .replace(/\/info\.json$/,'')}/info.json`
+        if (iiifManifest.requiredStatement) {
+          let rs = iiifManifest.requiredStatement
+          parsed.requiredStatement = {label: valueOf(rs.label)[0], value: valueOf(rs.value)}
+        }
+  
+      if (iiifManifest.homepage) {
+        parsed.homepage = {label: iiifManifest.homepage.label ? valueOf(iiifManifest.homepage.label) : iiifManifest.homepage.id, href: iiifManifest.homepage.id}
+      }
+  
+      if (iiifManifest.seeAlso) {
+        parsed.seeAlso = iiifManifest.seeAlso.map((seeAlso) => ({label: seeAlso.label ? valueOf(seeAlso.label) : seeAlso.id, href: seeAlso.id}))
+      }
+      
+      return parsed
+    }
+
+    const updateManifestPanel = () => {
+      console.log(iiifManifest)
+      let parsed = parseManifest()
+      console.log(parsed)
+      
+      if (parsed.label) document.querySelector('.manifest .label').innerHTML = parsed.label.join(' ')
+      if (parsed.summary) document.querySelector('.manifest .summary').innerHTML = parsed.summary.join(' ')
+      if (parsed.requiredStatement) document.querySelector('.manifest .required').innerHTML = `<span><b>Attribution:</b></span> <span>${parsed.requiredStatement.value.join(' ')}</span>`
+      if (parsed.rights) document.querySelector('.manifest .rights').innerHTML = `<span><b>Reuse rights:</b></span><a href="${parsed.rights.url}">${parsed.rights.code}</a>` + (parsed.rights.badge || '')
+      if (parsed.sourceUrl) document.querySelector('.manifest .source').innerHTML = `<span><b>Source:</b></span> <a href="${parsed.sourceUrl}">${parsed.sourceUrl}</a>`
     }
 
     let annotorious
