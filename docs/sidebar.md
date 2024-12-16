@@ -1,4 +1,5 @@
 - [Components](/docs/components/)
+  - [AI Chat](/docs/components/aichat)
   - [Google Books](/docs/components/google-books)
   - [Image](/docs/components/image)
   - [Map](/docs/components/map)

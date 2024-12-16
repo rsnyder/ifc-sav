@@ -60,6 +60,11 @@
             <div class="required"></div>
             <div class="rights"></div>
             <div class="source"></div>
+            <div style="display:flex;align-items: center;gap:0.5em;">
+              <span>Page:</span>
+              <span id=pageId></span>
+              <sl-copy-button></sl-copy-button>
+            </div>
           </div>
         </sl-tab-panel>
         <sl-tab-panel name="annotations">
@@ -97,6 +102,7 @@
 
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/badge/badge.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/button/button.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/copy-button/copy-button.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/drawer/drawer.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
@@ -112,6 +118,8 @@
     const annosIcon = annosEl.querySelector('#annosIcon')
     const annosEditIcon = annosEl.querySelector('#annosEditIcon')
     const annosBadge = annosEl.querySelector('sl-badge')
+    const urlCopyButton =  document.querySelector('sl-copy-button')
+    const pageIdEl = document.querySelector('#pageId')
     let viewer
     let annoLayer
     let iiifManifest
@@ -154,7 +162,7 @@
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
       window.addEventListener('message', (event) => {
-        let action = event.data.action
+        let action = event.data.action.toLowerCase()
         if (action === 'zoomto') {
           let region = event.data.args[0]
           zoomto(region)
@@ -162,7 +170,10 @@
           gotopage(parseInt(event.data.args[0]))
         } else if (action === 'gotopageid') {
           gotopageid(event.data.args[0])
-       }
+       } else if (action === 'getimageurl') {
+        console.log('getimageurl')  
+          event.source.postMessage({ action: 'imageurl', url: staticImageUrl() }, '*')
+        }
     });
       main.style.visibility = 'visible'
     })
@@ -563,9 +574,17 @@
           pinchRotate: false
         }
       })
+      urlCopyButton.setAttribute('value', staticImageUrl())
+      pageIdEl.innerHTML = props.seq
 
       // display the region coordinates
       let debounce = null
+
+      viewer.addHandler('page', (e) => { 
+        props.seq = e.page+1
+        urlCopyButton.setAttribute('value', staticImageUrl())
+        pageIdEl.innerHTML = props.seq
+      })
 
       viewer.addHandler('viewport-change', () => {
         if (debounce !== null) {

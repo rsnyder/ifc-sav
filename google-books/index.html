@@ -35,6 +35,7 @@
       const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
       docReady(function() {
         window.addEventListener('message', (event) => {
+          console.log(event.data)
           let action = event.data.action
           if (action === 'gotopage') {
             let page = parseInt(event.data.args[0])
@@ -42,6 +43,8 @@
           } else if (action === 'gotopageid') {
             let pageId = event.data.args[0]
             viewer.goToPageId(pageId)
+          } else if (action === 'getpageid') {
+            console.log('pageId', viewer.getPageId())
           }
         });
       })
