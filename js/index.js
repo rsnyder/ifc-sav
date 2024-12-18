@@ -243,7 +243,10 @@ const convertTags = (rootEl) => {
     let ifcPrefix = location.host === 'localhost:8080' ? '' : 'https://ifc.juncture-digital.org/'
     let parsed = parseCodeEl(code)
     if (!parsed.tag || tagMap[parsed.tag].disabled) return
-    if (base) parsed.kwargs.base = base
+    if (base) {
+      if (!parsed.kwargs) parsed.kwargs = {}
+      parsed.kwargs.base = base
+    }
     let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
     let iframe = document.createElement('iframe')
     if (parsed.id) iframe.id = parsed.id
