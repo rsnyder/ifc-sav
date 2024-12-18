@@ -5,13 +5,25 @@
     <title>Google Books Viewer</title>
     <style>
       #viewerCanvas {
+        position: relative;
         width: 100%;
         height: 100%;
+      }
+      .button {
+        position: absolute;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        background-color: rgba(255, 255, 255, 0.5);
+        padding: 5px;
+        border-radius: 5px;
+        cursor: copy;
       }
     </style>
   </head>
   <body>
-    <div id="viewerCanvas"></div>
+    <div id="viewerCanvas">
+    </div>
     <script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
     <script type="text/javascript">
 
@@ -55,9 +67,24 @@
 
       google.books.load()
       google.books.setOnLoadCallback(() => {
-        viewer = new google.books.DefaultViewer(document.getElementById('viewerCanvas'))
+        
+        let viewerEl = document.getElementById('viewerCanvas')
+        viewer = new google.books.DefaultViewer(viewerEl)
         viewer.load(props.id)
         setTimeout(() => {
+          let button = document.createElement('div')
+          button.className = 'button'
+          button.textContent = 'Get Page Image URL'
+          viewerEl.appendChild(button)
+          button.addEventListener('click', () => {
+            let imgTemplate = new URL (viewerEl.querySelector('img').src)
+            const params = imgTemplate.searchParams
+            params.set('pg', viewer.getPageId())
+            params.set('w', 2000)
+            let currentPageUrl = imgTemplate.toString()
+            navigator.clipboard.writeText(currentPageUrl)
+          })
+
           if (props.page) viewer.goToPage(props.page)
           else if (props.pageid) viewer.goToPageId(props.pageid)
           viewer.resize()
