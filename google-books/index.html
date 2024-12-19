@@ -77,7 +77,11 @@
           button.textContent = 'Get Page Image URL'
           viewerEl.appendChild(button)
           button.addEventListener('click', () => {
-            console.log(Array.from(viewerEl.querySelectorAll('img')).map(img => img.src))
+            console.log(Array.from(viewerEl.querySelectorAll('img')).map(img => {
+              let imgUrl = new URL(img.src)
+              let urlParams = imgUrl.searchParams
+              return `${urlParams.get('pg')} ${urlParams.get('sig')}`
+            }))
             let imgTemplate = new URL (viewerEl.querySelector('img').src)
             const params = imgTemplate.searchParams
             params.set('pg', viewer.getPageId())
