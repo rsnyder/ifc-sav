@@ -78,7 +78,7 @@
           viewerEl.appendChild(button)
           button.addEventListener('click', () => {
             let currentPage = viewer.getPageId()
-            let currentPageImage = Array.from(viewerEl.querySelectorAll('img').find(img => img.src.indexOf(`&pg=${currentPage}`) > 0))
+            let currentPageImage = Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${currentPage}`) > 0)
             console.log(currentPageImage)            
             if (currentPageImage) {
               let imgUrl = new URL(currentPageImage.src)
