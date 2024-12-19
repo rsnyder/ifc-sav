@@ -79,19 +79,16 @@
           viewerEl.appendChild(button)
           
           new MutationObserver((mutations) => {
-            console.log('mutations', mutations)
-          }).observe(viewerEl, { childList: true, subtree: true })
-
-          button.addEventListener('click', () => {
             let currentPage = viewer.getPageId()
             let currentPageImage = Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${currentPage}`) > 0)
             if (currentPageImage) {
               let imgUrl = new URL(currentPageImage.src)
               let urlParams = imgUrl.searchParams
               urlParams.set('w', 2000)
+              console.log('imgUrl', imgUrl.toString())
               button.setAttribute('value', imgUrl.toString())
             }
-          })
+          }).observe(viewerEl, { childList: true, subtree: true })
 
           if (props.page) viewer.goToPage(props.page)
           else if (props.pageid) viewer.goToPageId(props.pageid)
