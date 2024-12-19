@@ -22,10 +22,11 @@
     </style>
   </head>
   <body>
-    <div id="viewerCanvas">
-    </div>
+    <div id="viewerCanvas"></div>
     <script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
     <script type="text/javascript">
+
+      import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/copy-button/copy-button.js';
 
       const props = {
         ...{ // default properties
@@ -72,9 +73,9 @@
         viewer = new google.books.DefaultViewer(viewerEl)
         viewer.load(props.id)
         setTimeout(() => {
-          let button = document.createElement('div')
-          button.className = 'button'
-          button.textContent = 'Get Page Image URL'
+          let button = document.createElement('sl-copy-button')
+          button.setAttribute('copy-label', 'Click to copy image URL')
+          button.setAttribute('success-label', 'Image URL copied!')
           viewerEl.appendChild(button)
           button.addEventListener('click', () => {
             let currentPage = viewer.getPageId()
@@ -84,7 +85,7 @@
               let imgUrl = new URL(currentPageImage.src)
               let urlParams = imgUrl.searchParams
               urlParams.set('w', 2000)
-              navigator.clipboard.writeText(imgUrl.toString())
+              button.setAttribute('value', imgUrl.toString())
             }
           })
 
