@@ -77,9 +77,10 @@
           button.setAttribute('copy-label', 'Click to copy image URL')
           button.setAttribute('success-label', 'Image URL copied!')
           viewerEl.appendChild(button)
+          
           new MutationObserver((mutations) => {
             console.log('mutations', mutations)
-          }).observe(viewerEl, { childList: true })
+          }).observe(viewerEl, { childList: true, subtree: true })
 
           button.addEventListener('click', () => {
             let currentPage = viewer.getPageId()
