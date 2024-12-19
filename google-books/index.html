@@ -77,17 +77,15 @@
           button.textContent = 'Get Page Image URL'
           viewerEl.appendChild(button)
           button.addEventListener('click', () => {
-            console.log(Array.from(viewerEl.querySelectorAll('img')).map(img => {
-              let imgUrl = new URL(img.src)
+            let currentPage = viewer.getPageId()
+            let currentPageImage = Array.from(viewerEl.querySelectorAll('img').find(img => img.src.indexOf(`&pg=${currentPage}`) > 0))
+            console.log(currentPageImage)            
+            if (currentPageImage) {
+              let imgUrl = new URL(currentPageImage.src)
               let urlParams = imgUrl.searchParams
-              return `${urlParams.get('pg')} ${urlParams.get('sig')}`
-            }))
-            let imgTemplate = new URL (viewerEl.querySelector('img').src)
-            const params = imgTemplate.searchParams
-            params.set('pg', viewer.getPageId())
-            params.set('w', 2000)
-            let currentPageUrl = imgTemplate.toString()
-            navigator.clipboard.writeText(currentPageUrl)
+              urlParams.set('w', 2000)
+              navigator.clipboard.writeText(imgUrl.toString())
+            }
           })
 
           if (props.page) viewer.goToPage(props.page)
