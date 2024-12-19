@@ -19,9 +19,8 @@
         padding: 5px;
         border-radius: 5px;
       }
-      sl-copy-button::part(copy-icon) svg {
-        width: 2em;
-        height: 2em;
+      .custom-styles::part(button):hover {
+        scale: 1.5;
       }
     </style>
   </head>
@@ -78,6 +77,7 @@
         viewer.load(props.id)
         setTimeout(() => {
           let button = document.createElement('sl-copy-button')
+          button.className = 'custom-styles'
           button.setAttribute('copy-label', 'Click to copy image URL')
           button.setAttribute('success-label', 'Image URL copied!')
           viewerEl.appendChild(button)
