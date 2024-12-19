@@ -3,6 +3,7 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
     <title>Google Books Viewer</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css" />
     <style>
       #viewerCanvas {
         position: relative;
@@ -76,10 +77,13 @@
           button.setAttribute('copy-label', 'Click to copy image URL')
           button.setAttribute('success-label', 'Image URL copied!')
           viewerEl.appendChild(button)
+          new MutationObserver((mutations) => {
+            console.log('mutations', mutations)
+          }).observe(viewerEl, { childList: true })
+
           button.addEventListener('click', () => {
             let currentPage = viewer.getPageId()
             let currentPageImage = Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${currentPage}`) > 0)
-            console.log(currentPageImage)            
             if (currentPageImage) {
               let imgUrl = new URL(currentPageImage.src)
               let urlParams = imgUrl.searchParams
