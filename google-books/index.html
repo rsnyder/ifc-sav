@@ -19,7 +19,7 @@
         padding: 5px;
         border-radius: 5px;
       }
-      .custom-styles::part(button):hover {
+      .custom-styles::part(button) {
         scale: 1.5;
       }
     </style>
@@ -69,6 +69,18 @@
 
       new ResizeObserver(() => { viewer?.resize() }).observe(document.body) // viewer.resize() doesn't appear to work
 
+      const setImageUrl = (viewerEl, viewer, button) => {
+        let currentPage = viewer.getPageId()
+        let currentPageImage = Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${currentPage}`) > 0)
+        if (currentPageImage) {
+          let imgUrl = new URL(currentPageImage.src)
+          let urlParams = imgUrl.searchParams
+          urlParams.set('w', 2000)
+          console.log('imgUrl', imgUrl.toString())
+          button.setAttribute('value', imgUrl.toString())
+        }
+      }
+
       google.books.load()
       google.books.setOnLoadCallback(() => {
         
@@ -81,18 +93,9 @@
           button.setAttribute('copy-label', 'Click to copy image URL')
           button.setAttribute('success-label', 'Image URL copied!')
           viewerEl.appendChild(button)
+          setImageUrl(viewerEl, viewer, button)
           
-          new MutationObserver((mutations) => {
-            let currentPage = viewer.getPageId()
-            let currentPageImage = Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${currentPage}`) > 0)
-            if (currentPageImage) {
-              let imgUrl = new URL(currentPageImage.src)
-              let urlParams = imgUrl.searchParams
-              urlParams.set('w', 2000)
-              console.log('imgUrl', imgUrl.toString())
-              button.setAttribute('value', imgUrl.toString())
-            }
-          }).observe(viewerEl, { childList: true, subtree: true })
+          new MutationObserver(() => setImageUrl(viewerEl, viewer, button)).observe(viewerEl, { childList: true, subtree: true })
 
           if (props.page) viewer.goToPage(props.page)
           else if (props.pageid) viewer.goToPageId(props.pageid)
