@@ -12,5 +12,6 @@
 - Examples
   - [Monument Valley](/docs/examples/monument-valley)
   - [Mattioli Herbal](/docs/examples/mattioli-herbal)
+  - [Clusius Herbal](/docs/examples/clusius-herbal)
 
 - [Information for developers](/docs/developers)

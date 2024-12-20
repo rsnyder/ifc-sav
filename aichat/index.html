@@ -15,10 +15,13 @@
     .inputWrapper { display: flex; flex-direction: row; align-items: center; width: 100%; padding: 1em; }
     .input { flex: 1; padding: 1em; }
     sl-button::part(base) { white-space: normal; text-align: left; line-height: 1.5; padding: 0.5em 0; }
-    sl-button.prompt::part(base) { background-color: #f0f0f0; font-size: 1em; color: #444;}
-    .prompt-wrapper, .response-wrapper { display: flex; flex-direction: row; align-items: end; width: 100%; margin-bottom: 1em; justify-self: flex-end; }
-    .response { border: 1px solid #ccc; border-radius: 6px; padding: 0.75em; }
-    sl-copy-button { margin-left: 0.25rem; padding: 0; }
+    .prompt-wrapper { display: flex; flex-direction: column; align-items: end; width: 100%; margin-bottom: 1em; justify-self: flex-end; }
+    .response-wrapper { position: relative; width: 100%; margin-bottom: 1em; justify-self: flex-end; }
+    .prompt-wrapper img { max-width: 100px; margin-right: 1em; box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px; }
+    .prompt, .response { border: 1px solid #ccc; border-radius: 6px; padding: 0.75em; }
+    .response { margin-right: auto; position: relative; }
+    .prompt { background-color: #f0f0f0; font-size: 1em; color: #444; }
+    sl-copy-button { position: absolute; right: 0; bottom: 0; z-index: 1000; margin-left: 0.25rem; padding: 0; background-color: white; }
     sl-textarea::part(textarea) { font-size: 1.2em; color: #444;}
   </style>
 </head>
@@ -29,7 +32,10 @@
       <div id="init" style="display:flex;align-items: center;gap:0.5em;"><span>Initializing...</span><sl-spinner></sl-spinner></div>
     </div>
     <div class="inputWrapper">
-      <!-- plus --> <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="1.5em" height="1.5em" fill="#ddd"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/></svg>
+      <!-- plus icon -->
+      <!-- 
+      <svg style="cursor: pointer;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="1.5em" height="1.5em" fill="#ddd"><path d="M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 144L48 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l144 0 0 144c0 17.7 14.3 32 32 32s32-14.3 32-32l0-144 144 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-144 0 0-144z"/></svg>
+      -->
       <sl-textarea class="input" resize="auto" disabled rows="1" placeholder="Enter question"></sl-textarea>  
     </div>
 
@@ -85,10 +91,12 @@
       sendMessage(url)
     })
 
+    /*
     const getImageTrigger = document.querySelector('.inputWrapper svg')
     getImageTrigger.addEventListener('click', () => {
       addImageDialog.show()
     })
+    */
         
     window.addEventListener('message', (event) => {
       if (event.data.action === 'imageurl') {
@@ -121,13 +129,22 @@
 
       const readyForInput = () => {
         chatEl.querySelector("#init").style.display = 'none'
+        chatEl.addEventListener('paste', (e) => {
+          let inputText = e.clipboardData?.getData('Text') || ''
+          console.log('paste', inputText)
+          if (inputText.startsWith('http')) {
+            sendMessage(inputText)
+          }
+        })
         let inputWrapper = document.querySelector('.inputWrapper')
+        /*
         const getImageTrigger = inputWrapper.querySelector('svg')
         getImageTrigger.style.fill = '#444';
         getImageTrigger.addEventListener('click', () => addImageDialog.show())
+        */
         const inputEl = inputWrapper.querySelector('.input')
         inputEl.removeAttribute('disabled')
-        inputEl.focus()
+        setTimeout(() => inputEl.focus(), 100)
         initial = false
       }
 
@@ -145,18 +162,19 @@
 
         let promptWrapperEl = document.createElement('div')
         promptWrapperEl.setAttribute('class', 'prompt-wrapper')
-        // let promptEl = document.createElement('sl-button')
-        let promptEl = document.createElement('div')
-        msgId = `msg-${messages.length}`
-        promptEl.id = msgId
-        promptEl.setAttribute('class', 'prompt')
-        promptEl.textContent = prompt
-        promptWrapperEl.appendChild(promptEl)
-        /*
-        copyButton = document.createElement('sl-copy-button')
-        copyButton.setAttribute('from', msgId)
-        promptWrapperEl.appendChild(copyButton)
-        */
+        if (prompt.startsWith('http')) {
+          let imgEl = document.createElement('img')
+          imgEl.src = prompt
+          imgEl.style.maxWidth = '100px'
+          promptWrapperEl.appendChild(imgEl)
+        } else {
+          let promptEl = document.createElement('div')
+          msgId = `msg-${messages.length}`
+          promptEl.id = msgId
+          promptEl.setAttribute('class', 'prompt')
+          promptEl.textContent = prompt
+          promptWrapperEl.appendChild(promptEl)
+        }
         chatEl.appendChild(promptWrapperEl)
   
         scrollToBottom()
@@ -201,7 +219,7 @@
         copyButton.content = prompt
         copyButton.style.visibility = 'hidden'
         copyButton.setAttribute('from', `md-${msgId}`)
-        responseWrapperEl.appendChild(copyButton)
+        // responseEl.appendChild(copyButton)
       }
       
       chatEl.appendChild(responseWrapperEl)
@@ -215,8 +233,10 @@
         else copyButton.style.visibility = 'visible'
 
         response.push(decoder.decode(value))
-        responseEl.style.display = 'inline'
+        responseEl.style.display = 'block'
         responseEl.innerHTML = md2Html(response.join(''))
+        responseEl.appendChild(copyButton)
+        console.log(responseEl)
         scrollToBottom()
       }
       responseMarkdownEl.textContent = response.join('').split('\n').map(line => line.replace(/^#/g, '###')).join('\n')
