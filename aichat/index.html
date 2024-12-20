@@ -206,6 +206,13 @@
       msgId = `msg-${messages.length}`
       let responseWrapperEl = document.createElement('div')
       responseWrapperEl.setAttribute('class', 'response-wrapper')
+
+      if (!initial) {
+        let busyIndicator = document.createElement('div')
+        busyIndicator.className = 'busy'
+        busyIndicator.innerHTML = `Processing...&nbsp&nbsp;<sl-spinner></sl-spinner>`
+        responseWrapperEl.appendChild(busyIndicator)
+      }
       
       let responseMarkdownEl = document.createElement('div')
       responseMarkdownEl.id = `md-${msgId}`
@@ -232,6 +239,7 @@
 
       while (true) {
         const { done, value } = await reader.read()
+        chatEl.querySelectorAll('.busy').forEach(el => el.remove())
         if (done) break
         if (initial) readyForInput()
         else copyButton.style.visibility = 'visible'
