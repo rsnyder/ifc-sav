@@ -10,17 +10,16 @@
         width: 100%;
         height: 100%;
       }
-      sl-copy-button {
+      img[draggable] {
         position: absolute;
         top: 0;
         left: 0;
+        width: 50px;
         z-index: 1000;
         background-color: rgba(255, 255, 255, 0.5);
         padding: 5px;
         border-radius: 5px;
-      }
-      .custom-styles::part(button) {
-        scale: 1.5;
+        cursor: move;
       }
     </style>
   </head>
@@ -28,8 +27,6 @@
     <div id="viewerCanvas"></div>
     <script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
     <script type="module">
-
-      import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/copy-button/copy-button.js';
 
       const props = {
         ...{ // default properties
@@ -80,26 +77,36 @@
         }
       }
 
+
       google.books.load()
       google.books.setOnLoadCallback(() => {
         
+        const currentImageUrl = () => Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${viewer.getPageId()}`) > 0)?.src
+        const addDraggableImage = () => {
+          let img = document.createElement('img')
+          img.src = currentImageUrl()
+          img.setAttribute('draggable', 'true')
+          viewerEl.appendChild(img)
+          img.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${viewer.getPageId()}`) > 0)?.src))
+          img.addEventListener('click', (e) => navigator.clipboard.writeText(currentImageUrl()))
+          return img
+        }
+
         let viewerEl = document.getElementById('viewerCanvas')
         viewer = new google.books.DefaultViewer(viewerEl)
         viewer.load(props.id)
-        setTimeout(() => {
-          let button = document.createElement('sl-copy-button')
-          button.className = 'custom-styles'
-          button.setAttribute('copy-label', 'Click to copy image URL')
-          button.setAttribute('success-label', 'Image URL copied!')
-          viewerEl.appendChild(button)
-          setImageUrl(viewerEl, viewer, button)
-          
-          new MutationObserver(() => setImageUrl(viewerEl, viewer, button)).observe(viewerEl, { childList: true, subtree: true })
+        
+        let draggableImage
 
-          if (props.page) viewer.goToPage(props.page)
-          else if (props.pageid) viewer.goToPageId(props.pageid)
-          viewer.resize()
-        }, 1000)
+        new MutationObserver(() => {
+          if (draggableImage) draggableImage.src=currentImageUrl()
+          else draggableImage = addDraggableImage()
+        }).observe(viewerEl, { childList: true, subtree: true })
+
+        if (props.page) viewer.goToPage(props.page)
+        else if (props.pageid) viewer.goToPageId(props.pageid)
+        viewer.resize()
+
       })
 
     </script>

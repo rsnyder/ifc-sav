@@ -27,7 +27,7 @@
 </head>
 <body>
   
-  <main>
+  <main class="dropzone">
     <div class="chat">
       <div id="init" style="display:flex;align-items: center;gap:0.5em;"><span>Initializing...</span><sl-spinner></sl-spinner></div>
     </div>
@@ -128,14 +128,18 @@
       let initial = messages.length === 0
 
       const readyForInput = () => {
+        const dropZone = document.querySelector('.dropzone')
+        dropZone.addEventListener('dragover', (e) => e.preventDefault())
+        dropZone.addEventListener('drop', (e) => { e.preventDefault(); sendMessage(e.dataTransfer.getData('text/plain')) })
+
         chatEl.querySelector("#init").style.display = 'none'
         chatEl.addEventListener('paste', (e) => {
           let inputText = e.clipboardData?.getData('Text') || ''
-          console.log('paste', inputText)
           if (inputText.startsWith('http')) {
             sendMessage(inputText)
           }
         })
+
         let inputWrapper = document.querySelector('.inputWrapper')
         /*
         const getImageTrigger = inputWrapper.querySelector('svg')
@@ -236,7 +240,6 @@
         responseEl.style.display = 'block'
         responseEl.innerHTML = md2Html(response.join(''))
         responseEl.appendChild(copyButton)
-        console.log(responseEl)
         scrollToBottom()
       }
       responseMarkdownEl.textContent = response.join('').split('\n').map(line => line.replace(/^#/g, '###')).join('\n')
