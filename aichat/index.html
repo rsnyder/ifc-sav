@@ -116,7 +116,7 @@
 
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
 
-    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
+    const md2Html = (md) => marked.parse(md).replace(/^\s*<p>/, '').replace(/<\/p>\s*$/, '') // convert markdown to HTML
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     
     const scrollToBottom = () => chatEl.scrollTop = chatEl.scrollHeight // scroll chat to bottom
