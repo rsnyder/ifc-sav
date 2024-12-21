@@ -10,7 +10,7 @@
         width: 100%;
         height: 100%;
       }
-      img[draggable] {
+      .page-info {
         position: absolute;
         top: 0;
         left: 0;
@@ -19,12 +19,23 @@
         background-color: rgba(255, 255, 255, 0.5);
         padding: 5px;
         border-radius: 5px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+      }
+      .pageid {
+        cursor: copy;
+      }
+      img[draggable] {
         cursor: move;
+        width: 100%;
       }
     </style>
   </head>
   <body>
     <div id="viewerCanvas"></div>
+
     <script type="text/javascript" src="https://www.google.com/books/jsapi.js"></script>
     <script type="module">
 
@@ -66,46 +77,53 @@
 
       new ResizeObserver(() => { viewer?.resize() }).observe(document.body) // viewer.resize() doesn't appear to work
 
-      const setImageUrl = (viewerEl, viewer, button) => {
-        let currentPage = viewer.getPageId()
-        let currentPageImage = Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${currentPage}`) > 0)
-        if (currentPageImage) {
-          let imgUrl = new URL(currentPageImage.src)
-          let urlParams = imgUrl.searchParams
-          urlParams.set('w', 2000)
-          button.setAttribute('value', imgUrl.toString())
-        }
-      }
-
-
       google.books.load()
       google.books.setOnLoadCallback(() => {
         
         const currentImageUrl = () => Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${viewer.getPageId()}`) > 0)?.src
-        const addDraggableImage = () => {
-          let img = document.createElement('img')
-          img.src = currentImageUrl()
-          img.setAttribute('draggable', 'true')
-          viewerEl.appendChild(img)
-          img.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/plain', Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${viewer.getPageId()}`) > 0)?.src))
-          img.addEventListener('click', (e) => navigator.clipboard.writeText(currentImageUrl()))
-          return img
+        const addPageInfo = () => {
+          let container = document.createElement('div')
+          container.classList.add('page-info')
+
+          let pageid = document.createElement('div')
+          pageid.classList.add('pageid')
+          pageid.textContent = viewer.getPageId()
+          pageid.addEventListener('click', (e) => navigator.clipboard.writeText(currentImageUrl()))
+          container.appendChild(pageid)
+
+          let thumbnail = document.createElement('img')
+          thumbnail.src = currentImageUrl()
+          thumbnail.setAttribute('draggable', 'true')
+          thumbnail.addEventListener('dragstart', (e) => {
+            let imgURL = new URL(Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${viewer.getPageId()}`) > 0)?.src)
+            imgURL.searchParams.set('w', 2000)
+            e.dataTransfer.setData('text/plain', imgURL.toString())
+          })
+          thumbnail.addEventListener('click', (e) => navigator.clipboard.writeText(currentImageUrl()))
+          container.appendChild(thumbnail)
+          
+          viewerEl.appendChild(container)
+          return { pageid, thumbnail }
         }
 
         let viewerEl = document.getElementById('viewerCanvas')
         viewer = new google.books.DefaultViewer(viewerEl)
         viewer.load(props.id)
         
-        let draggableImage
+        let pageInfo
 
         new MutationObserver(() => {
-          if (draggableImage) draggableImage.src=currentImageUrl()
-          else draggableImage = addDraggableImage()
+          if (pageInfo) {
+            pageInfo.pageid.textContent=viewer.getPageId()
+            pageInfo.thumbnail.src=currentImageUrl()
+          } else pageInfo = addPageInfo()
         }).observe(viewerEl, { childList: true, subtree: true })
 
-        if (props.page) viewer.goToPage(props.page)
-        else if (props.pageid) viewer.goToPageId(props.pageid)
-        viewer.resize()
+        setTimeout(() => {
+          if (props.page) viewer.goToPage(props.page)
+          else if (props.pageid) viewer.goToPageId(props.pageid)
+          viewer.resize()
+        }, 1000)
 
       })
 
