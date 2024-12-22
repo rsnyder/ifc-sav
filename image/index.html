@@ -16,7 +16,6 @@
     .r6o-widget.comment { line-height: 1.5; }
     svg.a9s-annotationlayer .a9s-selection .a9s-inner, svg.a9s-annotationlayer .a9s-annotation .a9s-inner  { stroke-width: 3; stroke: rgba(255,255,0,1.0); }
     .a9s-selection-mask { stroke: none; fill: rgba(0,0,0,0.4); pointer-events: none; }
-    
     .captionBar { display: flex; align-items: center; gap: 0.2em; padding: 0.3em 0.5em; min-height: 2em; background-color: inherit; } 
     .annos { margin-left: auto; display: flex; position: relative; cursor: pointer; }
     .manifestButton { width: 1.3em; height: 1.3em; cursor: pointer; }
@@ -32,18 +31,23 @@
     .drawerToggle { width: 1.3em; height: 1.3em; cursor: pointer; }
     pre {   white-space: pre-wrap; word-wrap: break-word; }
     .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
-    .coords { font-size: .8em; opacity: 0; position: absolute; bottom: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out;}
+    .coords { font-size: .8em; opacity: 0; position: absolute; bottom: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out; }
     .coords:hover { opacity: 1; cursor: copy; }
     .manifest > * { margin: 0.5em; display: none; }
     .manifest > div:not(:empty) { display: block; }
     .manifest .label { font-size: 1.2em; font-weight: bold; }
     .manifest .rights, .manifest .required  { display: flex !important; align-items: center; gap: 1em;}
+    .page-info { position: absolute; top: 32px; left: 0; width: 60px; z-index: 1000; background-color: rgba(255, 255, 255, 0.5); padding: 5px; border-radius: 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; opacity: 0; transition: all 0.5s ease-out; }
+    .page-info:hover { opacity: 1; }
+    .pageid { cursor: copy; }
+    .thumbnail { cursor: move; width: 100%; }
   </style>
 </head>
 <body>
   <main>
     
     <div id="osd">
+      <div class="page-info"><div class="pageid"></div><img class="thumbnail" draggable="true"></div>
       <div class="coords">region</div>
     </div>
 
@@ -118,8 +122,8 @@
     const annosIcon = annosEl.querySelector('#annosIcon')
     const annosEditIcon = annosEl.querySelector('#annosEditIcon')
     const annosBadge = annosEl.querySelector('sl-badge')
-    const urlCopyButton =  document.querySelector('sl-copy-button')
-    const pageIdEl = document.querySelector('#pageId')
+    // const urlCopyButton =  document.querySelector('sl-copy-button')
+    // const pageIdEl = document.querySelector('#pageId')
     let viewer
     let annoLayer
     let iiifManifest
@@ -178,6 +182,22 @@
       main.style.visibility = 'visible'
     })
 
+    const pageInfo = document.querySelector('.page-info')
+    const pageIdEl = pageInfo.querySelector('.pageid')
+    pageIdEl.onclick = () => navigator.clipboard.writeText(pageIdEl.textContent)
+    const thumbnailEl = pageInfo.querySelector('.thumbnail')
+    thumbnailEl.addEventListener('dragstart', (e) => {
+      let imgURL = staticImageUrl()
+      e.dataTransfer.setData('text/plain', imgURL)
+      e.dataTransfer.setData('text/uri-list', imgURL)
+    })
+    thumbnailEl.addEventListener('click', (e) => navigator.clipboard.writeText(currentImageUrl()))
+    const setPageInfo = (pageId) => {
+      pageIdEl.innerHTML = props.seq
+      let thumb = staticImageUrl(200)
+      thumbnailEl.src = thumb
+    }
+
     const setTileSource = (canvas) => {
       const page = findItem({type:'AnnotationPage'}, canvas)
       const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
@@ -222,7 +242,8 @@
     }
     let annotations = []
 
-    const staticImageUrl = () => {
+    const staticImageUrl = (width) => {
+      width = width || props.width
       let itemInfo = iiifManifest && findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq).body
       if (!itemInfo) return ''
       let url
@@ -230,10 +251,10 @@
       let [quality, format] = rest?.split('.') || []
       region = props.region || region || 'full'
       size = props.size || size || 'max'
-      if (props.width) {
+      if (width) {
         size = props.height
-          ? `${props.width},${props.height}`
-          : `${props.width},`
+          ? `${width},${props.height}`
+          : `${width},`
       } else if (props.height) size = `,${props.height}`
 
       rotation = parseInt(props.rotation || rotation || 0)
@@ -574,16 +595,14 @@
           pinchRotate: false
         }
       })
-      urlCopyButton.setAttribute('value', staticImageUrl())
-      pageIdEl.innerHTML = props.seq
+      setPageInfo()
 
       // display the region coordinates
       let debounce = null
 
       viewer.addHandler('page', (e) => { 
         props.seq = e.page+1
-        urlCopyButton.setAttribute('value', staticImageUrl())
-        pageIdEl.innerHTML = props.seq
+        setPageInfo()
       })
 
       viewer.addHandler('viewport-change', () => {

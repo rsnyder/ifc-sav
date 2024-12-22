@@ -97,7 +97,10 @@
           thumbnail.addEventListener('dragstart', (e) => {
             let imgURL = new URL(Array.from(viewerEl.querySelectorAll('img')).find(img => img.src.indexOf(`&pg=${viewer.getPageId()}`) > 0)?.src)
             imgURL.searchParams.set('w', 2000)
+            console.log(e.dataTransfer.getData('text/plain'))
+            console.log('uri-list', e.dataTransfer.getData('text/uri-list'))
             e.dataTransfer.setData('text/plain', imgURL.toString())
+            e.dataTransfer.setData('text/uri-list', imgURL.toString())
           })
           thumbnail.addEventListener('click', (e) => navigator.clipboard.writeText(currentImageUrl()))
           container.appendChild(thumbnail)

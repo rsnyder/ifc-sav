@@ -11,7 +11,9 @@
 
 - Examples
   - [Monument Valley](/docs/examples/monument-valley)
-  - [Mattioli Herbal](/docs/examples/mattioli-herbal)
-  - [Clusius Herbal](/docs/examples/clusius-herbal)
+  - Historical document exploration with ChatGPT
+    - [Clusius Herbal](/docs/examples/clusius-herbal)
+    - [Gerard Herbal](/docs/examples/gerard-herbal)
+    - [Mattioli Herbal](/docs/examples/mattioli-herbal)
 
 - [Information for developers](/docs/developers)
