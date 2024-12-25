@@ -5,12 +5,12 @@
 
 ### Rendered
 
-`image #iframe1 medium center box-shadow wc:017_Great_blue_turaco_at_Kibale_forest_National_Park_Photo_by_Giles_Laurent.jpg "Custom Caption"`
+`image manifest=https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json "Custom Caption" cover medium center box-shadow`
 
 ### Markdown
 
 ```markup
-`image #iframe1 medium center box-shadow wc:017_Great_blue_turaco_at_Kibale_forest_National_Park_Photo_by_Giles_Laurent.jpg "Custom Caption" cover`
+`image image manifest=https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json "Custom Caption" cover medium center box-shadow`
 ```
 
 ### HTML
@@ -18,7 +18,7 @@
 ```markup
 <iframe
   id="iframe1"
-  src="image?src=wc:017_Great_blue_turaco_at_Kibale_forest_National_Park_Photo_by_Giles_Laurent.jpg&cover&caption=Custom+Caption"
+  src="image?manifest=https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json&cover&caption=Custom+Caption"
   class="medium center box-shadow"
   allowfullscreen
 ></iframe>

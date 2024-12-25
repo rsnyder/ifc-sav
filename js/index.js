@@ -32,6 +32,10 @@ const components = {
     booleans: 'nocaption',
     positional: 'location caption'
   },
+  tify: {
+    booleans: 'cover nocaption',
+    positional: 'manifest caption'
+  },
   video: {
     booleans: 'nocaption',
     positional: 'src caption',
@@ -130,7 +134,7 @@ const parseCodeEl = (el) => {
     else tokens.push(token)
   })
   let parsed = {}
-  let args = []
+  let args = {}
   let tokenIdx = 0
   let tagObj
   while (tokenIdx < tokens.length) {
@@ -165,7 +169,8 @@ const parseCodeEl = (el) => {
       else parsed.class = className
     }
     else if (token[0] === '"') {
-      args.push(token.slice(1,-1))
+      // args.push(token.slice(1,-1))
+      args[tokenIdx-1] = token.slice(1,-1)
     }
     else if (/#\w+/.test(token)) parsed['id'] = token.slice(1)
     else if (/^Q\d+$/.test(token) && !parsed.tag) { // entity identifier
@@ -181,7 +186,9 @@ const parseCodeEl = (el) => {
         if (!parsed.booleans) parsed.booleans = []
         parsed.booleans.push(token)
       } else {
-        args.push(token)
+        // args.push(token)
+        args[tokenIdx-1] = token
+        /*
         if (tagObj?.positional.length >= tokenIdx) {
           if (!parsed.kwargs) parsed.kwargs = {}
           parsed.kwargs[tagObj.positional[tokenIdx-1]] = token
@@ -190,18 +197,22 @@ const parseCodeEl = (el) => {
           if (!parsed.args) parsed.args = []
           parsed.args.push(token)
         }
+        */
       }
     }
     tokenIdx++
   }
-  for (let idx = 0; idx < args.length; idx++) {
-    if (tagObj?.positional.length > idx) {
-      if (!parsed.kwargs) parsed.kwargs = {}
-      parsed.kwargs[tagObj.positional[idx]] = args[idx]
-    } else {
-      if (!parsed.args) parsed.args = []
-      parsed.args.push(args[idx])
+  if (tagObj?.positional?.length > 0) {
+    for (let idx = 0; idx < tagObj.positional.length; idx++) {
+      if (args[idx]) {
+        if (!parsed.kwargs) parsed.kwargs = {}
+        parsed.kwargs[tagObj.positional[idx]] = args[idx]
+        delete args[idx]
+      } else {
+        break
+      }
     }
+    parsed.args = Object.values(args)
   }
   return parsed
 }
@@ -390,6 +401,7 @@ if (main) {
     mutations.forEach(mutation => {
       if (mutation.target.tagName === 'ARTICLE') {
         let restructuredArticle = restructure(mutation.target).querySelector('article')
+        // restructuredArticle.style.height = '80dvh'
         restructuredArticle.id = mutation.target.id
         restructuredArticle.className = mutation.target.className
         restructuredArticle.classList.add('markdown-body')
@@ -499,6 +511,7 @@ function restructure(rootEl) {
     if (priorEl?.tagName?.[0] === 'H') target = priorEl
     else if (['A', 'STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
     else target = parentEl
+    // console.log(parsed, target)
     if (parsed.class) target.className = parsed.class
     if (parsed.id) target.id = parsed.id
     if (parsed.style) applyStyle(target, parsed.style)
@@ -516,11 +529,13 @@ function restructure(rootEl) {
   if (styleSheet) main.appendChild(styleSheet.cloneNode(true))
 
   let article = document.createElement('article')
+
   main.appendChild(article)
   
   let currentSection = article;
 
   rootEl = rootEl.querySelector('body') || rootEl
+  rootEl.classList.forEach(cls => main.classList.add(cls))
 
   Array.from(rootEl?.children || []).forEach(el => {
     if (el.tagName[0] === 'H' && isNumeric(el.tagName.slice(1))) {
@@ -559,10 +574,7 @@ async function getEntityData(qids, language) {
   language = language || 'en'
   let cached = new Set(qids.filter(qid => window.entityData[qid]))
   let pending = new Set(qids.filter(qid => window.pendingEntityData.has(qid)))
-  let toGet = qids
-    .filter(qid => !cached.has(qid))
-    // .filter(qid => !pending.has(qid))  
-  // console.log(`getEntityData: entities=${qids.length} cached=${cached.size} pending=${pending.size} toGet=${toGet}`)
+  let toGet = qids .filter(qid => !cached.has(qid))
   if (toGet.length > 0) {
     Array.from(toGet).forEach(qid => window.pendingEntityData.add(qid))
     let toGetUrls = toGet.map(qid => `(<http://www.wikidata.org/entity/${qid}>)`)

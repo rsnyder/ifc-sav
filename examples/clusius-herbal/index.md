@@ -1,8 +1,6 @@
-<style>
-  iframe { height: calc(100dvh - 300px); }
-</style>
-
 `breadcrumbs`
+
+`.fill`
 
 # Explore *Rariorum Plantarum Historia* using ChatGPT
 
@@ -13,7 +11,7 @@ This page allows ad hoc exploration of *Rariorum Plantarum Historia* using ChatG
 
 ###
 
-`aichat #iframe1 box-shadow`
+`aichat box-shadow`
 
 ###
 

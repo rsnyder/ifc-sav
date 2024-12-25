@@ -2,6 +2,7 @@
   - [AI Chat](/docs/components/aichat)
   - [Google Books](/docs/components/google-books)
   - [Image](/docs/components/image)
+  - [TIFY](/docs/components/tify)
   - [Map](/docs/components/map)
 
 - [Layout](/docs/layout/)

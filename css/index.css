@@ -39,6 +39,10 @@ body {
   aspect-ratio: unset;
 }
 
+section, article, iframe {
+  height: inherit;
+}
+
 /*
 section::after {
   content: "";
@@ -63,6 +67,11 @@ section::after {
 }
 
 @media (min-width: 600px) {
+
+  .fill {
+    width: 100% !important;
+    height: 100% !important;
+  }
 
   .left {
     float: left;

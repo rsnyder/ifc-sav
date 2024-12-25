@@ -1,7 +1,3 @@
-<style>
-  iframe { height: calc(100dvh - 300px); }
-</style>
-
 `breadcrumbs`
 
 # Explore *The herball, or, Generall historie of plantes (John Gerard)* using ChatGPT

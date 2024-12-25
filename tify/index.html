@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tify@0.31.0/dist/tify.css">
+  <style>
+    #tify { width: 100%; }
+  </style>
+</head>
+<body>
+
+  <div id="tify"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/tify@0.31.0/dist/tify.js"></script>
+  
+  <script type="module">
+
+    let tifyEl = document.getElementById('tify')
+
+    const props = {
+      ...{ // default properties
+        caption: null,  // caption text
+        cover: false,
+        height: null,
+        language: 'en',
+        manifest: null,
+        nocaption: false,
+        options: null,  // IIIF region, size, rotation, quality, format
+        page: 1,        // page number to display
+        pageid: null,   // page identifier
+        quality: null,
+        region: null,   // initial region to zoom to
+        rotation: 0,
+        size: null,     // size of image to display
+        src: null,
+        width: null
+      },
+      ...Object.fromEntries(
+        (location.href.split('?')[1] || '')
+        .split('&')
+        .map(p => p.split('='))
+        .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
+      )
+    }
+    props.page = parseInt(props.page) || 1
+    console.log(props)
+    
+    let tify = new Tify({ container: '#tify', manifestUrl: props.manifest })
+    if (props.language) tify.setLanguage(props.language)
+
+    let osd
+
+    const onTileLoad = (e) => {
+      if (!tifyEl.style.aspectRatio) {
+        tifyEl.style.aspectRatio = e.source.aspectRatio
+        osd.viewport.zoomTo(1)
+      }
+
+      props.page = e.source.page
+      let tileUrl = e.tilesMatrix[0][0][0].url
+      //console.log(props.page, tileUrl)
+    }
+
+    tify.ready.then(() => {
+      osd = tify.viewer
+      osd.world.addHandler('add-item', (e) => {
+        if (e.item.getFullyLoaded()) onTileLoad(e)
+        else e.item.addHandler('fully-loaded-change', (e) => { if (e.fullyLoaded) onTileLoad(e.eventSource) })
+      })
+      tify.setPage(parseInt(props.page))
+    })
+
+  </script>
+
+</body>
+</html>
