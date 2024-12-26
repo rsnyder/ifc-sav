@@ -18,7 +18,7 @@
 
 By [Pietro Andrea Mattioli](Q457191) · 1604
 
-`google-books #iframe1 cDBgAAAAcAAJ "Mattioli Herbal - 1604" pageid=PP7 right`
+`google-book #iframe1 cDBgAAAAcAAJ "Mattioli Herbal - 1604" pageid=PP7 right`
 
 De I Discorsi Di M. Pietro Andrea Matthioli Sanese, specifically La quale contiene il Primo, & Secondo libro · Volume 4, is part of an influential series expanding on De Materia Medica by Pedanius Dioscorides, a cornerstone of ancient pharmacology. This volume, focusing on the first and second books of Dioscorides’ work, addresses the properties and uses of natural substances, particularly plants, in medicine. Pietro Andrea Matthioli, a distinguished Renaissance physician, enriched the classical text with his commentary, blending ancient knowledge with contemporary medical practices to provide a comprehensive resource for early modern healthcare professionals.
 

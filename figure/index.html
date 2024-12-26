@@ -24,9 +24,8 @@
     .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; }
     .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     .embed { display: flex; margin-bottom: 1em; }
-    h4 { margin: 0 0 0.5em 0; }
     #title { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }
-    #ifc-link, #src { color: blue; text-decoration: underline; }
+    #ifc-link, #source { color: #0969da; }
   </style>
 </head>
 <body>
@@ -39,7 +38,7 @@
       </div>
       <figcaption>      
         <svg class="drawer-toggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
-        <div class="label clamp"></div>
+        <div class="title clamp"></div>
       </figcaption>
     </figure>
 
@@ -49,12 +48,12 @@
         <sl-tab slot="nav" panel="embed">Embed</sl-tab>
         <sl-tab-panel active name="info">
           <div id="title"></div>
-          <div><b>Source: </b><span id="src" class="wrap"></span><sl-copy-button from="src"></sl-copy-button></div>
+          <div><b>Source: </b><span id="source" class="wrap"></span><sl-copy-button from="source"></sl-copy-button></div>
         </sl-tab-panel>
         <sl-tab-panel name="embed">
           <div class="embed wrap">
-            <pre><code id="embed"></code></pre>
-            <sl-copy-button from="embed"></sl-copy-button>
+            <pre><code id="embed-code"></code></pre>
+            <sl-copy-button from="embed-code"></sl-copy-button>
           </div>
             For more information, visit <span id="ifc-link">https://ifc.juncture-digital.org</span><sl-copy-button from="ifc-link"></sl-copy-button>
           <div>
@@ -79,9 +78,13 @@
     const figure = main.querySelector('figure')
     const img = figure.querySelector('img')
     const caption = figure.querySelector('figcaption')
+    const drawerToggle = caption.querySelector('.drawer-toggle')
 
     const drawer = document.querySelector('.drawer')
-    const drawerToggle = figure?.querySelector('.drawer-toggle')
+    const title = drawer.querySelector('#title')
+    const source = drawer.querySelector('#source')
+    const embedCode = drawer.querySelector('#embed-code')
+
     drawerToggle?.addEventListener('click', e => drawer.open = !drawer.open)
 
     const props = {
@@ -100,8 +103,8 @@
     
     const setCaption = () => {
       if (props.caption) {
-        drawer.querySelector('#title').textContent = props.caption
-        caption.querySelector('.label').innerHTML = md2Html(props.caption) 
+        title.textContent = props.caption
+        caption.querySelector('.title').innerHTML = md2Html(props.caption) 
       } else {
         drawer.querySelector('#title').style.display = 'none'
       }
@@ -110,8 +113,8 @@
     
     docReady(function() {
       img.src = props.src
-      drawer.querySelector('#src').textContent = props.src
-      drawer.querySelector('#embed').textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`
+      source.textContent = props.src
+      embedCode.textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`
       setCaption()
       main.style.visibility = 'visible'
     })

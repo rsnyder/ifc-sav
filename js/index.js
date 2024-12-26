@@ -19,7 +19,7 @@ const components = {
     booleans: 'nocaption',
     positional: 'src caption'
   },
-  'google-books': {
+  'google-book': {
     booleans: 'nocaption',
     positional: 'id caption'
   },
@@ -27,6 +27,10 @@ const components = {
     booleans: '',
     positional: '',
     disabled: true
+  },
+  'ia-book': {
+    booleans: 'cover nocaption showannos static',
+    positional: 'id caption'
   },
   image: {
     booleans: 'cover nocaption showannos static',

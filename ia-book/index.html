@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IA Book Reader</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
+    body { height:100dvh; margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; background-color: white; }    
+    main { height: 100%; display: flex; flex-direction: column; width: 100%; visibility: hidden; }
+  </style>
+</head>
+<body>
+  
+  <main></main>
+
+<script type="module">
+
+    const props = {
+      ...{              // default properties
+        caption: null   // caption text
+      },
+      ...Object.fromEntries( // URLSearchParams to object
+        Array.from(new URLSearchParams(location.search).entries())
+        .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
+      )
+    }
+    console.log(props)
+
+    const main = document.querySelector('main')
+    let iframe
+
+    const addIframe = (el) => {
+      const iframe = document.createElement('iframe')
+      iframe.src = `https://archive.org/embed/${props.id}`
+      iframe.width = '100%'
+      iframe.height = '100%'
+      iframe.frameBorder = '0'
+      iframe.allowFullscreen = true
+      el.appendChild(iframe)
+      return iframe
+    }
+
+    const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
+    
+    docReady(function() {
+      iframe = addIframe(main)
+      main.style.visibility = 'visible'
+
+      // Messaging is not working.  Not sure why or if it's possible with this setup.  - https://github.com/internetarchive/bookreader
+      window.addEventListener('message', (event) => { console.log(event) })
+      iframe.contentWindow.postMessage({ 'type': 'bookReaderFragmentChange', 'fragment': 'page/n1/mode/2up'}, 'https://archive.org')
+
+    })
+
+  </script>
+</body>
+</html>

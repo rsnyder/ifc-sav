@@ -30,8 +30,8 @@ body {
   aspect-ratio: 1 / 1 ;
 }
 
-.markdown-section iframe[src*="google-books"],
-.markdown-body iframe[src*="google-books"] {
+.markdown-section iframe[src*="google-book"],
+.markdown-body iframe[src*="google-book"] {
   aspect-ratio: 2 / 3.2 ;
 }
 
