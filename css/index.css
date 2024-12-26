@@ -2,11 +2,13 @@
 @import 'cards.css';
 @import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css';
 
+*, *::before, *::after { box-sizing: border-box; }
+
 body {
   font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif;
   font-size: 18px;
   -webkit-font-smoothing: antialiased;
-  margin: 1em;
+  /* margin: 1em; */
 }
 
 .markdown-section iframe,
@@ -39,8 +41,8 @@ body {
   aspect-ratio: unset;
 }
 
-section, article, iframe {
-  height: inherit;
+main .content {
+  padding-top: 0;
 }
 
 /*

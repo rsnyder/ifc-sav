@@ -41,6 +41,7 @@
     .page-info:hover { opacity: 1; }
     .pageid { cursor: copy; }
     .thumbnail { cursor: move; width: 100%; }
+    img { max-width: 100%; max-height: 100%; object-fit: contain; }
   </style>
 </head>
 <body>
@@ -323,8 +324,23 @@
       .then(manifest => {
         iiifManifest = manifest
         if (props.static) {
-          // document.querySelector('#static').src = staticImageUrl()
-          location.href = staticImageUrl()
+          // location.href = staticImageUrl()
+          let img = document.querySelector('#static')
+          img.src = staticImageUrl()
+          img.addEventListener('click', () => {
+            console.log('click')
+            const canvases = findItems({type:'Canvas'}, iiifManifest)
+            const tiledSources = canvases.map(canvas => {
+              const page = findItem({type:'AnnotationPage'}, canvas)
+              const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
+              return itemInfo.service
+                ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+                : { url: itemInfo.id, type: 'image', buildPyramid: true }
+            })
+            img.style.display = 'none'
+            init(tiledSources)
+          })
+
         } else {
           const canvases = findItems({type:'Canvas'}, iiifManifest)
           const tiledSources = canvases.map(canvas => {
@@ -558,6 +574,7 @@
 
     const init = async (tileSources) => {
       // create the OpenSeadragon viewer
+      console.log('init', tileSources)
       viewer = OpenSeadragon({
         id: 'osd',
         prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',

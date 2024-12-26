@@ -1,5 +1,6 @@
 - [Components](/docs/components/)
   - [AI Chat](/docs/components/aichat)
+  - [Figure](/docs/components/figure)
   - [Google Books](/docs/components/google-books)
   - [Image](/docs/components/image)
   - [TIFY](/docs/components/tify)

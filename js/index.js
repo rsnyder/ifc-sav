@@ -15,6 +15,10 @@ const components = {
     booleans: 'nocaption',
     positional: 'model'
   },
+  figure: {
+    booleans: 'nocaption',
+    positional: 'src caption'
+  },
   'google-books': {
     booleans: 'nocaption',
     positional: 'id caption'
@@ -25,7 +29,7 @@ const components = {
     disabled: true
   },
   image: {
-    booleans: 'cover nocaption showannos',
+    booleans: 'cover nocaption showannos static',
     positional: 'src caption'
   },
   map: {
@@ -214,6 +218,7 @@ const parseCodeEl = (el) => {
     }
     parsed.args = Object.values(args)
   }
+  // console.log(parsed)
   return parsed
 }
 
