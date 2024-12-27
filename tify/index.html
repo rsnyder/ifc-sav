@@ -6,12 +6,35 @@
   <title>Document</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tify@0.31.0/dist/tify.css">
   <style>
-    #tify { width: 100%; }
+    *, *::before, *::after { box-sizing: border-box; }
+    @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
+    body { height:100dvh; margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; background-color: white; }    
+    main { height: 100%; display: flex; flex-direction: column; width: 100%; visibility: hidden; }
+    figure { display: grid; grid-template-rows: 1fr auto; height: 100%; margin: 0; }
+    .content {  position: relative; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+    .content #tify {width: 100%; height: 100%; object-fit: contain; }
+    figcaption { padding: 10px; font-size: 0.9rem; background-color: #f9f9f9; display: flex; align-items: center; gap: 0.5em; }
+    svg { width: 1.3em; height: 1.3em; }
+
+    .page-info { position: absolute; top: 250px; left: 0; width: 60px; z-index: 1000; background-color: rgba(255, 255, 255, 0.5); padding: 5px; border-radius: 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; opacity: 0; transition: all 0.5s ease-out; }
+    .page-info:hover { opacity: 1; }
+    .pageid { cursor: copy; }
+    .thumbnail { cursor: move; width: 100%; }
+
   </style>
 </head>
 <body>
 
-  <div id="tify"></div>
+  <figure>
+    <div class="content">
+      <div id="tify"></div>
+      <div class="page-info"><div class="pageid">Page</div><img class="thumbnail" draggable="true"></div>
+    </div>
+    <figcaption style="display: none;">      
+      <svg class="drawer-toggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
+      <div class="title clamp"></div>
+    </figcaption>
+  </figure>
 
   <script src="https://cdn.jsdelivr.net/npm/tify@0.31.0/dist/tify.js"></script>
   
@@ -45,22 +68,51 @@
       )
     }
     props.page = parseInt(props.page) || 1
+    if (props.manifest) {
+      if (props.manifest.indexOf('wc:') === 0 || props.manifest.indexOf('gh:') === 0) {
+        props.manifest = `https://iiif.mdpress.io/${props.manifest}/manifest.json`
+      } else if (props.manifest.indexOf('ia:') === 0) {
+        props.manifest = `https://iiif.archive.org/iiif/3/${props.manifest.replace('ia:', '')}/manifest.json`
+      } else if (props.manifest.indexOf('wikimedia.org') > -1 || (props.manifest.indexOf('wikipedia.org') > -1 && props.manifest.indexOf('/media/File:') > -1)) {
+        const mwFile = props.manifest.split('/').pop().replace(/File:/, '')
+        props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
+      }
+    }
     console.log(props)
     
     let tify = new Tify({ container: '#tify', manifestUrl: props.manifest })
     if (props.language) tify.setLanguage(props.language)
 
+    let thumbnailUrl
+    let fullsizeUrl
+
     let osd
+    let pageinfo = document.querySelector('.page-info')
+    let pageidEl = pageinfo.querySelector('.pageid')
+    let thumbnailEl = pageinfo.querySelector('.thumbnail')
+    thumbnailEl.addEventListener('click', (e) => navigator.clipboard.writeText(fullsizeUrl))
+    thumbnailEl.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', fullsizeUrl)
+      e.dataTransfer.setData('text/uri-list', fullsizeUrl)
+    })
 
     const onTileLoad = (e) => {
       if (!tifyEl.style.aspectRatio) {
         tifyEl.style.aspectRatio = e.source.aspectRatio
-        osd.viewport.zoomTo(1)
+        // osd.viewport.zoomTo(1)
       }
 
       props.page = e.source.page
       let tileUrl = e.tilesMatrix[0][0][0].url
-      //console.log(props.page, tileUrl)
+      let url = new URL(tileUrl)
+      let path = url.pathname.split('/').filter(p => p)
+      let [id, region, size, rotation, fname] = path.slice(path.length - 5)
+      let [quality, format] = fname.split('.')
+      // console.log(id, region, size, rotation, quality, format)
+      thumbnailUrl = `${url.origin}/${path.slice(0, path.length - 5).join('/')}/${id}/full/100,/${rotation}/${quality}.${format}`
+      fullsizeUrl = `${url.origin}/${path.slice(0, path.length - 5).join('/')}/${id}/full/max/${rotation}/${quality}.${format}`
+      pageidEl.textContent = props.page
+      thumbnailEl.src = thumbnailUrl
     }
 
     tify.ready.then(() => {

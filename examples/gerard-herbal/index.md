@@ -9,8 +9,8 @@ This page allows ad hoc exploration of *The herball, or, Generall historie of pl
 
 ###
 
-`aichat box-shadow`
+`aichat :aspect-ratio=0.61 box-shadow`
 
 ###
 
-`image ia:gri_33125012606592 seq=7 box-shadow`
+`tify ia:gri_33125012606592 page=7 :aspect-ratio=0.61 box-shadow`
