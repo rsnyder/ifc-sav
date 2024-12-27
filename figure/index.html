@@ -19,13 +19,20 @@
     sl-drawer::part(body) { padding: 0; }
     sl-tab::part(base) { padding: 0.5em 1em; }
     sl-tab-panel::part(base) { padding: 0.5em; }
+    sl-tab-panel::part(base) div, sl-tab-panel div { margin-bottom: 0.5em; }
     sl-copy-button::part(button) { padding-top: 0; }
     pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
     .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; }
     .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     .embed { display: flex; margin-bottom: 1em; }
     #title { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }
-    #ifc-link, #source { color: #0969da; }
+    #description { margin-bottom: 0.5em; display: none; }
+    #artist, #date, #source, #credit, #license, #reuse { margin-bottom: 0.3em; display: none; }
+    #description:not(:empty), #artist:not(:empty), #date:not(:empty), #source:not(:empty), #credit:not(:empty), #license:not(:empty), #reuse:not(:empty) { display: block; }
+    a, #ifc-link, #source a { color: #0969da; }
+
+    sl-tab-panel::part(base) *, sl-tab-panel div { color: red; }
+
   </style>
 </head>
 <body>
@@ -34,7 +41,7 @@
 
     <figure>
       <div class="content">
-        <img>
+        <img draggable="true">
       </div>
       <figcaption>      
         <svg class="drawer-toggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
@@ -48,7 +55,13 @@
         <sl-tab slot="nav" panel="embed">Embed</sl-tab>
         <sl-tab-panel active name="info">
           <div id="title"></div>
-          <div><b>Source: </b><span id="source" class="wrap"></span><sl-copy-button from="source"></sl-copy-button></div>
+          <div id="description"></div>
+          <div id="artist"></div>
+          <div id="credit"></div>
+          <div id="date"></div>
+          <div id="source"></div>
+          <div id="license"></div>
+          <div id="reuse"></div>
         </sl-tab-panel>
         <sl-tab-panel name="embed">
           <div class="embed wrap">
@@ -65,6 +78,7 @@
 
 <script type="module">
 
+    import 'https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js'
     import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
 
     // import any needed Shoelace components (https://shoelace.style/)
@@ -79,17 +93,30 @@
     const img = figure.querySelector('img')
     const caption = figure.querySelector('figcaption')
     const drawerToggle = caption.querySelector('.drawer-toggle')
+    img.addEventListener('dragstart', (e) => {
+      let imgURL = props.src.indexOf('wc:') === 0 ? wcImageUrl(props.src.slice(3)) : props.src
+      e.dataTransfer.setData('text/plain', imgURL)
+      e.dataTransfer.setData('text/uri-list', imgURL)
+    })
 
     const drawer = document.querySelector('.drawer')
     const title = drawer.querySelector('#title')
+    const description = drawer.querySelector('#description')
+    const artist = drawer.querySelector('#artist')
+    const date = drawer.querySelector('#date')
     const source = drawer.querySelector('#source')
+    const credit = drawer.querySelector('#credit')
+    const license = drawer.querySelector('#license')
+    const reuse = drawer.querySelector('#reuse')
+
     const embedCode = drawer.querySelector('#embed-code')
 
     drawerToggle?.addEventListener('click', e => drawer.open = !drawer.open)
 
     const props = {
       ...{              // default properties
-        caption: null   // caption text
+        caption: null,  // caption text
+        aspect: 'auto'  // aspect ratio of iframe
       },
       ...Object.fromEntries( // URLSearchParams to object
         Array.from(new URLSearchParams(location.search).entries())
@@ -101,22 +128,89 @@
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
     const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
     
+    const getWcMetadata = (mwImg) => {
+      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
+      let title = decodeURIComponent(mwImg).replace(/ /g,'_')
+      let url = `https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&titles=File:${title}&prop=imageinfo&iiprop=extmetadata|size|mime`
+      console.log(url)
+      return fetch (url)
+        .then(response => response.json()).then(data => Object.values(data.query.pages)[0] )
+        .then(page => {
+          let imageInfo = page.imageinfo[0]
+          return {
+            ...{title: page.title},
+            ...{height: imageInfo.height, width: imageInfo.width, size: imageInfo.size, mime: imageInfo.mime},
+            ...Object.fromEntries(Object.entries(imageInfo.extmetadata).map(([key, value]) => [key, value.value]))
+          }
+        })
+    }
+
     const setCaption = () => {
       if (props.caption) {
         title.textContent = props.caption
         caption.querySelector('.title').innerHTML = md2Html(props.caption) 
       } else {
-        drawer.querySelector('#title').style.display = 'none'
+        if (props.src.indexOf('wc:') === 0) getWcMetadata(props.src.slice(3))
+        .then(metadata => {
+          console.log(metadata)
+          let imageTitle = metadata.ObjectName || metadata.title.replace(/^File:/, '')
+          title.textContent = imageTitle
+          caption.querySelector('.title').innerHTML = imageTitle
+          if (metadata.ImageDescription) description.innerHTML = metadata.ImageDescription
+          if (metadata.Artist) artist.innerHTML = `<b>Artist: </b><span>${metadata.Artist}</span>`
+          if (metadata.DateTime || metadata.DateTimeOriginal) date.innerHTML = `<b>Date: </b><span>${(metadata.DateTimeOriginal || metadata.DateTime).split(' ')[0]}</span>`
+          if (metadata.title) source.innerHTML = `<b>Source: </b><a href="https://commons.wikimedia.org/wiki/${metadata.title}" target="_blank">${imageTitle}</a>`
+          if (metadata.Credit) credit.innerHTML = `<b>Credit: </b><span>${metadata.Credit}</span>`
+          if (metadata.LicenseUrl && (metadata.LicenseShortName || metadata.License)) license.innerHTML = `<b>License: </b><a href="${metadata.LicenseUrl}" target="_blank">${metadata.LicenseShortName || metadata.License}</a>`
+          if (metadata.UsageTerms) reuse.innerHTML = `<b>Reuse: </b><span>${metadata.UsageTerms}</span>`
+          drawer.querySelectorAll('a').forEach(a => {
+            a.addEventListener('click', e => {
+              e.stopPropagation()
+              e.preventDefault()
+              window.parent.postMessage({ type: 'openLink', url: a.href }, '*');
+            })
+          })
+        })
       }
     }
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     
+    function wcImageUrl(mwImg, width) {
+      width = width || 0
+      // Converts Wikimedia commons image references to URLs
+      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
+      mwImg = decodeURIComponent(mwImg).replace(/ /g,'_')
+      const _md5 = md5(mwImg)
+      const extension = mwImg.split('.').pop()
+      let url = `https://upload.wikimedia.org/wikipedia/commons${width ? '/thumb' : ''}`
+      url += `/${_md5.slice(0,1)}/${_md5.slice(0,2)}/${mwImg}`
+      if (width > 0) {
+        url += `/${width}px-${mwImg}`
+        if (extension === 'svg') {
+          url += '.png'
+        } else if (extension === 'tif' || extension === 'tiff') {
+          url += '.jpg'
+        }
+      }
+      return url
+    }
+
     docReady(function() {
-      img.src = props.src
-      source.textContent = props.src
+      img.onload = () => {
+        main.style.visibility = 'visible'
+        let aspect = props.aspect === 'auto'
+          ? window.innerWidth / (img.naturalHeight * window.innerWidth / img.naturalWidth + caption.clientHeight)
+          : aspect = parseFloat(props.aspect)
+        window.parent.postMessage({ type: 'setAspect', aspect }, '*');
+      }
+      if (props.src.indexOf('wc:') === 0) {
+        img.src = wcImageUrl(props.src.slice(3), window.innerWidth)
+      } else {
+        img.src = props.src
+        source.textContent = props.src
+      }
       embedCode.textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`
       setCaption()
-      main.style.visibility = 'visible'
     })
 
   </script>

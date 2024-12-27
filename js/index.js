@@ -431,6 +431,14 @@ if (main) {
   }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
 
 }
+window.addEventListener('message', (event) => {
+  if (event.data.type === 'setAspect') {
+    const sendingIframe = Array.from(document.querySelectorAll('iframe')).find((iframe) => iframe.contentWindow === event.source)
+    if (sendingIframe) sendingIframe.style.aspectRatio = event.data.aspect
+  } else if (event.data.type === 'openLink') {
+    window.open(event.data.url, '_blank')
+  }
+})
 
 function isNumeric(arg) { return !isNaN(arg) }
 
