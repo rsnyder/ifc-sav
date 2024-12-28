@@ -15,10 +15,6 @@ const components = {
     booleans: 'nocaption',
     positional: 'model'
   },
-  figure: {
-    booleans: 'nocaption',
-    positional: 'src caption'
-  },
   'google-book': {
     booleans: 'nocaption',
     positional: 'id caption'
@@ -32,17 +28,21 @@ const components = {
     booleans: 'cover nocaption showannos static',
     positional: 'id caption'
   },
-  image: {
+  'iiif-tify': {
+    booleans: 'cover nocaption',
+    positional: 'manifest caption'
+  },
+  'iiif-juncture': {
     booleans: 'cover nocaption showannos static',
+    positional: 'src caption'
+  },
+  image: {
+    booleans: 'nocaption',
     positional: 'src caption'
   },
   map: {
     booleans: 'nocaption',
     positional: 'location caption'
-  },
-  tify: {
-    booleans: 'cover nocaption',
-    positional: 'manifest caption'
   },
   video: {
     booleans: 'nocaption',

@@ -1,12 +1,14 @@
 - [Components](/docs/components/)
-  - [AI Chat](/docs/components/aichat)
-  - [Figure](/docs/components/figure)
-  - [Google Book](/docs/components/google-book)
-  - [Internet Archive Book](/docs/components/ia-book)
-  - [Image](/docs/components/image)
-  - [TIFY](/docs/components/tify)
-  - [Map](/docs/components/map)
-
+  - Core Components
+    - [Image](/docs/components/image)
+    - [Map](/docs/components/map)
+  - IIIF Viewers
+    - [Juncture IIIF Viewer](/docs/components/iiif/juncture)
+    - [TIFY IIIF Viewer](/docs/components/iiif/tify)
+  - Book Viewers
+    - [Google Books](/docs/components/google-book)
+    - [Internet Archive Books](/docs/components/ia-book)
+  
 - [Layout](/docs/layout/)
   - [Cards](/docs/layout/cards)
   - [Columns](/docs/layout/columns)
@@ -14,9 +16,6 @@
 
 - Examples
   - [Monument Valley](/docs/examples/monument-valley)
-  - Historical document exploration with ChatGPT
-    - [Clusius Herbal](/docs/examples/clusius-herbal)
-    - [Gerard Herbal](/docs/examples/gerard-herbal)
-    - [Mattioli Herbal](/docs/examples/mattioli-herbal)
+  - [Pictures of the year](/docs/examples/wikimedia-commons-pictures-of-the-year)
 
 - [Information for developers](/docs/developers)
