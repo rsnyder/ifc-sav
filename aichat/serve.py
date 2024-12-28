@@ -7,7 +7,8 @@ logging.basicConfig(format='%(asctime)s : %(filename)s : %(levelname)s : %(messa
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-import argparse, json, os
+import json, os, socket
+
 from hashlib import sha256
 
 from fastapi import FastAPI, Request
@@ -46,12 +47,20 @@ app.add_middleware(
 )
 
 @app.get('/')
-def docs():
-  return RedirectResponse(url='/docs')
+async def get_source(request: Request):
+    client_ip = request.client.host  # Client's IP address
+    try:
+        # Resolve hostname
+        client_hostname = socket.gethostbyaddr(client_ip)[0]
+    except socket.herror:
+        client_hostname = 'Hostname could not be resolved'
+    
+    return {"client_ip": client_ip, "client_hostname": client_hostname}
 
-@app.get('/test')
-def test():
-  return {'path': '/test'}
+@app.get('/headers')
+async def get_headers(request: Request):
+    host_header = request.headers.get('host')  # Client's Host header
+    return {'host_header': host_header}
 
 @app.post('/chat')
 async def chat(
