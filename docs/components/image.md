@@ -117,3 +117,28 @@ This example uses an IIIF manifest rather than an image URL.  The image URL is e
 ##### Rendered
 
 `image manifest=https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json page=10 medium center box-shadow`
+
+### Manifest example #2
+
+####
+`.tabs`
+
+##### Markdown
+
+```markup
+`image manifest=https://iiif.harvardartmuseums.org/manifests/object/299843 medium center box-shadow`
+```
+
+##### HTML
+
+```markup
+<iframe
+  src="image?manifest=https://iiif.harvardartmuseums.org/manifests/object/299843"
+  class="medium center box-shadow"
+  allowfullscreen
+></iframe>
+```
+
+##### Rendered
+
+`image manifest=https://iiif.harvardartmuseums.org/manifests/object/299843 medium center box-shadow`

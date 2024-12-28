@@ -130,6 +130,9 @@
       )
     }
 
+    let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
+    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
+    
     const licenses = {
       // Creative Commons Licenses
       'PD': {codelabel: 'Public Domain', url: ''},
@@ -161,6 +164,39 @@
     const licensesByCode = Object.fromEntries(Object.entries(licenses).map(([code, value]) => [ code.replace(/-/g, ' ').toLowerCase(), { ...value, ...{code} } ]))
     const licensesByUrl = Object.fromEntries(Object.entries(licenses).map(([code, value]) => [value.url.split('/').filter(p => p).slice(1,-1).join('/').toLowerCase(), { ...value, ...{code} }]))
     
+    function wcImageUrl(mwImg, width) {
+      width = width || 0
+      // Converts Wikimedia commons image references to URLs
+      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
+      mwImg = decodeURIComponent(mwImg).replace(/ /g,'_')
+      const _md5 = md5(mwImg)
+      const extension = mwImg.split('.').pop()
+      let url = `https://upload.wikimedia.org/wikipedia/commons${width ? '/thumb' : ''}`
+      url += `/${_md5.slice(0,1)}/${_md5.slice(0,2)}/${mwImg}`
+      if (width > 0) {
+        url += `/${width}px-${mwImg}`
+        if (extension === 'svg') url += '.png'
+        else if (extension === 'tif' || extension === 'tiff') url += '.jpg'
+      }
+      return url
+    }
+
+    const getWcMetadata = (mwImg) => {
+      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
+      let title = decodeURIComponent(mwImg).replace(/ /g,'_')
+      let url = `https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&titles=File:${title}&prop=imageinfo&iiprop=extmetadata|size|mime`
+      return fetch (url)
+        .then(response => response.json()).then(data => Object.values(data.query.pages)[0] )
+        .then(page => {
+          let imageInfo = page.imageinfo[0]
+          return {
+            ...{title: page.title},
+            ...{height: imageInfo.height, width: imageInfo.width, size: imageInfo.size, mime: imageInfo.mime},
+            ...Object.fromEntries(Object.entries(imageInfo.extmetadata).map(([key, value]) => [key, value.value]))
+          }
+        })
+    }
+
     const setImageInfo = (obj) => {
       obj = obj || {}
       /* Set the image info in the drawer
@@ -177,7 +213,6 @@
       if (props.date) obj.navDate = props.date
       if (props.required) obj.requiredStatement = props.required
       if (props.rights) obj.rights = props.rights
-      console.log(obj)
       
       if (obj.label) {
         caption.querySelector('.label').innerHTML = obj.label
@@ -204,27 +239,28 @@
       })
     }
 
-    if (props.manifest) {
-      if (props.manifest.indexOf('wc:') === 0 || props.manifest.indexOf('gh:') === 0) {
-        props.manifest = `https://iiif.mdpress.io/${props.manifest}/manifest.json`
-      } else if (props.manifest.indexOf('ia:') === 0) {
-        props.manifest = `https://iiif.archive.org/iiif/3/${props.manifest.replace('ia:', '')}/manifest.json`
-      } else if (props.manifest.indexOf('wikimedia.org') > -1 || (props.manifest.indexOf('wikipedia.org') > -1 && props.manifest.indexOf('/media/File:') > -1)) {
-        const mwFile = props.manifest.split('/').pop().replace(/File:/, '')
-        props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
+    const init = async () => {
+
+      img.onload = () => {
+        main.style.visibility = 'visible'
+        let aspect = props.aspect === 'auto'
+          ? window.innerWidth / (img.naturalHeight * window.innerWidth / img.naturalWidth + caption.clientHeight)
+          : aspect = parseFloat(props.aspect)
+        if (aspect) window.parent.postMessage({ type: 'setAspect', aspect }, '*');
       }
-      props.src = await fetch(props.manifest).then(resp => resp.json())
-      .then( async manifest => {
-        const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
-        const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
-        return isV3Manifest 
-          ? manifest 
-          : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
-      })
-      .then(manifest => {
-        // console.log(manifest)
+
+      if (props.manifest) {
+        let manifest = await fetch(props.manifest).then(resp => resp.json())
+        .then( async manifest => {
+          const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
+          const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
+          return isV3Manifest 
+            ? manifest 
+            : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
+        })
+        console.log(manifest)
+
         let page = manifest.items[props.page - 1]
-        // console.log(page)
         let manifestLabel = (manifest.label?.en || manifest?.label?.none || Object.values(manifest.label)).join(' ')
         let pageLabel = (page.label?.en || page?.label?.none || Object.values(page.label)).join(' ')
         let imageUrl = `${page.items[0].items[0].body.service[0]['@id']}/full/!800,800/0/default.jpg`
@@ -242,60 +278,13 @@
           rights: manifest.rights,
           source: imageUrl
         }
+        img.src = imageUrl
         setImageInfo(imageInfoData)
-        return imageUrl
-      })
-    }
-    console.log(props)
 
-    let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
-    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
-    
-    const getWcMetadata = (mwImg) => {
-      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
-      let title = decodeURIComponent(mwImg).replace(/ /g,'_')
-      let url = `https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&titles=File:${title}&prop=imageinfo&iiprop=extmetadata|size|mime`
-      return fetch (url)
-        .then(response => response.json()).then(data => Object.values(data.query.pages)[0] )
-        .then(page => {
-          let imageInfo = page.imageinfo[0]
-          return {
-            ...{title: page.title},
-            ...{height: imageInfo.height, width: imageInfo.width, size: imageInfo.size, mime: imageInfo.mime},
-            ...Object.fromEntries(Object.entries(imageInfo.extmetadata).map(([key, value]) => [key, value.value]))
-          }
-        })
-    }
-    
-    function wcImageUrl(mwImg, width) {
-      width = width || 0
-      // Converts Wikimedia commons image references to URLs
-      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
-      mwImg = decodeURIComponent(mwImg).replace(/ /g,'_')
-      const _md5 = md5(mwImg)
-      const extension = mwImg.split('.').pop()
-      let url = `https://upload.wikimedia.org/wikipedia/commons${width ? '/thumb' : ''}`
-      url += `/${_md5.slice(0,1)}/${_md5.slice(0,2)}/${mwImg}`
-      if (width > 0) {
-        url += `/${width}px-${mwImg}`
-        if (extension === 'svg') url += '.png'
-        else if (extension === 'tif' || extension === 'tiff') url += '.jpg'
-      }
-      return url
-    }
-
-    const init = () => {
-      img.onload = () => {
-        main.style.visibility = 'visible'
-        let aspect = props.aspect === 'auto'
-          ? window.innerWidth / (img.naturalHeight * window.innerWidth / img.naturalWidth + caption.clientHeight)
-          : aspect = parseFloat(props.aspect)
-        if (aspect) window.parent.postMessage({ type: 'setAspect', aspect }, '*');
-      }
-      if (props.src.indexOf('wc:') === 0) {
+      } else if (props.src.indexOf('wc:') === 0) {
         img.src = wcImageUrl(props.src.slice(3), window.innerWidth)
         let metadata = getWcMetadata(props.src.slice(3)).then(metadata => {
-          console.log(metadata)
+          // console.log(metadata)
           let imageInfoData = {
             label: metadata.title,
             summary: metadata.ImageDescription,
