@@ -55,6 +55,12 @@ def get_hostname(request):
     client_hostname = 'Hostname could not be resolved'
   return client_hostname
 
+def get_referer(request):
+  return request.headers.get('referer')  # Get the Referer header
+
+def get_host_header(request):
+  return request.headers.get('host')
+
 @app.get('/')
 def docs():
   return RedirectResponse(url='/docs')
@@ -65,16 +71,15 @@ async def get_source(request: Request):
 
 @app.get('/headers')
 async def get_headers(request: Request):
-  host_header = request.headers.get('host')  # Client's Host header
-  return {'host_header': host_header}
+  return request.headers
 
 @app.post('/chat')
 async def chat(
   request: Request,
   model: Optional[str] = 'gpt-4o'):
   
-  hostname = get_hostname(request)
-  logger.info(f'Chat with model: {model} from {hostname}')
+  logger.info(f'Chat with model: {model}')
+  logger.info(json.dumps({'hostname': get_hostname(request), 'referer': get_referer(request), 'host_header': get_host_header(request)}, indent=2))
   
   host = request.headers.get('host')
   logger.info(host)
