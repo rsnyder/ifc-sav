@@ -46,28 +46,35 @@ app.add_middleware(
   allow_credentials=True,
 )
 
+def get_hostname(request):
+  client_ip = request.client.host  # Client's IP address
+  try:
+    # Resolve hostname
+    client_hostname = socket.gethostbyaddr(client_ip)[0]
+  except socket.herror:
+    client_hostname = 'Hostname could not be resolved'
+  return client_hostname
+
 @app.get('/')
+def docs():
+  return RedirectResponse(url='/docs')
+
+@app.get('/test')
 async def get_source(request: Request):
-    client_ip = request.client.host  # Client's IP address
-    try:
-        # Resolve hostname
-        client_hostname = socket.gethostbyaddr(client_ip)[0]
-    except socket.herror:
-        client_hostname = 'Hostname could not be resolved'
-    
-    return {"client_ip": client_ip, "client_hostname": client_hostname}
+  return {'client_ip': request.client.host, 'client_hostname': get_hostname(request)}
 
 @app.get('/headers')
 async def get_headers(request: Request):
-    host_header = request.headers.get('host')  # Client's Host header
-    return {'host_header': host_header}
+  host_header = request.headers.get('host')  # Client's Host header
+  return {'host_header': host_header}
 
 @app.post('/chat')
 async def chat(
   request: Request,
   model: Optional[str] = 'gpt-4o'):
   
-  logger.info(f'Chat with model: {model}')
+  hostname = get_hostname(request)
+  logger.info(f'Chat with model: {model} from {hostname}')
   
   host = request.headers.get('host')
   logger.info(host)
