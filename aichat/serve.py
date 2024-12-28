@@ -60,8 +60,7 @@ def get_hostname(request):
 def get_referrering_host(request):
   referer = request.headers.get('referer')  # Get the Referer header
   if referer:
-    return '/'.join(referer.split('/')[2]) 
-  return request.headers.get('referer')  # Get the Referer header
+    return referer.split('/')[2]
 
 def get_host_header(request):
   return request.headers.get('host')
