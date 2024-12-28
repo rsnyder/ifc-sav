@@ -46,7 +46,7 @@ app.add_middleware(
   allow_credentials=True,
 )
 
-allowed_sources = ['https://ifc.juncture-digital.org', 'https://plant-humanities.github.io']
+allowed_sources = ['ifc.juncture-digital.org', 'plant-humanities.github.io']
 
 def get_hostname(request):
   client_ip = request.client.host  # Client's IP address
@@ -57,7 +57,10 @@ def get_hostname(request):
     client_hostname = 'Hostname could not be resolved'
   return client_hostname
 
-def get_referer(request):
+def get_referrering_host(request):
+  referer = request.headers.get('referer')  # Get the Referer header
+  if referer:
+    return '/'.join(referer.split('/')[2]) 
   return request.headers.get('referer')  # Get the Referer header
 
 def get_host_header(request):
@@ -81,9 +84,9 @@ async def chat(
   model: Optional[str] = 'gpt-4o'):
   
   logger.info(f'Chat with model: {model}')
-  logger.info(json.dumps({'hostname': get_hostname(request), 'referer': get_referer(request), 'host_header': get_host_header(request)}, indent=2))
+  logger.info(json.dumps({'hostname': get_hostname(request), 'referrer': get_referrering_host(request), 'host_header': get_host_header(request)}, indent=2))
   
-  if get_referer(request) not in allowed_sources:
+  if get_referrering_host(request) not in allowed_sources:
     return Response(status_code=403, content='Forbidden', media_type='text/plain')
   
   payload = await request.body()
