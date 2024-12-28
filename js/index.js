@@ -38,7 +38,7 @@ const components = {
   },
   image: {
     booleans: 'nocaption',
-    positional: 'src caption'
+    positional: 'src label'
   },
   map: {
     booleans: 'nocaption',
