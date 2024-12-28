@@ -83,7 +83,7 @@ async def chat(
   logger.info(f'Chat with model: {model}')
   logger.info(json.dumps({'hostname': get_hostname(request), 'referer': get_referer(request), 'host_header': get_host_header(request)}, indent=2))
   
-  if get_referer(request)(request) not in allowed_sources:
+  if get_referer(request) not in allowed_sources:
     return Response(status_code=403, content='Forbidden', media_type='text/plain')
   
   payload = await request.body()
