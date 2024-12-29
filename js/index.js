@@ -2,6 +2,7 @@ import 'https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js'
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/breadcrumb/breadcrumb.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/breadcrumb-item/breadcrumb-item.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/card/card.js';
+import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/details/details.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/dropdown/dropdown.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
@@ -278,35 +279,45 @@ const convertTags = (rootEl) => {
     code.parentElement.replaceWith(iframe)
   })}
 
-const makeTabs = (rootEl) => {
-  rootEl.querySelectorAll('section.tabs').forEach(section => {
-    let tabGroup = document.createElement('sl-tab-group');
-    Array.from(section.classList).forEach(cls => tabGroup.classList.add(cls))
-    Array.from(section.attributes).forEach(attr => tabGroup.setAttribute(attr.name, attr.value))
-    
-    Array.from(section.querySelectorAll(':scope > section'))
-    .forEach((tabSection, idx) => {
-      let tab = document.createElement('sl-tab')
-      tab.setAttribute('slot', 'nav')
-      tab.setAttribute('panel', `tab${idx+1}`)
-      if (idx === 0) tab.setAttribute('active', '')
-      tab.innerHTML = tabSection.querySelector('h1, h2, h3, h4, h5, h6')?.innerHTML || ''
-      tabGroup.appendChild(tab)      
+  const makeDetails = (rootEl) => {
+    rootEl.querySelectorAll('section.details').forEach(section => {
+      let heading = section.querySelector('h1, h2, h3, h4, h5, h6')?.textContent
+      let details = document.createElement('sl-details')
+      details.setAttribute('summary', heading)
+      Array.from(section.children).slice(1).forEach(child => details.appendChild(child))
+      section.replaceWith(details)
     })
+  }
 
-    Array.from(section.querySelectorAll(':scope > section'))
-    .forEach((tabSection, idx) => {
-      let tabPanel = document.createElement('sl-tab-panel')
-      tabPanel.setAttribute('name', `tab${idx+1}`)
-      if (idx === 0) tabPanel.setAttribute('active', '')
-      let tabContent = Array.from(tabSection.children).slice(1).map(el => el.outerHTML).join(' ')
-      tabPanel.innerHTML = tabContent
-      tabGroup.appendChild(tabPanel)
+  const makeTabs = (rootEl) => {
+    rootEl.querySelectorAll('section.tabs').forEach(section => {
+      let tabGroup = document.createElement('sl-tab-group');
+      Array.from(section.classList).forEach(cls => tabGroup.classList.add(cls))
+      Array.from(section.attributes).forEach(attr => tabGroup.setAttribute(attr.name, attr.value))
+      
+      Array.from(section.querySelectorAll(':scope > section'))
+      .forEach((tabSection, idx) => {
+        let tab = document.createElement('sl-tab')
+        tab.setAttribute('slot', 'nav')
+        tab.setAttribute('panel', `tab${idx+1}`)
+        if (idx === 0) tab.setAttribute('active', '')
+        tab.innerHTML = tabSection.querySelector('h1, h2, h3, h4, h5, h6')?.innerHTML || ''
+        tabGroup.appendChild(tab)      
+      })
+
+      Array.from(section.querySelectorAll(':scope > section'))
+      .forEach((tabSection, idx) => {
+        let tabPanel = document.createElement('sl-tab-panel')
+        tabPanel.setAttribute('name', `tab${idx+1}`)
+        if (idx === 0) tabPanel.setAttribute('active', '')
+        let tabContent = Array.from(tabSection.children).slice(1).map(el => el.outerHTML).join(' ')
+        tabPanel.innerHTML = tabContent
+        tabGroup.appendChild(tabPanel)
+      })
+
+      section.replaceWith(tabGroup)
     })
-
-    section.replaceWith(tabGroup)
-  })
-}
+  }
 
 let cardCtr = 0
 const makeCards = (rootEl) => {
@@ -400,6 +411,7 @@ if (main) {
   let restructured = restructure(main)
   main.replaceWith(restructured)
   convertTags(restructured)
+  makeDetails(restructured)
   makeTabs(restructured)
   makeCards(restructured)
   makeColumns(restructured)
@@ -417,6 +429,7 @@ if (main) {
         // restructuredArticle.classList.remove('markdown-section')
         mutation.target.replaceWith(restructuredArticle)
         convertTags(restructuredArticle)
+        makeDetails(restructuredArticle)
         makeTabs(restructuredArticle)
         makeCards(restructuredArticle)
         makeColumns(restructuredArticle)

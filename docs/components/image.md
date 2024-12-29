@@ -7,6 +7,7 @@
 The `rights` options asserts the reuse rights for an image and any attribution (or other) statements that must be displayed when the image is used.  The `rights` value is a string that identifies a license or rights statement that applies to the image. The value must be drawn from the set of [Creative Commons](https://creativecommons.org/licenses/) license URIs or [RightsStatements.org](https://rightsstatements.org/page/1.0/) rights statement URIs.  The license or rights code may also be provided as a value to the `rights` option.  It will be converted to the corresponding URL.
 
 #### Creative Commons Licenses
+`.details`
 
 | Code | Definition | URL |
 | ---- | ---------- | --- |
@@ -19,6 +20,7 @@ The `rights` options asserts the reuse rights for an image and any attribution (
 | **CC-BY-NC-ND** | Attribution-NonCommercial-NoDerivs | [http://creativecommons.org/licenses/by-nc-nd/4.0/](http://creativecommons.org/licenses/by-nc-nd/4.0/) |
 
 #### Rights Statements
+`.details`
 
 | Code | Definition | URL |
 | ---- | ---------- | --- |
@@ -169,3 +171,27 @@ This example uses an IIIF manifest rather than an image URL.  The image URL is e
 
 `image https://raw.githubusercontent.com/rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
 
+### IIIF Manifest generated from Github hosted image
+
+####
+`.tabs`
+
+##### Markdown
+
+```markup
+`image manifest=https://iiif.mdpress.io/gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg/manifest.json medium center box-shadow`
+```
+
+##### HTML
+
+```markup
+<iframe
+  src="image?manifest=https://iiif.mdpress.io/gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg/manifest.json"
+  class="medium center box-shadow"
+  allowfullscreen
+></iframe>
+```
+
+##### Rendered
+
+`image manifest=https://iiif.mdpress.io/gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg/manifest.json medium center box-shadow`

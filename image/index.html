@@ -212,6 +212,7 @@
         - requiredStatement: string
         - rights: url
         - source: string
+        - size: string
 =      */
       if (props.label) obj.label = props.label
       if (props.summary) obj.summary = props.summary
@@ -235,6 +236,7 @@
         } else match = licensesByCode[obj.rights.replace(/-/g, ' ').toLowerCase()]
         rights.innerHTML = match ? `<b>Rights: </b><a href="${match.url}" target="_blank">${match.code}</a>` : `<b>Rights: </b>${props.rights}`
       }
+      if (obj.size) size.innerHTML = `<b>Size: </b><span>${obj.size}</span>`
       drawer.querySelectorAll('a').forEach(a => {
         a.addEventListener('click', e => {
           e.stopPropagation()
@@ -271,7 +273,7 @@
         if (exifData.FocalLength && exifData.ExposureTime && exifData.FNumber && exifData.ISOSpeedRatings)
           info.exposure = `${exifData.FocalLengthIn35mmFilm || exifData.FocalLength}mm 1/${exifData.ExposureTime < 1 ? Math.round(1/exifData.ExposureTime) : exifData.ExposureTime}s f/${exifData.FNumber} ISO ${exifData.ISOSpeedRatings}`
         if (exifData.ExposureMode && exifData.ExposureProgram) info.mode = `${exifData.ExposureMode}, ${exifData.ExposureProgram}`
-        info.size = `${exifData.PixelXDimension.toLocaleString()} x ${exifData.PixelYDimension.toLocaleString()} (JPG)`
+        if (exifData.PixelXDimension) info.size = `${exifData.PixelXDimension.toLocaleString()} x ${exifData.PixelYDimension.toLocaleString()} jpeg`
         
         if (info.camera && info.exposure) camera.innerHTML = `<b>Camera: </b><span>${info.camera} - ${info.exposure}</span>`
         if (info.size) size.innerHTML = `<b>Size: </b><span>${info.size}</span>`
@@ -303,9 +305,11 @@
         console.log(manifest)
 
         let page = manifest.items[props.page - 1]
+        console.log(page)
         let manifestLabel = (manifest.label?.en || manifest?.label?.none || Object.values(manifest.label)).join(' ')
-        let pageLabel = (page.label?.en || page?.label?.none || Object.values(page.label)).join(' ')
-        let imageUrl = `${page.items[0].items[0].body.service[0]['@id']}/full/!800,800/0/default.jpg`
+        let pageLabel = page.label && (page.label.en || page.label.none || Object.values(page.label)).join(' ')
+        let imageId = page.items[0].items[0].body.service[0]['@id'] || page.items[0].items[0].body.service[0].id
+        let imageUrl = `${imageId}/full/!800,800/0/default.jpg`
         let requiredStatement
         if (manifest.requiredStatement) {
           let rsLabel = (manifest.requiredStatement.label?.en || manifest.requiredStatement.label?.none || Object.values(manifest.requiredStatement.label)).join(' ')
@@ -313,12 +317,13 @@
           requiredStatement = `${rsLabel}: ${rsValue}`
         }
         let imageInfoData = {
-          label: `${manifestLabel} - ${pageLabel}`,
+          label: page.label ? `${manifestLabel} - ${pageLabel}` : manifestLabel,
           summary: manifest.summary?.en || manifest.summary?.none || Object.values(manifest.summary || {}),
           navDate: manifest.navDate?.split('T')[0],
           requiredStatement,
           rights: manifest.rights,
-          source: imageUrl
+          source: imageUrl,
+          size: `${page.items[0].items[0].body.width.toLocaleString()} x ${page.items[0].items[0].body.height.toLocaleString()} ${page.items[0].items[0].body.format.split('/').pop()}`
         }
         img.src = imageUrl
         setImageInfo(imageInfoData)
