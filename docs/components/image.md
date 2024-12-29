@@ -142,3 +142,30 @@ This example uses an IIIF manifest rather than an image URL.  The image URL is e
 ##### Rendered
 
 `image manifest=https://iiif.harvardartmuseums.org/manifests/object/299843 medium center box-shadow`
+
+
+### Github hosted image with EXIF data
+
+####
+`.tabs`
+
+##### Markdown
+
+```markup
+`image https://raw.githubusercontent.com/rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
+```
+
+##### HTML
+
+```markup
+<iframe
+  src="image?src=https://raw.githubusercontent.com/rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg"
+  class="medium center box-shadow"
+  allowfullscreen
+></iframe>
+```
+
+##### Rendered
+
+`image https://raw.githubusercontent.com/rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
+

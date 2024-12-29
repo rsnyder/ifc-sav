@@ -27,8 +27,8 @@
     .embed { display: flex; margin-bottom: 1em; }
     #label { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }
     #summary { margin-bottom: 0.5em; display: none; }
-    #navDate, #requiredStatement, #rights, #source { margin-bottom: 0.3em; display: none; }
-    #summary:not(:empty), #navDate:not(:empty), #requiredStatement:not(:empty), #rights:not(:empty), #source:not(:empty) { display: block; }
+    #navDate, #requiredStatement, #rights, #source, #navPlace, #camera, #size { margin-bottom: 0.3em; display: none; }
+    #summary:not(:empty), #navDate:not(:empty), #requiredStatement:not(:empty), #rights:not(:empty), #source:not(:empty), #navPlace:not(:empty), #camera:not(:empty), #size:not(:empty) { display: block; }
     a, #ifc-link, #source a { color: #0969da; }
 
     sl-tab-panel::part(base) *, sl-tab-panel div { color: red; }
@@ -60,6 +60,9 @@
           <div id="requiredStatement"></div>
           <div id="rights"></div>
           <div id="source"></div>
+          <div id="navPlace"></div>
+          <div id="camera"></div>
+          <div id="size"></div>
         </sl-tab-panel>
         <sl-tab-panel name="embed">
           <div class="embed wrap">
@@ -74,10 +77,10 @@
 
   </main>
 
+<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
 <script type="module">
-
-    import 'https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js'
-    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+    import 'https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js';
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js"
 
     // import any needed Shoelace components (https://shoelace.style/)
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/copy-button/copy-button.js';
@@ -105,7 +108,9 @@
     const requiredStatement = drawer.querySelector('#requiredStatement')
     const rights = drawer.querySelector('#rights')
     const source = drawer.querySelector('#source')
-
+    const navPlace = drawer.querySelector('#navPlace')
+    const camera = drawer.querySelector('#camera')
+    const size = drawer.querySelector('#size')
     const embedCode = drawer.querySelector('#embed-code')
 
     drawerToggle?.addEventListener('click', e => drawer.open = !drawer.open)
@@ -239,6 +244,42 @@
       })
     }
 
+    const getExifData = (img) => {
+      
+      const gpsToDecimal = (gpsArray, ref) => {
+        const [degrees, minutes, seconds] = gpsArray;
+        let decimal = degrees + minutes / 60 + seconds / 3600;
+        if (ref === 'S' || ref === 'W') decimal = -decimal; // Adjust for hemisphere
+        return decimal;
+      }
+      
+      // Convert GPS EXIF data to Lat/Lon string
+      const convertGPSToLatLonString = (exifData) => {
+        const latitude = gpsToDecimal(exifData.GPSLatitude, exifData.GPSLatitudeRef);
+        const longitude = gpsToDecimal(exifData.GPSLongitude, exifData.GPSLongitudeRef);
+        return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`; // Format to 6 decimal places
+      }
+
+      let info = {}
+      EXIF.getData(img, function () {
+        const exifData = EXIF.getAllTags(this);
+        // console.log(JSON.stringify(exifData, null, 2))
+        if (exifData.Orientation) info.orientation = exifData.Orientation
+        if (exifData.DateTimeOriginal) info.created = exifData.DateTimeOriginal
+        if (exifData.GPSLongitude && exifData.GPSLatitude) info.location = convertGPSToLatLonString(exifData)
+        if (exifData.Make && exifData.Model) info.camera = `${exifData.Make} ${exifData.Model}`
+        if (exifData.FocalLength && exifData.ExposureTime && exifData.FNumber && exifData.ISOSpeedRatings)
+          info.exposure = `${exifData.FocalLengthIn35mmFilm || exifData.FocalLength}mm 1/${exifData.ExposureTime < 1 ? Math.round(1/exifData.ExposureTime) : exifData.ExposureTime}s f/${exifData.FNumber} ISO ${exifData.ISOSpeedRatings}`
+        if (exifData.ExposureMode && exifData.ExposureProgram) info.mode = `${exifData.ExposureMode}, ${exifData.ExposureProgram}`
+        info.size = `${exifData.PixelXDimension.toLocaleString()} x ${exifData.PixelYDimension.toLocaleString()} (JPG)`
+        
+        if (info.camera && info.exposure) camera.innerHTML = `<b>Camera: </b><span>${info.camera} - ${info.exposure}</span>`
+        if (info.size) size.innerHTML = `<b>Size: </b><span>${info.size}</span>`
+        if (info.location) navPlace.innerHTML = `<b>Location: </b><span>${info.location}</span>`
+        if (info.created) navDate.innerHTML = `<b>Created: </b><span>${info.created}</span>`
+      })
+    }
+
     const init = async () => {
 
       img.onload = () => {
@@ -247,6 +288,7 @@
           ? window.innerWidth / (img.naturalHeight * window.innerWidth / img.naturalWidth + caption.clientHeight)
           : aspect = parseFloat(props.aspect)
         if (aspect) window.parent.postMessage({ type: 'setAspect', aspect }, '*');
+        getExifData(img)
       }
 
       if (props.manifest) {
