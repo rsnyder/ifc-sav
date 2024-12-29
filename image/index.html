@@ -209,9 +209,11 @@
         - label: string
         - summary: string
         - navDate: string
+        - navPlace: string
         - requiredStatement: string
         - rights: url
         - source: string
+        - camera: string
         - size: string
 =      */
       if (props.label) obj.label = props.label
@@ -225,9 +227,10 @@
         label.innerHTML = obj.label
       }
       if (obj.summary) summary.innerHTML = obj.summary
-      if (obj.navDate) navDate.innerHTML = `<b>Date: </b><span>${obj.navDate}</span>`
+      if (obj.navDate) navDate.innerHTML = `<b>Created: </b><span>${obj.navDate}</span>`
+      if (obj.navPlace) navPlace.innerHTML = `<b>Location: </b><span>${obj.navPlace}</span>`
       if (obj.requiredStatement) requiredStatement.innerHTML = `<b>RequiredStatement: </b><span>${obj.requiredStatement}</span>`
-      if (obj.source) source.innerHTML = `<b>Source: </b><span>${obj.source}</span>`
+      if (obj.source) source.innerHTML = `<b>Source: </b> <a href="${obj.source}" target="_blank">${obj.source}</a>`
       if (obj.rights) {
         let match
         if (obj.rights.indexOf('http') === 0) {
@@ -236,6 +239,7 @@
         } else match = licensesByCode[obj.rights.replace(/-/g, ' ').toLowerCase()]
         rights.innerHTML = match ? `<b>Rights: </b><a href="${match.url}" target="_blank">${match.code}</a>` : `<b>Rights: </b>${props.rights}`
       }
+      if (obj.camera) camera.innerHTML = `<b>Camera: </b><span>${obj.camera}</span>`
       if (obj.size) size.innerHTML = `<b>Size: </b><span>${obj.size}</span>`
       drawer.querySelectorAll('a').forEach(a => {
         a.addEventListener('click', e => {
@@ -267,7 +271,7 @@
         const exifData = EXIF.getAllTags(this);
         // console.log(JSON.stringify(exifData, null, 2))
         if (exifData.Orientation) info.orientation = exifData.Orientation
-        if (exifData.DateTimeOriginal) info.created = exifData.DateTimeOriginal
+        if (exifData.DateTimeOriginal) info.created = exifData.DateTimeOriginal.split(' ')[0]
         if (exifData.GPSLongitude && exifData.GPSLatitude) info.location = convertGPSToLatLonString(exifData)
         if (exifData.Make && exifData.Model) info.camera = `${exifData.Make} ${exifData.Model}`
         if (exifData.FocalLength && exifData.ExposureTime && exifData.FNumber && exifData.ISOSpeedRatings)
@@ -302,27 +306,30 @@
             ? manifest 
             : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
         })
-        console.log(manifest)
+        // console.log(manifest)
 
         let page = manifest.items[props.page - 1]
-        console.log(page)
+        let metadata = Object.fromEntries((manifest.metadata || []).map(({label, value}) => [(label?.en || label?.none || Object.values(label)).join(' '), (value?.en || value?.none || Object.values(value)).join(' ')]))
         let manifestLabel = (manifest.label?.en || manifest?.label?.none || Object.values(manifest.label)).join(' ')
         let pageLabel = page.label && (page.label.en || page.label.none || Object.values(page.label)).join(' ')
         let imageId = page.items[0].items[0].body.service[0]['@id'] || page.items[0].items[0].body.service[0].id
+        let source = page.items[0].items[0].body['@id'] || page.items[0].items[0].body.id
         let imageUrl = `${imageId}/full/!800,800/0/default.jpg`
         let requiredStatement
         if (manifest.requiredStatement) {
           let rsLabel = (manifest.requiredStatement.label?.en || manifest.requiredStatement.label?.none || Object.values(manifest.requiredStatement.label)).join(' ')
           let rsValue = (manifest.requiredStatement.value?.en || manifest.requiredStatement.value?.none || Object.values(manifest.requiredStatement.value)).join(' ')
-          requiredStatement = `${rsLabel}: ${rsValue}`
+          requiredStatement = rsLabel.toLowerCase() === 'attribution' ? rsValue : `${rsLabel}: ${rsValue}`
         }
         let imageInfoData = {
           label: page.label ? `${manifestLabel} - ${pageLabel}` : manifestLabel,
           summary: manifest.summary?.en || manifest.summary?.none || Object.values(manifest.summary || {}),
           navDate: manifest.navDate?.split('T')[0],
+          navPlace: manifest.navPlace?.features?.find(f => f.geometry.type === 'Point')?.geometry.coordinates.join(', '),
           requiredStatement,
           rights: manifest.rights,
-          source: imageUrl,
+          source,
+          camera: metadata.camera && metadata.exposure ? `${metadata.camera} - ${metadata.exposure}` : null,
           size: `${page.items[0].items[0].body.width.toLocaleString()} x ${page.items[0].items[0].body.height.toLocaleString()} ${page.items[0].items[0].body.format.split('/').pop()}`
         }
         img.src = imageUrl
@@ -344,7 +351,7 @@
         })
       } else {
         img.src = props.src
-        source.textContent = props.src
+        source.innerHTML = `<b>Source: </b> <a href="${props.src}" target="_blank">${props.src}</a>`
         setImageInfo()
       }
       embedCode.textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`
