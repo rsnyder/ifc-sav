@@ -235,12 +235,13 @@
         - camera: string
         - size: string
 =      */
-      if (props.label || props.src) obj.label = props.label || props.src?.split('/').pop().split('.')[0].split('__')[0]
+      if (props.label) obj.label = props.label
       if (props.summary) obj.summary = props.summary
       if (props.date) obj.navDate = props.date
       if (props.required) obj.requiredStatement = props.required
       if (props.rights) obj.rights = props.rights
       
+      if (!obj.label && props.src) obj.label = props.src.split('/').pop().split('.')[0].split('__')[0]
       if (obj.label) {
         caption.querySelector('.label').innerHTML = obj.label
         label.innerHTML = obj.label
