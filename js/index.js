@@ -42,8 +42,8 @@ const components = {
     positional: 'src label'
   },
   map: {
-    booleans: 'nocaption',
-    positional: 'location caption'
+    booleans: 'marker nocaption',
+    positional: 'center zoom caption'
   },
   video: {
     booleans: 'nocaption',
