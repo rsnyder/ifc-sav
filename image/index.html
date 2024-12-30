@@ -30,8 +30,7 @@
     #navDate, #requiredStatement, #rights, #source, #navPlace, #camera, #size { margin-bottom: 0.3em; display: none; }
     #summary:not(:empty), #navDate:not(:empty), #requiredStatement:not(:empty), #rights:not(:empty), #source:not(:empty), #navPlace:not(:empty), #camera:not(:empty), #size:not(:empty) { display: block; }
     a, #ifc-link, #source a { color: #0969da; }
-
-    sl-tab-panel::part(base) *, sl-tab-panel div { color: red; }
+    #map { height: 500px; width: 100%; border: 1px solid #ccc; }
 
   </style>
 </head>
@@ -39,7 +38,7 @@
   
   <main>
 
-    <figure>
+    <figure style="height: 100%;">
       <div class="content">
         <img draggable="true">
       </div>
@@ -49,9 +48,10 @@
       </figcaption>
     </figure>
 
-    <sl-drawer contained class="drawer" no-header style="--size: calc(100% - 32px);">
+    <sl-drawer contained class="drawer" no-header style="--size: calc(100% - 32px); display: flex; flex-direction: column; height: 100%;">
       <sl-tab-group>
         <sl-tab slot="nav" active panel="info">Image info</sl-tab>
+        <sl-tab slot="nav" panel="location" style="display: none;">Location</sl-tab>
         <sl-tab slot="nav" panel="embed">Embed</sl-tab>
         <sl-tab-panel active name="info">
           <div id="label"></div>
@@ -63,6 +63,9 @@
           <div id="navPlace"></div>
           <div id="camera"></div>
           <div id="size"></div>
+        </sl-tab-panel>
+        <sl-tab-panel name="location">
+          <iframe id="map" src="https://ifc.juncture-digital.org/map?center=" width="100%" allowfullscreen></iframe>
         </sl-tab-panel>
         <sl-tab-panel name="embed">
           <div class="embed wrap">
@@ -95,12 +98,25 @@
     const caption = figure.querySelector('figcaption')
     const drawerToggle = caption.querySelector('.drawer-toggle')
     img.addEventListener('dragstart', (e) => {
-      let imgURL = props.src.indexOf('wc:') === 0 ? wcImageUrl(props.src.slice(3)) : props.src
+      let imgURL = props.src.indexOf('wc:') === 0
+        ? wcImageUrl(props.src.slice(3))
+        : props.src.indexOf('gh:') === 0
+          ? ghImageUrl(props.src)
+          : props.src
       e.dataTransfer.setData('text/plain', imgURL)
       e.dataTransfer.setData('text/uri-list', imgURL)
     })
 
     const drawer = document.querySelector('.drawer')
+    const tabGroup = drawer.querySelector('sl-tab-group')
+    const map = drawer.querySelector('#map')
+    tabGroup.addEventListener('sl-tab-show', e => {
+      // console.dir(e)
+      let figure = document.querySelector('figure')
+      drawer.querySelector('iframe').style.height = `${figure.clientHeight - 54}px`
+    })
+    const locationTab = drawer.querySelector('sl-tab[panel="location"]')
+
     // Page Info fields
     const label = drawer.querySelector('#label')
     const summary = drawer.querySelector('#summary')
@@ -186,6 +202,8 @@
       return url
     }
 
+    const ghImageUrl = (s) => `https://raw.githubusercontent.com/${s.slice(3)}`
+
     const getWcMetadata = (mwImg) => {
       mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
       let title = decodeURIComponent(mwImg).replace(/ /g,'_')
@@ -216,7 +234,7 @@
         - camera: string
         - size: string
 =      */
-      if (props.label) obj.label = props.label
+      if (props.label || props.src) obj.label = props.label || props.src?.split('/').pop().split('.')[0].split('__')[0]
       if (props.summary) obj.summary = props.summary
       if (props.date) obj.navDate = props.date
       if (props.required) obj.requiredStatement = props.required
@@ -228,7 +246,12 @@
       }
       if (obj.summary) summary.innerHTML = obj.summary
       if (obj.navDate) navDate.innerHTML = `<b>Created: </b><span>${obj.navDate}</span>`
-      if (obj.navPlace) navPlace.innerHTML = `<b>Location: </b><span>${obj.navPlace}</span>`
+      if (obj.navPlace) {
+        navPlace.innerHTML = `<b>Location: </b><span>${obj.navPlace}</span>`
+        locationTab.style.display = 'block'
+        map.src = `/map?center=${obj.navPlace}&zoom=6&marker`
+        console.log(map.src)
+      }
       if (obj.requiredStatement) requiredStatement.innerHTML = `<b>RequiredStatement: </b><span>${obj.requiredStatement}</span>`
       if (obj.source) source.innerHTML = `<b>Source: </b> <a href="${obj.source}" target="_blank">${obj.source}</a>`
       if (obj.rights) {
@@ -281,7 +304,11 @@
         
         if (info.camera && info.exposure) camera.innerHTML = `<b>Camera: </b><span>${info.camera} - ${info.exposure}</span>`
         if (info.size) size.innerHTML = `<b>Size: </b><span>${info.size}</span>`
-        if (info.location) navPlace.innerHTML = `<b>Location: </b><span>${info.location}</span>`
+        if (info.location) {
+          navPlace.innerHTML = `<b>Location: </b><span>${info.location}</span>`
+          map.src = `/map?center=${info.location}&zoom=6&marker`
+          locationTab.style.display = 'block'
+        }
         if (info.created) navDate.innerHTML = `<b>Created: </b><span>${info.created}</span>`
       })
     }
@@ -298,6 +325,7 @@
       }
 
       if (props.manifest) {
+        if (props.manifest.indexOf('wc:') === 0 || props.manifest.indexOf('gh:') === 0) props.manifest = `https://iiif.mdpress.io/${props.manifest}/manifest.json`
         let manifest = await fetch(props.manifest).then(resp => resp.json())
         .then( async manifest => {
           const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
@@ -339,19 +367,31 @@
         img.src = wcImageUrl(props.src.slice(3), window.innerWidth)
         let metadata = getWcMetadata(props.src.slice(3)).then(metadata => {
           // console.log(metadata)
+          let requiredStatement
+          let attributionRequired = metadata.AttributionRequired === 'true' || metadata.Copyrighted === 'true' || metadata.LicenseShortName?.toLowerCase().replace(/-/g, ' ').split(' ').includes('by')
+          if (attributionRequired) {
+            if (metadata.Credit) requiredStatement = metadata.Credit
+            else requiredStatement = `Image by ${metadata.Artist || metadata.Author}`
+            if (metadata.LicenseShortName) requiredStatement += `, licensed under <a href="${metadata.LicenseUrl}">${metadata.LicenseShortName}</a>.`
+            if (metadata.UsageTerms) requiredStatement += ` ${metadata.UsageTerms}`
+          }
+
           let imageInfoData = {
             label: metadata.title,
             summary: metadata.ImageDescription,
             navDate: metadata.DateTimeOriginal || metadata.DateTime,
-            requiredStatement: metadata.UsageTerms,
+            navPlace: metadata.GPSLatitude && metadata.GPSLongitude ? `${metadata.GPSLatitude}, ${metadata.GPSLongitude}` : null,
+            requiredStatement,
             rights: metadata.LicenseUrl,
-            source: `https://commons.wikimedia.org/wiki/${metadata.title}`
+            source: `https://commons.wikimedia.org/wiki/${metadata.title}`,
+            size: `${metadata.width.toLocaleString()} x ${metadata.height.toLocaleString()} ${metadata.mime.split('/').pop()}`
           }
           setImageInfo(imageInfoData)
         })
       } else {
-        img.src = props.src
-        source.innerHTML = `<b>Source: </b> <a href="${props.src}" target="_blank">${props.src}</a>`
+        let imgUrl = props.src.indexOf('gh:') === 0 ? ghImageUrl(props.src) : props.src
+        img.src = imgUrl
+        source.innerHTML = `<b>Source: </b> <a href="${imgUrl}" target="_blank">${imgUrl}</a>`
         setImageInfo()
       }
       embedCode.textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`

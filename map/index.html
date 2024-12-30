@@ -52,7 +52,8 @@
 
   </main>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://rsnyder.github.io/Leaflet.SmoothWheelZoom/Leaflet.SmoothWheelZoom.js"></script>
   <script type="module">
 
     import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
@@ -73,6 +74,9 @@
 
     const props = {
       ...{              // default properties
+        center: [51.505, -0.09], // map center
+        zoom: 8,               // map zoom level
+        marker: false,          // show marker
         caption: null   // caption text
       },
       ...Object.fromEntries( // URLSearchParams to object
@@ -80,6 +84,7 @@
         .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
       )
     }
+    console.log(props)
 
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
     const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
@@ -88,12 +93,20 @@
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     
     const initMap = () => {
-      let map = L.map('content').setView([51.505, -0.09], 13);
+      let center = props.center.split(',').map(v => parseFloat(v))
+
+      let map = L.map('content', {
+        scrollWheelZoom: false, // disable original zoom function
+        smoothWheelZoom: true,  // enable smooth zoom 
+        smoothSensitivity: 1.5,   // zoom speed. default is 1
+      }).setView(center, props.zoom);
       L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }).addTo(map);
+      if (props.marker) L.marker(center).addTo(map)
     }
+
     docReady(function() {
       setCaption()
       main.style.visibility = 'visible'

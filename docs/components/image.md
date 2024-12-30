@@ -154,14 +154,14 @@ This example uses an IIIF manifest rather than an image URL.  The image URL is e
 ##### Markdown
 
 ```markup
-`image https://raw.githubusercontent.com/rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
+`image gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
 ```
 
 ##### HTML
 
 ```markup
 <iframe
-  src="image?src=https://raw.githubusercontent.com/rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg"
+  src="image?src=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg"
   class="medium center box-shadow"
   allowfullscreen
 ></iframe>
@@ -169,7 +169,7 @@ This example uses an IIIF manifest rather than an image URL.  The image URL is e
 
 ##### Rendered
 
-`image https://raw.githubusercontent.com/rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
+`image gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
 
 ### IIIF Manifest generated from Github hosted image
 
@@ -179,14 +179,14 @@ This example uses an IIIF manifest rather than an image URL.  The image URL is e
 ##### Markdown
 
 ```markup
-`image manifest=https://iiif.mdpress.io/gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg/manifest.json medium center box-shadow`
+`image manifest=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
 ```
 
 ##### HTML
 
 ```markup
 <iframe
-  src="image?manifest=https://iiif.mdpress.io/gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg/manifest.json"
+  src="image?manifest=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg"
   class="medium center box-shadow"
   allowfullscreen
 ></iframe>
@@ -194,4 +194,4 @@ This example uses an IIIF manifest rather than an image URL.  The image URL is e
 
 ##### Rendered
 
-`image manifest=https://iiif.mdpress.io/gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg/manifest.json medium center box-shadow`
+`image manifest=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
