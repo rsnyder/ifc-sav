@@ -74,7 +74,7 @@
 
     const props = {
       ...{              // default properties
-        center: '51.505, -0.09', // map center
+        center: '51.505,-0.09', // map center
         zoom: 8,               // map zoom level
         marker: false,          // show marker
         caption: null   // caption text
@@ -84,7 +84,7 @@
         .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
       )
     }
-    console.log(props)
+    // console.log(props)
 
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
     const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML

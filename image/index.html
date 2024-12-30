@@ -64,8 +64,8 @@
           <div id="camera"></div>
           <div id="size"></div>
         </sl-tab-panel>
-        <sl-tab-panel name="location">
-          <iframe id="map" src="https://ifc.juncture-digital.org/map?center=" width="100%" allowfullscreen></iframe>
+        <sl-tab-panel name="location" style="display:none;">
+          <iframe id="map" src="https://ifc.juncture-digital.org/map" width="100%" allowfullscreen></iframe>
         </sl-tab-panel>
         <sl-tab-panel name="embed">
           <div class="embed wrap">
@@ -116,6 +116,7 @@
       drawer.querySelector('iframe').style.height = `${figure.clientHeight - 54}px`
     })
     const locationTab = drawer.querySelector('sl-tab[panel="location"]')
+    const locationTabPanel = drawer.querySelector('sl-tab-panel[name="location"]')
 
     // Page Info fields
     const label = drawer.querySelector('#label')
@@ -249,6 +250,7 @@
       if (obj.navPlace) {
         navPlace.innerHTML = `<b>Location: </b><span>${obj.navPlace}</span>`
         locationTab.style.display = 'block'
+        locationTabPanel.style.display = 'block'
         map.src = `/map?center=${obj.navPlace}&zoom=6&marker`
         console.log(map.src)
       }
@@ -308,6 +310,7 @@
           navPlace.innerHTML = `<b>Location: </b><span>${info.location}</span>`
           map.src = `/map?center=${info.location}&zoom=6&marker`
           locationTab.style.display = 'block'
+          locationTabPanel.style.display = 'block'
         }
         if (info.created) navDate.innerHTML = `<b>Created: </b><span>${info.created}</span>`
       })
