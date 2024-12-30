@@ -253,7 +253,6 @@
         locationTab.style.display = 'block'
         locationTabPanel.style.display = 'block'
         map.src = `/map?center=${obj.navPlace}&zoom=6&marker`
-        console.log(map.src)
       }
       if (obj.requiredStatement) requiredStatement.innerHTML = `<b>RequiredStatement: </b><span>${obj.requiredStatement}</span>`
       if (obj.source) source.innerHTML = `<b>Source: </b> <a href="${obj.source}" target="_blank">${obj.source}</a>`
@@ -381,7 +380,7 @@
           }
 
           let imageInfoData = {
-            label: metadata.title,
+            label: metadata.ObjectName || metadata.title,
             summary: metadata.ImageDescription,
             navDate: metadata.DateTimeOriginal || metadata.DateTime,
             navPlace: metadata.GPSLatitude && metadata.GPSLongitude ? `${metadata.GPSLatitude}, ${metadata.GPSLongitude}` : null,
