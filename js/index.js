@@ -398,10 +398,8 @@ const makeColumns = (rootEl) => {
   })
 }
 
-console.log(window.contentSelector)
-let main = document.querySelector('main.ghp')
+let main = document.querySelector(window.contentSelector || 'main.ghp')
 console.log('main', main)
-console.log(document.querySelectorAll('main'))
 
 if (main) {
 
