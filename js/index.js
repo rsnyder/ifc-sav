@@ -399,6 +399,8 @@ const makeColumns = (rootEl) => {
 }
 
 let main = document.querySelector('main.ghp')
+console.log('main', main)
+console.log(document.querySelector('main'))
 if (main) {
 
   new MutationObserver((mutations) => {
