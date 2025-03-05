@@ -563,7 +563,7 @@ function restructure(rootEl) {
   // let article = document.createElement('article')
   // main.appendChild(article)
   // let currentSection = article;
-  
+
   let currentSection = main;
 
   rootEl = rootEl.querySelector('body') || rootEl
@@ -758,4 +758,4 @@ async function getEntity(qid, language) {
   return entities[qid]
 }
 
-export { restructure, makeEntityPopups }
+export { restructure, convertTags, makeEntityPopups }
