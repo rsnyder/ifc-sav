@@ -398,6 +398,7 @@ const makeColumns = (rootEl) => {
   })
 }
 
+console.log(window.contentSelector)
 let main = document.querySelector('main.ghp')
 console.log('main', main)
 console.log(document.querySelectorAll('main'))
