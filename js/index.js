@@ -560,11 +560,11 @@ function restructure(rootEl) {
   let styleSheet = rootEl.querySelector('style')
   if (styleSheet) main.appendChild(styleSheet.cloneNode(true))
 
-  let article = document.createElement('article')
-
-  main.appendChild(article)
+  // let article = document.createElement('article')
+  // main.appendChild(article)
+  // let currentSection = article;
   
-  let currentSection = article;
+  let currentSection = main;
 
   rootEl = rootEl.querySelector('body') || rootEl
   rootEl.classList.forEach(cls => main.classList.add(cls))
@@ -586,7 +586,8 @@ function restructure(rootEl) {
       let headings = []
       for (let lvl = 1; lvl < sectionLevel; lvl++)
         headings = [...headings, ...Array.from(main.querySelectorAll(`H${lvl}`)).filter(h => h.parentElement.tagName === 'SECTION')]
-      let parent = (sectionLevel === 1 || headings.length === 0) ? article : headings.pop()?.parentElement
+      // let parent = (sectionLevel === 1 || headings.length === 0) ? article : headings.pop()?.parentElement
+      let parent = (sectionLevel === 1 || headings.length === 0) ? main : headings.pop()?.parentElement
       parent?.appendChild(currentSection)
 
     } else  {
