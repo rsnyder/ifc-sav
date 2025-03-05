@@ -8,6 +8,8 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
 
+console.log('index.js loaded')
+
 const isGHP = location.hostname.indexOf('github.io') > 0
 
 const classes = new Set('left right center medium small box-shadow'.split(' '))
@@ -399,7 +401,6 @@ const makeColumns = (rootEl) => {
 }
 
 let main = document.querySelector(window.contentSelector || 'main.ghp')
-console.log('main', main)
 
 if (main) {
 
@@ -489,7 +490,6 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
-  console.log('restructuring', rootEl)
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
   Array.from(rootEl?.querySelectorAll('p'))
   .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
