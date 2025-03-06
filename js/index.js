@@ -422,19 +422,19 @@ if (main) {
 
   new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
-      if (mutation.target.tagName === 'ARTICLE') {
-        let restructuredArticle = restructure(mutation.target).querySelector('article')
-        // restructuredArticle.style.height = '80dvh'
-        restructuredArticle.id = mutation.target.id
-        restructuredArticle.className = mutation.target.className
-        restructuredArticle.classList.add('markdown-body')
-        // restructuredArticle.classList.remove('markdown-section')
-        mutation.target.replaceWith(restructuredArticle)
-        convertTags(restructuredArticle)
-        makeDetails(restructuredArticle)
-        makeTabs(restructuredArticle)
-        makeCards(restructuredArticle)
-        makeColumns(restructuredArticle)
+      if (mutation.target.classList.contains('markdown-section') || mutation.target.classList.contains('page-content')) {
+        let restructured = restructure(mutation.target)
+        // restructured.style.height = '80dvh'
+        restructured.id = mutation.target.id
+        restructured.className = mutation.target.className
+        restructured.classList.add('markdown-body')
+        // restructured.classList.remove('markdown-section')
+        mutation.target.replaceWith(restructured)
+        convertTags(restructured)
+        makeDetails(restructured)
+        makeTabs(restructured)
+        makeCards(restructured)
+        makeColumns(restructured)
 
       } else if (mutation.target.tagName === 'BODY') {
         convertTags(mutation.target)
