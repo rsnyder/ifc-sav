@@ -42,7 +42,10 @@
     const dialogImg = dialog.querySelector('img')
 
     fetch(src).then(resp => resp.text())
-    .then(md => md.split(/\s*===\s*/).filter(text => text.trim()).map((md, idx) => ({ class: idx % 2 ? 'response' : 'prompt' , md})))
+    .then(md => {
+      let splits = md.split(/\s*===\s*/).filter(text => text.trim()).slice(1)
+      return splits.slice(1).map((md, idx) => ({ class: idx % 2 ? 'response' : 'prompt' , md}))
+    })
     .then(chat => {
       let chatEl = document.getElementById('chat')
       chat.forEach((item, idx) => {
@@ -57,6 +60,10 @@
         chatEl.appendChild(div)
       })
       document.querySelectorAll('.prompt img, .response img').forEach(img => {
+        let imgUrl = new URL(img.src)
+        if (location.origin === imgUrl.origin) {
+          img.src = `https://raw.githubusercontent.com/${ghbase}/${imgUrl.pathname}`
+        }
         img.addEventListener('click', () => { 
           dialogImg.src = img.src
           dialog.show()

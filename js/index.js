@@ -175,7 +175,7 @@ const parseCodeEl = (el) => {
         else parsed.kwargs[key] = value
       }
     }
-    else if (token[0] === '.' || classes.has(token)) {
+    else if ((token[0] === '.' && token[1] !== '.') || classes.has(token)) {
       let className = token.replace(/^\./,'')
       if (parsed.class) parsed.class += ` ${className}`
       else parsed.class = className
@@ -252,7 +252,7 @@ const makeBreadcrumbs = () => {
 }
 
 const ghBase = () => {
-  if (window.jekyll) {
+  if (window.jekyll?.site?.github?.owner_name) {
     let owner = window.jekyll.site.github.owner_name
     let repo = window.jekyll.site.github.repository_name
     let branch = window.jekyll.site.github.source.branch
@@ -274,7 +274,7 @@ const convertTags = (rootEl) => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
       else tokens.push(token)
     })
-    let ifcPrefix = location.host === 'localhost:8080' ? '' : 'https://ifc.juncture-digital.org/'
+    let ifcPrefix = location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://ifc.juncture-digital.org/'
     let parsed = parseCodeEl(code)
     if (!parsed.tag || tagMap[parsed.tag].disabled) return
     if (base) {
