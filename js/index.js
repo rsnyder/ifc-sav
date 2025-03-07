@@ -16,6 +16,9 @@ const components = {
     booleans: 'nocaption',
     positional: 'model'
   },
+  chatlog: {
+    positional: 'src'
+  },
   'google-book': {
     booleans: 'nocaption',
     positional: 'id caption'
