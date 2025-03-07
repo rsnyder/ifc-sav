@@ -254,7 +254,7 @@ const ghBase = () => {
     let repo = window.jekyll.site.github.repository_name
     let branch = window.jekyll.site.github.source.branch
     let dir = window.jekyll.site.baseurl
-    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}${dir}`
+    return `${owner}/${repo}/${branch}`
   }
 }
 

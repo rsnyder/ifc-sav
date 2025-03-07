@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <style>
+    @import url(https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css);
+    @import url(https://fonts.googleapis.com/css?family=Roboto:300,400,700,400italic,700italic);
+    body { font-family: 'Roboto'; }
+    #chat { display: flex; flex-direction: column; max-width: 1000px; margin: auto; }
+    .prompt-wrapper { align-self: flex-end; max-width: 75%; }
+    .prompt { background-color: #eee; border-radius: 12px; padding: .75em 1em; }
+    .prompt > p { margin: 0; }
+    .response { max-width: 75%; margin-bottom: 2em; }
+    sl-copy-button { opacity: 0; }
+    sl-copy-button::part(button) { padding-top: 3px; }
+    .prompt-wrapper:hover > sl-copy-button { opacity: 1; }
+    .prompt img, .response img { display: block; margin: 6px 0; border: 1px solid #ddd; border-radius: 6px; width: 200px; max-width: 50%; min-width: 200px; box-shadow: rgba(0, 0, 0, 0.16) 0px 1px 4px; }
+    sl-dialog::part(body) { padding: 0; }
+  </style>
+</head>
+<body>
+  <div id="chat"></div>
+
+  <sl-dialog id="image-viewer" no-header style="--width: 100vw;">
+    <img style="width:100%; vertical-align: middle;">
+  </sl-dialog>
+
+  <script type="module">
+    import { marked } from 'https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js'
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/copy-button/copy-button.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/dialog/dialog.js';
+
+    const md2Html = (md) => marked.parse(md.replace(/\s+~/g,' \~')) // convert markdown to HTML
+    let src = new URLSearchParams(location.search).get('src')
+    let ghbase = new URLSearchParams(location.search).get('ghbase')
+    if (src.indexOf('http') !== 0 && ghbase) src = `https://raw.githubusercontent.com/${ghbase}${src[0] === '/' ? '' : '/'}${src}`
+    console.log(`src=${src}`)
+  
+    const dialog = document.getElementById('image-viewer')
+    const dialogImg = dialog.querySelector('img')
+
+    fetch(src).then(resp => resp.text())
+    .then(md => md.split(/\s*===\s*/).filter(text => text.trim()).map((md, idx) => ({ class: idx % 2 ? 'response' : 'prompt' , md})))
+    .then(chat => {
+      let chatEl = document.getElementById('chat')
+      chat.forEach((item, idx) => {
+        let div = document.createElement('div')
+        if (item.class === 'prompt') {
+          div.className = 'prompt-wrapper'
+          div.innerHTML = `<div class="prompt" id="item-${idx}">${md2Html(item.md)}</div><sl-copy-button style="align-self: flex-end;" from="item-${idx}"></sl-copy-button>`
+        } else {
+          div.className = 'response'
+          div.innerHTML = md2Html(item.md)
+        }
+        chatEl.appendChild(div)
+      })
+      document.querySelectorAll('.prompt img, .response img').forEach(img => {
+        img.addEventListener('click', () => { 
+          dialogImg.src = img.src
+          dialog.show()
+        })
+      })
+    })
+  </script>
+
+</body>
+</html>
