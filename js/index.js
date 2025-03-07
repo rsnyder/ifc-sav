@@ -8,6 +8,8 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
 
+console.log(window.jekyll)
+
 const isGHP = location.hostname.indexOf('github.io') > 0
 
 const classes = new Set('left right center medium small box-shadow'.split(' '))
