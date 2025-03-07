@@ -400,7 +400,6 @@
             let [owner, repo, branch, ...path] = props.ghbase.split('/').slice(3)
             img.src = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
           } else img.src = props.src
-          console.log(img.src)
           source.innerHTML = `<b>Source: </b> <a href="${img.src}" target="_blank">${img.src}</a>`
           setImageInfo()
         }

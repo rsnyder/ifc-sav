@@ -249,7 +249,6 @@ const makeBreadcrumbs = () => {
 }
 
 const ghBase = () => {
-  console.log(window.jekyll)
   if (window.jekyll) {
     let owner = window.jekyll.site.github.owner_name
     let repo = window.jekyll.site.github.repository_name
