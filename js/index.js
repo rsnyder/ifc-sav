@@ -8,8 +8,6 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
 import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
 
-console.log(window.jekyll)
-
 const isGHP = location.hostname.indexOf('github.io') > 0
 
 const classes = new Set('left right center medium small box-shadow'.split(' '))
@@ -250,6 +248,16 @@ const makeBreadcrumbs = () => {
   return breadcrumbs
 }
 
+const ghBase = () => {
+  if (window.jekyll) {
+    let owner = window.jekyll.site.owner_name
+    let repo = window.jekyll.repository_name
+    let branch = window.jekyll.site.github.source.branch
+    let dir = window.jekyll.site.baseurl
+    return `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${dir}`
+  }
+}
+
 // convert <code> tags to HTML iframe elements
 const convertTags = (rootEl) => {
   let base = document.querySelector('base')?.getAttribute('href')
@@ -270,6 +278,8 @@ const convertTags = (rootEl) => {
       if (!parsed.kwargs) parsed.kwargs = {}
       parsed.kwargs.base = base
     }
+    let ghBasePath = ghBase()
+    if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
     let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
     let iframe = document.createElement('iframe')
     if (parsed.id) iframe.id = parsed.id
