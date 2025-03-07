@@ -35,8 +35,8 @@
     const md2Html = (md) => marked.parse(md.replace(/\s+~/g,' \~')) // convert markdown to HTML
     let src = new URLSearchParams(location.search).get('src')
     let ghbase = new URLSearchParams(location.search).get('ghbase')
+    console.log(`ghbase=${ghbase} src=${src}`)
     if (src.indexOf('http') !== 0 && ghbase) src = `https://raw.githubusercontent.com/${ghbase}${src[0] === '/' ? '' : '/'}${src}`
-    console.log(`src=${src}`)
   
     const dialog = document.getElementById('image-viewer')
     const dialogImg = dialog.querySelector('img')
