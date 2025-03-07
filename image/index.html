@@ -370,9 +370,8 @@
       } else if (props.src) {
         if (props.src.indexOf('http') !== 0 && props.ghbase) {
           let [owner, repo, branch, ...path] = props.ghbase.split('/').slice(3)
-          let dir = path.length > 0 ? `/${path.join('/')}` : ''
-          console.log(owner, repo, branch, dir)
-          props.src = `gh:/${owner}/${repo}/${branch}${dir}/${props.src[0] === '/' ? '' : '/'}${props.src}`
+          console.log(owner, repo, branch, path)
+          props.src = `gh:/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
         }
         console.log(props.src)
         if (props.src.indexOf('wc:') === 0) {
