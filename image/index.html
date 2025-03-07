@@ -138,6 +138,7 @@
         aspect: 'auto',  // aspect ratio of iframe
         attribution: null,
         date: null,
+        ghbase: null,
         label: null,
         manifest: null,
         page: 1,
@@ -366,36 +367,45 @@
         img.src = imageUrl
         setImageInfo(imageInfoData)
 
-      } else if (props.src.indexOf('wc:') === 0) {
-        img.src = wcImageUrl(props.src.slice(3), window.innerWidth)
-        let metadata = getWcMetadata(props.src.slice(3)).then(metadata => {
-          // console.log(metadata)
-          let requiredStatement
-          let attributionRequired = metadata.AttributionRequired === 'true' || metadata.Copyrighted === 'true' || metadata.LicenseShortName?.toLowerCase().replace(/-/g, ' ').split(' ').includes('by')
-          if (attributionRequired) {
-            if (metadata.Credit) requiredStatement = metadata.Credit
-            else requiredStatement = `Image by ${metadata.Artist || metadata.Author}`
-            if (metadata.LicenseShortName) requiredStatement += `, licensed under <a href="${metadata.LicenseUrl}">${metadata.LicenseShortName}</a>.`
-            if (metadata.UsageTerms) requiredStatement += ` ${metadata.UsageTerms}`
-          }
+      } else if (props.src) {
+        if (props.src.indexOf('http') !== 0 && props.ghbase) {
+          let [owner, repo, branch, ...path] = props.ghbase.split('/').slice(3)
+          let dir = path.length > 0 ? `/${path.join('/')}` : ''
+          console.log(owner, repo, branch, dir)
+          props.src = `gh:/${owner}/${repo}/${branch}${dir}/${props.src[0] === '/' ? '' : '/'}${props.src}`
+        }
+        console.log(props.src)
+        if (props.src.indexOf('wc:') === 0) {
+          img.src = wcImageUrl(props.src.slice(3), window.innerWidth)
+          let metadata = getWcMetadata(props.src.slice(3)).then(metadata => {
+            // console.log(metadata)
+            let requiredStatement
+            let attributionRequired = metadata.AttributionRequired === 'true' || metadata.Copyrighted === 'true' || metadata.LicenseShortName?.toLowerCase().replace(/-/g, ' ').split(' ').includes('by')
+            if (attributionRequired) {
+              if (metadata.Credit) requiredStatement = metadata.Credit
+              else requiredStatement = `Image by ${metadata.Artist || metadata.Author}`
+              if (metadata.LicenseShortName) requiredStatement += `, licensed under <a href="${metadata.LicenseUrl}">${metadata.LicenseShortName}</a>.`
+              if (metadata.UsageTerms) requiredStatement += ` ${metadata.UsageTerms}`
+            }
 
-          let imageInfoData = {
-            label: metadata.ObjectName || metadata.title,
-            summary: metadata.ImageDescription,
-            navDate: metadata.DateTimeOriginal || metadata.DateTime,
-            navPlace: metadata.GPSLatitude && metadata.GPSLongitude ? `${metadata.GPSLatitude}, ${metadata.GPSLongitude}` : null,
-            requiredStatement,
-            rights: metadata.LicenseUrl,
-            source: `https://commons.wikimedia.org/wiki/${metadata.title}`,
-            size: `${metadata.width.toLocaleString()} x ${metadata.height.toLocaleString()} ${metadata.mime.split('/').pop()}`
-          }
-          setImageInfo(imageInfoData)
-        })
-      } else {
-        let imgUrl = props.src.indexOf('gh:') === 0 ? ghImageUrl(props.src) : props.src
-        img.src = imgUrl
-        source.innerHTML = `<b>Source: </b> <a href="${imgUrl}" target="_blank">${imgUrl}</a>`
-        setImageInfo()
+            let imageInfoData = {
+              label: metadata.ObjectName || metadata.title,
+              summary: metadata.ImageDescription,
+              navDate: metadata.DateTimeOriginal || metadata.DateTime,
+              navPlace: metadata.GPSLatitude && metadata.GPSLongitude ? `${metadata.GPSLatitude}, ${metadata.GPSLongitude}` : null,
+              requiredStatement,
+              rights: metadata.LicenseUrl,
+              source: `https://commons.wikimedia.org/wiki/${metadata.title}`,
+              size: `${metadata.width.toLocaleString()} x ${metadata.height.toLocaleString()} ${metadata.mime.split('/').pop()}`
+            }
+            setImageInfo(imageInfoData)
+          })
+        } else {
+          let imgUrl = props.src.indexOf('gh:') === 0 ? ghImageUrl(props.src) : props.src
+          img.src = imgUrl
+          source.innerHTML = `<b>Source: </b> <a href="${imgUrl}" target="_blank">${imgUrl}</a>`
+          setImageInfo()
+        }
       }
       embedCode.textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`
     }
