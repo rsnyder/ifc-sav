@@ -398,7 +398,6 @@
           if (props.src.indexOf('gh:') === 0 ) imgUrl = ghImageUrl(props.src)
           else if (props.src.indexOf('http') !== 0 && props.ghbase) {
             let [owner, repo, branch, ...path] = props.ghbase.split('/').slice(3)
-            console.log(owner, repo, branch, path)
             imgUrl = `gh:/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
           } else imgUrl = props.src
           img.src = imgUrl
