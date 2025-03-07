@@ -368,12 +368,6 @@
         setImageInfo(imageInfoData)
 
       } else if (props.src) {
-        if (props.src.indexOf('http') !== 0 && props.ghbase) {
-          let [owner, repo, branch, ...path] = props.ghbase.split('/').slice(3)
-          console.log(owner, repo, branch, path)
-          props.src = `gh:/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
-        }
-        console.log(props.src)
         if (props.src.indexOf('wc:') === 0) {
           img.src = wcImageUrl(props.src.slice(3), window.innerWidth)
           let metadata = getWcMetadata(props.src.slice(3)).then(metadata => {
@@ -400,7 +394,13 @@
             setImageInfo(imageInfoData)
           })
         } else {
-          let imgUrl = props.src.indexOf('gh:') === 0 ? ghImageUrl(props.src) : props.src
+          let imgUrl
+          if (props.src.indexOf('gh:') === 0 ) imgUrl = ghImageUrl(props.src)
+          else if (props.src.indexOf('http') !== 0 && props.ghbase) {
+            let [owner, repo, branch, ...path] = props.ghbase.split('/').slice(3)
+            console.log(owner, repo, branch, path)
+            imgUrl = `gh:/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
+          } else imgUrl = props.src
           img.src = imgUrl
           source.innerHTML = `<b>Source: </b> <a href="${imgUrl}" target="_blank">${imgUrl}</a>`
           setImageInfo()
