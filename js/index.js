@@ -252,11 +252,11 @@ const makeBreadcrumbs = () => {
 }
 
 const ghBase = () => {
-  if (window.jekyll?.site?.github?.owner_name) {
+  if (window.ghbase) return window.ghbase
+  else if (window.jekyll?.site?.github?.owner_name) {
     let owner = window.jekyll.site.github.owner_name
     let repo = window.jekyll.site.github.repository_name
     let branch = window.jekyll.site.github.source.branch
-    let dir = window.jekyll.site.baseurl
     return `${owner}/${repo}/${branch}`
   }
 }
