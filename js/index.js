@@ -32,6 +32,9 @@ const components = {
     booleans: 'cover nocaption showannos static',
     positional: 'id caption'
   },
+  iframe: {
+    positional: 'src'
+  },
   'iiif-tify': {
     booleans: 'cover nocaption',
     positional: 'manifest caption'
@@ -265,6 +268,8 @@ const ghBase = () => {
 const convertTags = (rootEl) => {
   let base = document.querySelector('base')?.getAttribute('href')
   rootEl.querySelectorAll('p > code').forEach(code => {
+    let isInline = ['LI', 'P'].includes(code.parentElement.tagName) && code.parentElement.childNodes.length > 1
+    if (isInline) return
     if (code.textContent === 'breadcrumbs') {
       code.parentElement.replaceWith(makeBreadcrumbs())
       return
@@ -281,16 +286,25 @@ const convertTags = (rootEl) => {
       if (!parsed.kwargs) parsed.kwargs = {}
       parsed.kwargs.base = base
     }
+    // console.log(parsed)
     let ghBasePath = ghBase()
     if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
-    let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
+
     let iframe = document.createElement('iframe')
+    iframe.setAttribute('allowfullscreen', '')
+    iframe.setAttribute('allow', 'clipboard-write')
     if (parsed.id) iframe.id = parsed.id
     if (parsed.class) iframe.className = parsed.class
     if (parsed.style) applyStyle(iframe, parsed.style)
-    iframe.setAttribute('allowfullscreen', '')
-    iframe.setAttribute('allow', 'clipboard-write')
-    iframe.src = `${ifcPrefix}/${parsed.tag}?${componentArgs}`
+
+    if (parsed.tag === 'iframe') {
+      Object.entries(parsed.kwargs || {})
+        .filter((key) => !['id', 'class', 'style'].includes(key))
+        .forEach(([key, value]) => iframe.setAttribute(key, value))
+    } else {
+      let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
+      iframe.src = `${ifcPrefix}/${parsed.tag}?${componentArgs}`
+    }
     code.parentElement.replaceWith(iframe)
   })
 }
