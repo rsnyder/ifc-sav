@@ -6,7 +6,7 @@
 
 ##
 
-`image #iframe1 wc:Monument_Valley,_Utah,_USA_(23611451292).jpg "Monument Valley" cover right static box-shadow`
+`image wc:Monument_Valley,_Utah,_USA_(23611451292).jpg #iframe1 "Monument Valley" cover right static box-shadow`
 
 **Monument Valley**, meaning "valley of the rocks", is a region of the Colorado Plateau characterized by a cluster of sandstone buttes, with the largest reaching 1,000 ft (300 m) above the valley floor.[^1] The most famous butte formations are located in northeastern Arizona along the Utah–Arizona state line. The valley is considered sacred by the [Navajo Nation](Q1783171), the Native American people within whose reservation it lies.[^2]
 
@@ -29,6 +29,7 @@ Monument Valley includes much of the area surrounding Monument Valley Navajo Tri
 Monument Valley has been featured in many forms of media since the 1930s. Famed director John Ford used the location for a number of his Westerns. Film critic Keith Phipps wrote that "its five square miles [13 km2] have defined what decades of moviegoers think of when they imagine the American West".[^3]
 
 `video yg0As_HOvJk left`
+
 `video GGyiZ7SE3V4 right`
 
 [^1]: Scheffel, Richard L.; Wernet, Susan J., eds. (1980). Natural Wonders of the World. Reader's Digest. p. 255. ISBN 978-0895770875.

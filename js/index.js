@@ -44,7 +44,7 @@ const components = {
     positional: 'src caption'
   },
   image: {
-    booleans: 'nocaption',
+    booleans: 'cover nocaption static',
     positional: 'src label'
   },
   map: {
@@ -149,7 +149,7 @@ const parseCodeEl = (el) => {
     else tokens.push(token)
   })
   let parsed = {}
-  let args = {}
+  let args = []
   let tokenIdx = 0
   let tagObj
   while (tokenIdx < tokens.length) {
@@ -183,36 +183,21 @@ const parseCodeEl = (el) => {
       if (parsed.class) parsed.class += ` ${className}`
       else parsed.class = className
     }
-    else if (token[0] === '"') {
-      // args.push(token.slice(1,-1))
-      args[tokenIdx-1] = token.slice(1,-1)
-    }
     else if (/#\w+/.test(token)) parsed['id'] = token.slice(1)
-    else if (/^Q\d+$/.test(token) && !parsed.tag) { // entity identifier
-      if (!parsed.entities) parsed.entities = []
-      parsed.entities.push(token)
-    }
-    else if (tokenIdx === 0 && !parsed.tag && tagMap[token.replace(/^\./,'')]) {
-      parsed.tag = token.replace(/^\./,'')
-      tagObj = tagMap[parsed.tag]
-    }
+      else if (/^Q\d+$/.test(token) && !parsed.tag) { // entity identifier
+        if (!parsed.entities) parsed.entities = []
+        parsed.entities.push(token)
+      }
     else {
-      if (tagObj?.booleans.has(token)) {
+      let arg = token[0] === '"' ? token.slice(1,-1) : token
+      if (tokenIdx === 0 && tagMap[arg]) {
+        parsed.tag = arg
+        tagObj = tagMap[arg]
+      } else if (tagObj?.booleans.has(arg)) {
         if (!parsed.booleans) parsed.booleans = []
-        parsed.booleans.push(token)
+        parsed.booleans.push(arg)
       } else {
-        // args.push(token)
-        args[tokenIdx-1] = token
-        /*
-        if (tagObj?.positional.length >= tokenIdx) {
-          if (!parsed.kwargs) parsed.kwargs = {}
-          parsed.kwargs[tagObj.positional[tokenIdx-1]] = token
-        }
-        else {
-          if (!parsed.args) parsed.args = []
-          parsed.args.push(token)
-        }
-        */
+        args.push(arg)
       }
     }
     tokenIdx++
@@ -229,6 +214,11 @@ const parseCodeEl = (el) => {
     }
     parsed.args = Object.values(args)
   }
+
+  let parent = el.parentElement
+  let nonCodeChildren = Array.from(parent.childNodes).filter(c => c.textContent.trim()).filter(c => c.tagName !== 'CODE')
+  parsed.inline = nonCodeChildren.length > 0
+
   // console.log(parsed)
   return parsed
 }
@@ -267,9 +257,7 @@ const ghBase = () => {
 // convert <code> tags to HTML iframe elements
 const convertTags = (rootEl) => {
   let base = document.querySelector('base')?.getAttribute('href')
-  rootEl.querySelectorAll('p > code').forEach(code => {
-    let isInline = ['LI', 'P'].includes(code.parentElement.tagName) && code.parentElement.childNodes.length > 1
-    if (isInline) return
+  rootEl.querySelectorAll('code').forEach(code => {
     if (code.textContent === 'breadcrumbs') {
       code.parentElement.replaceWith(makeBreadcrumbs())
       return
@@ -279,7 +267,7 @@ const convertTags = (rootEl) => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
       else tokens.push(token)
     })
-    let ifcPrefix = location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://ifc.juncture-digital.org/'
+    let ifcPrefix = location.port === '4001' ? 'http://localhost:3000' : 'https://ifc.juncture-digital.org/'
     let parsed = parseCodeEl(code)
     if (!parsed.tag || tagMap[parsed.tag].disabled) return
     if (base) {
