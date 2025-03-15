@@ -177,3 +177,7 @@ section::after {
 .fixed {
   font-family: 'Courier New', Courier, monospace;
 }
+
+.markdown-section {
+  max-width: 100%;
+}
