@@ -218,8 +218,8 @@ const parseCodeEl = (el) => {
   let parent = el.parentElement
   let nonCodeChildren = Array.from(parent.childNodes).filter(c => c.textContent.trim()).filter(c => c.tagName !== 'CODE')
   parsed.inline = nonCodeChildren.length > 0
-
   // console.log(parsed)
+
   return parsed
 }
 
@@ -269,7 +269,7 @@ const convertTags = (rootEl) => {
     })
     let ifcPrefix = location.port === '4001' ? 'http://localhost:3000' : 'https://ifc.juncture-digital.org/'
     let parsed = parseCodeEl(code)
-    if (!parsed.tag || tagMap[parsed.tag].disabled) return
+    if (!parsed.tag || tagMap[parsed.tag].disabled || parsed.inline ) return
     if (base) {
       if (!parsed.kwargs) parsed.kwargs = {}
       parsed.kwargs.base = base
