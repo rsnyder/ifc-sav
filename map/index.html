@@ -11,7 +11,7 @@
     @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
     body { margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; background-color: white; }    
     main { display: flex; flex-direction: column; width: 100%; aspect-ratio: 1 / 1; visibility: hidden; }
-    #content { flex: 1; width: 100%; z-index: 2;}
+    #content { position:relative; flex: 1; width: 100%; z-index: 2;}
     .captionBar { display: flex; align-items: center; gap: 0.2em; height: 36px; margin: 0.3em 0.5em; background-color: inherit; } 
     svg { width: 1.3em; height: 1.3em; }
     sl-drawer::part(body) { padding: 0; margin: 3px; box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; }
@@ -26,12 +26,18 @@
     .leaflet-popup-content { margin: 0; }
     .leaflet-popup-content > .content { margin: 0 6px; }
     .leaflet-popup img { width: 100%; }
+    #map { width:100%; height:100%; cursor:pointer; }
+    #coords { position:absolute; top:0; right:0; z-index:500; opacity:0; background-color: rgba(255, 255, 255, 0.5); padding:6px; }
+    #coords:hover { opacity:1; transition: all 0.3s ease-in; cursor: copy; }
   </style>
 </head>
 <body>
   
   <main>
-    <div id="content"></div>
+    <div id="content">
+      <div id="coords">Coords</div>
+      <div id="map"></div>
+    </div>
     
     <sl-drawer contained class="drawer" no-header style="--size: calc(100% - 30px);">
       <sl-tab-group>
@@ -73,6 +79,23 @@
     const main = document.querySelector('main')
     const content = document.querySelector('#content')
     const captionBar = document.querySelector('.captionBar')
+    const coords = document.querySelector('#coords')
+    const mapEl = document.querySelector('#map')
+
+    let zoomed
+    let latLngZoom
+    let priorLoc
+
+    const getLatLngZoom = (e) => {
+      let point = e.type === 'click' ? e.latlng : e.target.getCenter()
+      let zoom = e.target.getZoom()
+      let _latLngZoom = [point.lat, point.lng, zoom]
+      latLngZoom = `${Number((point.lat).toFixed(5))},${Number((point.lng).toFixed(5))},${zoom}`
+      if (!zoomed) priorLoc = `${Number((point.lat).toFixed(5))},${Number((point.lng).toFixed(5))},${zoom}`
+      return _latLngZoom
+    }
+    const copyTextToClipboard = (text) => navigator.clipboard?.writeText(text)
+    coords.addEventListener('click', e => copyTextToClipboard(coords.textContent))
 
     const drawer = document.querySelector('.drawer')
     const drawerToggle = captionBar.querySelector('.drawerToggle')
@@ -80,8 +103,7 @@
 
     const props = {
       ...{              // default properties
-        center: '51.505,-0.09', // map center
-        zoom: 8,               // map zoom level
+        location: '51.505,-0.09,8', // map center and zoom
         marker: false,          // show marker
         caption: null,   // caption text,
         data: null
@@ -100,7 +122,7 @@
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     
     let center
-    let zoom = props.zoom
+    let zoom = 8
     let caption
   
     const makeLocationCard = (entity) => {
@@ -324,9 +346,7 @@
   const toGeoJSONLayer = (data) => {
     return L.geoJSON(data, {
       pointToLayer: (feature, _latlng) => {
-        const _props = feature.properties
-        // console.log(toRaw(_props))
-        
+        const _props = feature.properties        
         let marker
 
         if (_props['ve-map-marker'] !== undefined && _props.url) { // image marker
@@ -366,10 +386,8 @@
             let weight = Number(_props['stroke-width']) || 0
             let stroke = weight > 0 ? true : false
             let options = { radius, fillColor, stroke, color, weight }
-            // console.log('markerOptions', options)
             marker = L.circleMarker(_latlng, options)
           } else {
-            // return makeMarker(latLng, _props)
             marker = L.marker(_latlng, { icon: new L.Icon(iconOptions)})
           }
         }
@@ -391,11 +409,9 @@
         if (feature.properties.qid || isQid(feature.properties.id)) {
           let qid = feature.properties.qid || feature.properties.id
           let entity = await getEntity(qid)
-          // console.log(entity)
           let card = makeLocationCard(entity)
           layer.bindPopup(card.innerHTML)
         } else {
-          // console.log(feature.properties)
           let card = makeLocationCard(feature.properties)
           layer.bindPopup(card.innerHTML)
         }
@@ -429,15 +445,19 @@
 
   const initMap = async () => {
 
-    let split = props.center.split(',')
+    let split = props.location.split(',')
+    let entity
     if (isQid(split[0])) {
-      let entity = await getEntity(split[0])
+      entity = await getEntity(split[0])
       center = L.latLng(entity.coords.split(',').map(c => parseFloat(c)))
-      zoom = split.length > 1 ? Number(split[1]) : props.zoom || 9
+      zoom = split.length > 1 ? Number(split[1]) : 8
       if (!props.caption) setCaption(entity.label)
+    } else if (split.length > 1) {
+      center = L.latLng(split.slice(0,2).map(c => parseFloat(c)))
+      if (split.length > 2) zoom = parseFloat(split[2])
     }
 
-    let map = L.map('content', {
+    let map = L.map('map', {
       scrollWheelZoom: false, // disable original zoom function
       smoothWheelZoom: true,  // enable smooth zoom 
       smoothSensitivity: 1.5,   // zoom speed. default is 1
@@ -448,11 +468,22 @@
     }).addTo(map);
     if (props.marker) {
       let marker = L.marker(center)
-      let entity = await getEntity('Q192017')
-      let card = makeLocationCard(entity)
-      marker.bindPopup(card.innerHTML)
+      if (entity) marker.bindPopup(makeLocationCard(entity).innerHTML)
       marker.addTo(map)
     }
+
+    coords.textContent = `${Number((center.lat).toFixed(5))},${Number((center.lng).toFixed(5))},${zoom}`
+    map.on('click', (e) => {
+      getLatLngZoom(e)
+      copyTextToClipboard(latLngZoom.split(',').join(','))
+    })
+    map.on('movestart', () => { mapEl.style.cursor = 'move' })
+    map.on('moveend', (e) => {
+      mapEl.style.cursor = 'pointer'
+      getLatLngZoom(e)
+      coords.textContent = latLngZoom
+    })
+
     return map
   }
 

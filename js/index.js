@@ -50,7 +50,7 @@ const components = {
   },
   map: {
     booleans: 'marker nocaption',
-    positional: 'center zoom caption'
+    positional: 'location caption'
   },
   video: {
     booleans: 'nocaption',
