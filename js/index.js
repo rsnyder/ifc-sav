@@ -74,7 +74,6 @@ Object.entries(components).forEach(([tag, attrs]) => {
 
 const makeEntityPopups = (rootEl) => {
   Array.from(rootEl.querySelectorAll('a')).forEach(async a => {
-    console.log(a)
     let path = a.href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
     let qid = path?.find(p => /^Q\d+$/.test(p))
     if (qid) {
