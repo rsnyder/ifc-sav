@@ -634,14 +634,14 @@ function restructure(rootEl) {
 
 ////////// Wikidata Entity functions //////////
 
-window.entityData = {}
-window.pendingEntityData = new Set()
-window.customEntityAliases = {}
 async function getEntityData(qids, language) {
+  if (!window.entityData) window.entityData = {}
+  if (!window.pendingEntityData) window.pendingEntityData = new Set()
+  if (!window.customEntityAliases) window.customEntityAliases = {}
   language = language || 'en'
   let cached = new Set(qids.filter(qid => window.entityData[qid]))
   let pending = new Set(qids.filter(qid => window.pendingEntityData.has(qid)))
-  let toGet = qids .filter(qid => !cached.has(qid))
+  let toGet = qids .filter(qid => !cached.has(qid) && !pending.has(qid))
   if (toGet.length > 0) {
     Array.from(toGet).forEach(qid => window.pendingEntityData.add(qid))
     let toGetUrls = toGet.map(qid => `(<http://www.wikidata.org/entity/${qid}>)`)
