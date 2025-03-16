@@ -516,10 +516,12 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
-  rootEl.innerHTML = rootEl.innerHTML
+  console.log(rootEl.innerHTML)
+  let html = rootEl.innerHTML
     .replace(/<\/code><\/p>\s+<ul>/, '</code></p><ul data>')
     .replace(/<\/code><\/p><ul>/, '</code></p><ul data1>')
-
+  console.log(html)
+  rootEl.innerHTML = html
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
   Array.from(rootEl?.querySelectorAll('p'))
   .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))

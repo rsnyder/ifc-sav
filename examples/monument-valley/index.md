@@ -31,6 +31,14 @@ Between 1945 and 1967, the southern extent of the Monument Upwarp was mined for 
 
 Monument Valley includes much of the area surrounding Monument Valley Navajo Tribal Park, a Navajo Nation equivalent to a national park. Oljato, for example, is also within the area designated as Monument Valley.  Visitors may drive through the park on a 17-mile (27 km) dirt road. Parts of Monument Valley, such as Mystery Valley and Hunts Mesa, are accessible only by guided tour.
 
+`map #iframe2 Q212214,10 "Monument Valley" marker right box-shadow`
+
+- coords=40.6278,14.48194 label=Positano
+- Q80563
+- Q33163826
+- Q81427
+- Q43332
+
 Monument Valley has been featured in many forms of media since the 1930s. Famed director John Ford used the location for a number of his Westerns. Film critic Keith Phipps wrote that "its five square miles [13 km2] have defined what decades of moviegoers think of when they imagine the American West".[^3]
 
 `video yg0As_HOvJk left`
