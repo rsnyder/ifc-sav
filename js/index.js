@@ -228,9 +228,9 @@ const parseCodeEl = (el) => {
   parsed.inline = nonCodeChildren.length > 0
   // console.log(parsed)
 
-  if (parent.nextElementSibling.tagName === 'UL' && parent.nextElementSibling.getAttribute('data') === '') {
+  if (parent?.nextElementSibling?.tagName === 'UL' && parent?.nextElementSibling?.getAttribute('data') === '')
     parsed.kwargs.data = encodeURIComponent(parent.nextElementSibling.outerHTML.trim().replace(/\n/g, ''))
-  }
+
   return parsed
 }
 
