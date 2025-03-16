@@ -228,13 +228,8 @@ const parseCodeEl = (el) => {
   parsed.inline = nonCodeChildren.length > 0
   // console.log(parsed)
 
-  if (parsed.kwargs?.data) {
-    let dataEl = document.getElementById(parsed.kwargs.data)
-    if (dataEl) {
-      dataEl.removeAttribute('id')
-      parsed.kwargs.data = encodeURIComponent(dataEl.outerHTML.trim().replace(/\n/g, ''))
-      dataEl.remove()
-    }
+  if (parent.nextElementSibling.tagName === 'UL' && parent.nextElementSibling.getAttribute('data') === '') {
+    parsed.kwargs.data = encodeURIComponent(parent.nextElementSibling.outerHTML.trim().replace(/\n/g, ''))
   }
   return parsed
 }
@@ -521,6 +516,8 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
+  rootEl.innerHTML = rootEl.innerHTML.replace(/<\/code><\/p>\s+<ul>/, '</code></p><ul data style="display:none;">')
+
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
   Array.from(rootEl?.querySelectorAll('p'))
   .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
