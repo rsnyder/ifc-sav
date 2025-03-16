@@ -74,6 +74,7 @@ Object.entries(components).forEach(([tag, attrs]) => {
 
 const makeEntityPopups = (rootEl) => {
   Array.from(rootEl.querySelectorAll('a')).forEach(async a => {
+    console.log(a)
     let path = a.href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
     let qid = path?.find(p => /^Q\d+$/.test(p))
     if (qid) {
@@ -445,6 +446,7 @@ if (main) {
   makeTabs(restructured)
   makeCards(restructured)
   makeColumns(restructured)
+  makeEntityPopups(restructured)
 
 } else {
 
@@ -463,6 +465,7 @@ if (main) {
         makeTabs(restructured)
         makeCards(restructured)
         makeColumns(restructured)
+        makeEntityPopups(restructured)
 
       } else if (mutation.target.tagName === 'BODY') {
         convertTags(mutation.target)
@@ -516,10 +519,9 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
-  console.log(rootEl.innerHTML)
   let html = rootEl.innerHTML.replace(/<\/code><\/p>\s+<ul>/, '</code></p><ul data style="display:none;">')
-  console.log(html)
   rootEl.innerHTML = html
+
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
   Array.from(rootEl?.querySelectorAll('p'))
   .filter(p => /^[#*]{1,6}$/.test(p.childNodes.item(0)?.nodeValue?.trim() || ''))
