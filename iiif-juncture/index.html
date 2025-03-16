@@ -51,7 +51,7 @@
   </style>
 </head>
 <body>
-  <main>
+  <main style="aspect-ratio:1;">
     
     <figure>
       <div class="content">
@@ -196,10 +196,20 @@
     };
     ['height', 'rotation', 'seq', 'width'].forEach(prop => props[prop] = parseInt(props[prop]) || props[prop]) // convert to number if possible
     if (props.options || props.size || props.quality || props.format) props.static = true
-    console.log(props)
+    // console.log(props)
+
+    let imageAspect;
+
+    const setWindowAspect = () => {
+      if (!imageAspect) return
+      let aspect = main.clientWidth/(main.clientWidth / imageAspect + caption.clientHeight)
+      window.parent.postMessage({ type: 'setAspect', aspect }, '*');
+    }
 
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
+      new ResizeObserver(() => { setWindowAspect() }).observe(document.body)
+
       window.addEventListener('message', (event) => {
         let action = event.data.action.toLowerCase()
         if (action === 'zoomto') {
@@ -319,6 +329,24 @@
     document.querySelector('#showAnnos')?.addEventListener('click', () => { enableAnnotations() })
     document.querySelector('#copyAnnos')?.addEventListener('click', () => { navigator.clipboard.writeText(JSON.stringify(annotations, null, 2)) })
 
+    const initViewer = async () => {
+      if (viewer) return viewer
+      let img = document.querySelector('#static')
+      const canvases = findItems({type:'Canvas'}, iiifManifest)
+      const tiledSources = canvases.map(canvas => {
+        const page = findItem({type:'AnnotationPage'}, canvas)
+        const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
+        return itemInfo.service
+          ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+          : { url: itemInfo.id, type: 'image', buildPyramid: true }
+      })
+      img.style.display = 'none'
+      osd.style.display = 'block'
+      osd.style.opacity = 1
+      //img.remove()
+      return initOsd(tiledSources)
+    }
+
     const setCaption = () => {
       if (props.nocaption) {
         caption.style.display = 'none'
@@ -360,24 +388,12 @@
         if (props.static) {
           // location.href = staticImageUrl()
           let img = document.querySelector('#static')
+          img.onload = (e) => {
+            imageAspect = img.naturalWidth/img.naturalHeight
+            setWindowAspect()
+          }
           img.src = staticImageUrl(400)
-          img.addEventListener('click', () => {
-            console.log('click')
-            const canvases = findItems({type:'Canvas'}, iiifManifest)
-            const tiledSources = canvases.map(canvas => {
-              const page = findItem({type:'AnnotationPage'}, canvas)
-              const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
-              return itemInfo.service
-                ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
-                : { url: itemInfo.id, type: 'image', buildPyramid: true }
-            })
-            img.style.display = 'none'
-            osd.style.display = 'block'
-            osd.style.opacity = 1
-            //img.remove()
-            init(tiledSources)
-          })
-
+          img.addEventListener('click', () => initViewer())
         } else {
           const canvases = findItems({type:'Canvas'}, iiifManifest)
           const tiledSources = canvases.map(canvas => {
@@ -394,7 +410,7 @@
             ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
             : { url: itemInfo.id, type: 'image', buildPyramid: true }
           */
-          init(tiledSources)
+          initOsd(tiledSources)
         }
         setCaption()
         updateManifestPanel()
@@ -542,7 +558,8 @@
       let viewportRect
       const s1 = region.split(':')
       let [x,y,w,h] = s1[s1.length-1].split(',').map(v => parseInt(v))
-      const size = viewer.world.getItemAt(0).getContentSize()
+      const size = viewer.world.getItemAt(0)?.getContentSize()
+      if (!size) return
       if (s1.length === 2 && (s1[0] === 'pct' || s1[0] === 'percent')) {
         x = Math.round(size.x * x/100),
         y = Math.round(size.y * y/100),
@@ -554,16 +571,18 @@
 
     let zoomedToRegion = ''
     const zoomto = (region) => {
-      if (region) {
-        if (zoomedToRegion === region) {
-          viewer.viewport.goHome()
-          zoomedToRegion = ''
-        } else {
-          zoomedToRegion = region
-          let rect = parseRegionString(region, viewer)
-          viewer.viewport.fitBounds(rect, false)
+      initViewer().then(resp => {
+        if (region) {
+          if (zoomedToRegion === region) {
+            viewer.viewport.goHome()
+            zoomedToRegion = ''
+          } else {
+            zoomedToRegion = region
+            let rect = parseRegionString(region, viewer)
+            setTimeout(() => viewer.viewport.fitBounds(rect, false), 100)
+          }
         }
-      }
+      })
     }
 
     const setCoords = () => {
@@ -609,9 +628,8 @@
       return annosUrl
     }
 
-    const init = async (tileSources) => {
+    const initOsd = async (tileSources) => {
       // create the OpenSeadragon viewer
-      console.log('init', tileSources)
       viewer = OpenSeadragon({
         id: 'osd',
         prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
@@ -666,14 +684,6 @@
         }
         debounce = window.setTimeout(() => setCoords(), 100)
       })
-      viewer.world.addHandler('add-item', (e) => {
-        if (props.rotation) e.item.setRotation(parseInt(props.rotation), true)
-        if (props.region) {
-          let rect = parseRegionString(props.region)
-          setTimeout(() => viewer.viewport.fitBounds(rect, true), 0)
-        }
-        setCoords() 
-      })
 
       // Initialize the Annotorious plugin
       annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: true })
@@ -692,6 +702,26 @@
           setTimeout(() => annotationsChanged(), 500) 
         })
       }
+
+      viewer.world.addHandler('add-item', (e) => {
+        if (props.rotation) e.item.setRotation(parseInt(props.rotation), true)
+        if (props.region) {
+          let rect = parseRegionString(props.region)
+          setTimeout(() => viewer.viewport.fitBounds(rect, true), 0)
+        }
+        setCoords() 
+      })
+
+      return new Promise((resolve, reject) => {
+        
+        // Listen for the 'open' event which fires when the initial image is loaded
+        viewer.addOnceHandler('open', () => resolve(viewer))
+        
+        // Listen for errors
+        viewer.addOnceHandler('open-failed', (event) => reject(new Error('Failed to load image: ' + event.message)))
+
+      })
+
     }
 
   </script>

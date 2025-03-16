@@ -181,3 +181,7 @@ section::after {
 .markdown-section {
   max-width: 100%;
 }
+
+section:has(> iframe.right), section:has(> iframe.left) {
+  display: flow-root;
+}

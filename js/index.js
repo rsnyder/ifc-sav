@@ -41,7 +41,8 @@ const components = {
   },
   'iiif-juncture': {
     booleans: 'cover nocaption showannos static',
-    positional: 'src caption'
+    positional: 'src caption',
+    aliases: 'iiif'
   },
   image: {
     booleans: 'cover nocaption static',
@@ -59,10 +60,15 @@ const components = {
 }
 const tagMap = {}
 Object.entries(components).forEach(([tag, attrs]) => {
-  tagMap[tag] = { 
+  let tagObj = { 
+    tag,
     booleans : new Set((attrs.booleans || '').split(' ').filter(s => s)),
     positional: (attrs.positional || '').split(' ').filter(s => s),
     disabled: attrs.disabled || false
+  }
+  tagMap[tag] = tagObj
+  if (attrs.aliases) {
+    attrs.aliases.split(' ').forEach(alias => tagMap[alias] = tagObj)
   }
 })
 
@@ -135,7 +141,9 @@ const setupActionLinks = (targetId) => {
         a.removeAttribute('href')
         a.style.cursor = 'pointer'
         a.style.color = 'blue'
-        a.addEventListener('click', () => document.getElementById(targetId)?.contentWindow.postMessage({ action, args }, '*'))
+        a.addEventListener('click', () => {
+          document.getElementById(targetId)?.contentWindow.postMessage({ action, args }, '*')
+        })
       }
     }
   })
@@ -191,8 +199,8 @@ const parseCodeEl = (el) => {
     else {
       let arg = token[0] === '"' ? token.slice(1,-1) : token
       if (tokenIdx === 0 && tagMap[arg]) {
-        parsed.tag = arg
         tagObj = tagMap[arg]
+        parsed.tag = tagObj.tag
       } else if (tagObj?.booleans.has(arg)) {
         if (!parsed.booleans) parsed.booleans = []
         parsed.booleans.push(arg)
@@ -220,6 +228,14 @@ const parseCodeEl = (el) => {
   parsed.inline = nonCodeChildren.length > 0
   // console.log(parsed)
 
+  if (parsed.kwargs?.data) {
+    let dataEl = document.getElementById(parsed.kwargs.data)
+    if (dataEl) {
+      dataEl.removeAttribute('id')
+      parsed.kwargs.data = encodeURIComponent(dataEl.outerHTML.trim().replace(/\n/g, ''))
+      dataEl.remove()
+    }
+  }
   return parsed
 }
 
@@ -267,16 +283,16 @@ const convertTags = (rootEl) => {
       if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
       else tokens.push(token)
     })
-    let ifcPrefix = location.port === '4001' ? 'http://localhost:3000' : 'https://ifc.juncture-digital.org/'
+    let ifcPrefix = location.hostname === 'localhost' ? 'http://localhost:8080' : 'https://ifc.juncture-digital.org/'
     let parsed = parseCodeEl(code)
     if (!parsed.tag || tagMap[parsed.tag].disabled || parsed.inline ) return
     if (base) {
       if (!parsed.kwargs) parsed.kwargs = {}
       parsed.kwargs.base = base
     }
-    // console.log(parsed)
     let ghBasePath = ghBase()
     if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
+    // console.log(parsed)
 
     let iframe = document.createElement('iframe')
     iframe.setAttribute('allowfullscreen', '')
@@ -558,8 +574,8 @@ function restructure(rootEl) {
     let target
     if (priorEl?.tagName?.[0] === 'H') target = priorEl
     else if (['A', 'STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
+    else if (parentEl?.tagName === 'LI') target = parentEl.parentElement
     else target = parentEl
-    // console.log(parsed, target)
     if (parsed.class) target.className = parsed.class
     if (parsed.id) target.id = parsed.id
     if (parsed.style) applyStyle(target, parsed.style)

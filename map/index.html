@@ -22,6 +22,10 @@
     .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
     .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     h4 { margin: 0 0 0.5em 0; }
+    .leaflet-popup { width: 200px; }
+    .leaflet-popup-content { margin: 0; }
+    .leaflet-popup-content > .content { margin: 0 6px; }
+    .leaflet-popup img { width: 100%; }
   </style>
 </head>
 <body>
@@ -57,8 +61,10 @@
   <script type="module">
 
     import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+    import 'https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js'
 
     // import any needed Shoelace components (https://shoelace.style/)
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/card/card.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/drawer/drawer.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
@@ -77,7 +83,8 @@
         center: '51.505,-0.09', // map center
         zoom: 8,               // map zoom level
         marker: false,          // show marker
-        caption: null   // caption text
+        caption: null,   // caption text,
+        data: null
       },
       ...Object.fromEntries( // URLSearchParams to object
         Array.from(new URLSearchParams(location.search).entries())
@@ -88,30 +95,411 @@
 
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
     const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
-    
-    const setCaption = () => { if (props.caption) captionBar.querySelector('.label').innerHTML = md2Html(props.caption) }
+
+    const setCaption = (caption) => { captionBar.querySelector('.label').innerHTML = md2Html(caption) }
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     
-    const initMap = () => {
-      let center = props.center.split(',').map(v => parseFloat(v))
-
-      let map = L.map('content', {
-        scrollWheelZoom: false, // disable original zoom function
-        smoothWheelZoom: true,  // enable smooth zoom 
-        smoothSensitivity: 1.5,   // zoom speed. default is 1
-      }).setView(center, props.zoom);
-      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      }).addTo(map);
-      if (props.marker) L.marker(center).addTo(map)
+    let center
+    let zoom = props.zoom
+    let caption
+  
+    const makeLocationCard = (entity) => {
+      let card = document.createElement('sl-card')
+      if (entity.thumbnail) {
+        let img = document.createElement('img')
+        img.setAttribute('slot', 'image')
+        img.src = entity.thumbnail
+        img.setAttribute('alt', entity.label)
+        card.appendChild(img)
+      }
+      let content = document.createElement('div')
+      content.className = 'content'
+      if (entity.label) {
+        let heading = document.createElement('h2')
+        heading.textContent = entity.label
+        content.appendChild(heading)
+      }
+      if (entity.description) {
+        let description = document.createElement('p')
+        description.className = 'description'
+        description.innerHTML = entity.description
+        content.appendChild(description)
+      }
+      if (entity.summaryText) {
+        let summaryText = document.createElement('p')
+        summaryText.className = 'description'
+        summaryText.innerHTML = entity.summaryText
+        content.appendChild(summaryText)
+      }
+      card.appendChild(content)
+      return card
     }
 
-    docReady(function() {
-      setCaption()
-      main.style.visibility = 'visible'
-      initMap()
+    const mwImage = (mwImg, width) => {
+      width = width | 0
+      // Converts Wikimedia commons image URL to a thumbnail link
+      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
+      mwImg = decodeURIComponent(mwImg).replace(/ /g,'_')
+      const _md5 = md5(mwImg)
+      const extension = mwImg.split('.').pop()
+      let url = `https://upload.wikimedia.org/wikipedia/commons${width ? '/thumb' : ''}`
+      url += `/${_md5.slice(0,1)}/${_md5.slice(0,2)}/${mwImg}`
+      if (width > 0) {
+        url += `/${width}px-${mwImg}`
+        if (extension === 'svg') {
+          url += '.png'
+        } else if (extension === 'tif' || extension === 'tiff') {
+          url += '.jpg'
+        }
+      }
+      return url
+    }
+
+    // Creates a GeoJSON file URL from a Who's on First ID 
+  const whosOnFirstUrl = (wof) => {
+    let wofParts = []
+    for (let i = 0; i < wof.length; i += 3) {
+      wofParts.push(wof.slice(i,i+3))
+    }
+    return `https://data.whosonfirst.org/${wofParts.join('/')}/${wof}.geojson`
+  }
+
+    window.entityData = {}
+    window.pendingEntityData = new Set()
+    window.customEntityAliases = {}
+    const getEntityData = async (qids, language) => {
+      language = language || 'en'
+      let cached = new Set(qids.filter(qid => window.entityData[qid]))
+      let pending = new Set(qids.filter(qid => window.pendingEntityData.has(qid)))
+      let toGet = qids.filter(qid => !cached.has(qid))
+      if (toGet.length > 0) {
+        Array.from(toGet).forEach(qid => window.pendingEntityData.add(qid))
+        let toGetUrls = toGet.map(qid => `(<http://www.wikidata.org/entity/${qid}>)`)
+        let query = `
+          SELECT ?item ?label ?description ?alias ?image ?logoImage ?coords ?pageBanner ?whosOnFirst ?wikipedia WHERE {
+            VALUES (?item) { ${toGetUrls.join(' ')} }
+            ?item rdfs:label ?label . 
+            FILTER (LANG(?label) = "${language}" || LANG(?label) = "en")
+            OPTIONAL { ?item schema:description ?description . FILTER (LANG(?description) = "${language}" || LANG(?description) = "en")}
+            OPTIONAL { ?item skos:altLabel ?alias . FILTER (LANG(?alias) = "${language}" || LANG(?alias) = "en")}
+            OPTIONAL { ?item wdt:P625 ?coords . }
+            OPTIONAL { ?item wdt:P18 ?image . }
+            OPTIONAL { ?item wdt:P154 ?logoImage . }
+            OPTIONAL { ?item wdt:P948 ?pageBanner . }
+            OPTIONAL { ?item wdt:P6766 ?whosOnFirst . }
+            OPTIONAL { ?wikipedia schema:about ?item; schema:isPartOf <https://${language}.wikipedia.org/> . }
+        }`
+        let resp = await fetch('https://query.wikidata.org/sparql', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            Accept: 'application/sparql-results+json'
+          },
+          body: `query=${encodeURIComponent(query)}`
+        })
+      if (resp.ok) {
+        let sparqlResp = await resp.json()
+        sparqlResp.results.bindings.forEach( async rec => {
+          let qid = rec.item.value.split('/').pop()
+          let _entityData = window.entityData[qid]
+          if (!_entityData) {
+            _entityData = {id: qid, label: rec.label.value}
+            if (rec.description) _entityData.description = rec.description.value
+            if (rec.alias) {
+              _entityData.aliases = [rec.alias.value]
+              if (window.customEntityAliases[qid]) _entityData.aliases = [...window.customEntityAliases[qid], ..._entityData.aliases]
+            }
+            if (rec.coords) _entityData.coords = rec.coords.value.slice(6,-1).split(' ').reverse().join(',')
+            if (rec.wikipedia) _entityData.wikipedia = rec.wikipedia.value
+            if (rec.pageBanner) _entityData.pageBanner = rec.pageBanner.value
+            if (rec.image) {
+              _entityData.image = rec.image.value
+              _entityData.thumbnail = mwImage(rec.image.value, 300)
+            }
+            if (rec.logoImage) {
+              _entityData.logoImage = rec.logoImage.value
+              if (!_entityData.thumbnail) _entityData.thumbnail = mwImage(rec.logoImage.value, 300)
+            }
+            if (rec.whosOnFirst) _entityData.geojson = whosOnFirstUrl(rec.whosOnFirst.value)
+              window.entityData[qid] = _entityData
+
+          } else {
+            if (rec.alias) _entityData.aliases.push(rec.alias.value)
+          }
+        })
+        Array.from(toGet).forEach(qid => window.pendingEntityData.delete(qid))
+        return Object.fromEntries(qids.filter(qid => window.entityData[qid]).map(qid => [qid,window.entityData[qid]]))
+      }
+    }
+    return Object.fromEntries(qids.filter(qid => window.entityData[qid]).map(qid => [qid,window.entityData[qid]]))
+  }
+  const getEntity = async (qid, language) => {
+    let entities = await getEntityData([qid], language)
+    return entities[qid]
+  }
+
+  const tokenize = (s) => {
+    s = s || ''
+    let tokens = []
+    s = s.replace(/“/,'"').replace(/”/,'"').replace(/’/,"'")
+    let match = s.match(/[^\s"]+|"([^"]*)"/gmi)
+    if (match) match.forEach(token => {
+      if (tokens.length > 0 && tokens[tokens.length-1].indexOf('=') === tokens[tokens.length-1].length-1) tokens[tokens.length-1] = `${tokens[tokens.length-1]}${token}`
+      else tokens.push(token)
     })
+    return tokens
+  }
+
+  const isCoords = (s) => /^[+-]?\d+(.\d*|\d*),{1}[+-]?\d+(.\d*|\d*)$/.test(s)
+  const isZoom = (s) => /^\d{1,2}(\.\d{1})?$/.test(s)
+  const isQid = (s) => /^Q\d+$/.test(s)
+
+  const entityToInfoObj = (entity, id) => {
+    id = id | ''
+    let obj = {id: id || entity.id}
+    if (entity.coords) obj.coords = entity.coords
+    // if (entity.geojson) obj.geojson = entity.geojson
+    if (props.preferGeojson && entity.geojson) obj.geojson = entity.geojson
+    if (entity.label) obj.label = entity.label
+    if (entity.description) obj.description = entity.description
+    if (entity.thumbnail) obj.image = entity.thumbnail
+    return obj
+  }
+
+  const toObj = async (s) => {
+    let tokens = tokenize(s)
+    let geoJsonRegex = /\.?(geo)?json$/i
+    let iiifRegex = /^[a-z0-9\-]+:.+/
+    let obj = {}
+    let booleans = new Set(['disabled', 'prefer-geojson'])
+    for (let i = 0; i < tokens.length; i++) {
+      let token = tokens[i]
+
+      if (token.indexOf('=') > 0) {
+        let [key, ...rest] = token.split('=')
+        let value = rest.join('=')
+        value = '"' && value[value.length-1] === '"' ? value.slice(1,-1) : value
+
+        if (key === 'qid') {
+          let entity = await getEntity(value)
+          obj = {...entityToInfoObj(entity, token), ...obj}          
+        } else if (key === 'iiif') {
+          let manifest = await getManifest(token)
+          obj = {...manifestToInfoObj(manifest, token), ...obj}
+        } else {
+          obj[key] = value
+        }
+      
+      } else if (isZoom(token)) {
+        obj.zoom = parseInt(token)
+      
+      } else if (isCoords(token)) {
+        obj.coords = token
+        obj.id = token
+      
+      } else if (isQid(token)) {
+        let entity = await getEntity(token)
+        obj = {...entityToInfoObj(entity, token), ...obj}
+      
+      } else if (geoJsonRegex.test(token)) {
+        obj.geojson = token
+
+      } else if (iiifRegex.test(token)) {
+        let manifest = await getManifest(token)
+        obj = {...manifestToInfoObj(manifest, token), ...obj}
+
+      } else if (booleans.has(token)) {
+        obj[kebabToCamel(token)] = true
+
+      } else {
+        let text = token[0] === '"' && token[token.length-1] === '"' ? token.slice(1,-1) : token
+        if (obj.label) obj.description = text
+        else obj.label = text
+      }
+    }
+    obj.preferGeojson = (obj.preferGeojson || (props.preferGeojson) && obj.geojson ) || (obj.geojson && !obj.coords) ? true : false
+    return obj
+  }
+
+  const toGeoJSONLayer = (data) => {
+    return L.geoJSON(data, {
+      pointToLayer: (feature, _latlng) => {
+        const _props = feature.properties
+        // console.log(toRaw(_props))
+        
+        let marker
+
+        if (_props['ve-map-marker'] !== undefined && _props.url) { // image marker
+          let [width, height] = _props.size
+            ? _props.size.split(',').map((item) => Number(item))
+            : [100, 100]
+          let style = `width:${width}px;height:${height}px;`
+          if (_props.circle) style += `border-radius:50%;border:4px solid ${_props.color || '#555555'};`
+          let imgUrl = _props.url.indexOf('wc:') === 0 ? mwImage(_props.url.slice(3), 108) : _props.url
+          let img = `<img src="${imgUrl}" style="${style}"/>`
+          marker = new L.Marker(_latlng, {
+            icon: L.divIcon({
+              html: img,
+              className: 'image-icon', // Specify a class name we can refer to in CSS.
+              iconSize: [52, 52] // Set a markers width and height.
+            }) 
+          })
+        } else {
+          let iconOptions = {...markerIconTemplate}
+          if (feature.properties.icon) iconOptions.iconUrl = feature.properties.icon
+          if (feature.properties.shadowUrl) iconOptions.shadowUrl = feature.properties.shadowUrl
+          if (feature.properties.iconRetinaUrl) iconOptions.iconRetinaUrl = feature.properties.iconRetinaUrl
+          if (feature.properties.size) iconOptions.iconSize = _props.size.split(',').map((item) => Number(item))
+        
+          if (_props['markerType'] === 'circle' || _props['marker-symbol'] === 'circle') {
+            let radius = _props.radius
+              ? Number(_props.radius)
+              : _props['marker-size']
+                ? _props['marker-size'] === 'small'
+                  ? 8
+                  : _props['marker-size'] === 'medium'
+                    ? 16
+                    : 32
+                : 4
+            let color = _props['marker-color'] || '#2C84CB'
+            let fillColor = _props['fill'] || color
+            let weight = Number(_props['stroke-width']) || 0
+            let stroke = weight > 0 ? true : false
+            let options = { radius, fillColor, stroke, color, weight }
+            // console.log('markerOptions', options)
+            marker = L.circleMarker(_latlng, options)
+          } else {
+            // return makeMarker(latLng, _props)
+            marker = L.marker(_latlng, { icon: new L.Icon(iconOptions)})
+          }
+        }
+        return marker
+      },
+      onEachFeature: async (feature, layer) => {
+        let fg = layer
+        if (!feature.properties.coords) {
+          if (fg.feature?.bbox) {
+            let center = fg.getBounds().getCenter()
+            feature.properties.coords = `${center.lat},${center.lng}`
+          } else if (feature.geometry.type === 'Polygon') {
+            let center = turf.centroid(feature)
+            feature.properties.coords = `${center.geometry.coordinates[1]},${center.geometry.coordinates[0]}`
+          }
+        }
+
+        // Bind popup
+        if (feature.properties.qid || isQid(feature.properties.id)) {
+          let qid = feature.properties.qid || feature.properties.id
+          let entity = await getEntity(qid)
+          // console.log(entity)
+          let card = makeLocationCard(entity)
+          layer.bindPopup(card.innerHTML)
+        } else {
+          // console.log(feature.properties)
+          let card = makeLocationCard(feature.properties)
+          layer.bindPopup(card.innerHTML)
+        }
+
+        if (props.popupOnHover) {
+          layer.on('mouseover', () => layer.openPopup())
+          layer.on('mouseout', () => layer.closePopup())
+        }
+      
+        layer.on('click', () => {
+          layer.openPopup()
+        })
+      },
+      style: (feature) => {
+        const featureProps = feature?.properties
+        const _geometry = feature?.geometry.type
+        for (let [prop, value] of Object.entries(featureProps)) {
+          if (value === 'null') featureProps[prop] = null
+        }
+        const style = {
+          color: featureProps.color || '#FB683F',
+          weight: featureProps.weight || (_geometry === 'Polygon' || _geometry === 'MultiPolygon' ? 0 : 4),
+          opacity: featureProps.opacity || 1,                  
+          fillColor: featureProps.fillColor || '#32C125',
+          fillOpacity: featureProps.fillOpacity || 0.5,
+        }
+        return style
+      }
+    })
+  }
+
+  const initMap = async () => {
+
+    let split = props.center.split(',')
+    if (isQid(split[0])) {
+      let entity = await getEntity(split[0])
+      center = L.latLng(entity.coords.split(',').map(c => parseFloat(c)))
+      zoom = split.length > 1 ? Number(split[1]) : props.zoom || 9
+      if (!props.caption) setCaption(entity.label)
+    }
+
+    let map = L.map('content', {
+      scrollWheelZoom: false, // disable original zoom function
+      smoothWheelZoom: true,  // enable smooth zoom 
+      smoothSensitivity: 1.5,   // zoom speed. default is 1
+    }).setView(center, zoom);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    if (props.marker) {
+      let marker = L.marker(center)
+      let entity = await getEntity('Q192017')
+      let card = makeLocationCard(entity)
+      marker.bindPopup(card.innerHTML)
+      marker.addTo(map)
+    }
+    return map
+  }
+
+  const markerIconTemplate = {
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-icon.png',
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-icon-2x.png',
+    iconSize:    [25, 41],
+    iconAnchor:  [12, 41],
+    popupAnchor: [1, -34],
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+    shadowSize:  [41, 41]
+  }
+
+  const toGeoJSON = (locations) => {
+    const data = { type: 'FeatureCollection', features: [] }
+    locations.filter(location => location.coords)
+      .forEach(location => {
+        let [lat, lng] = location.coords.split(',').map(val => parseFloat(val.trim()))
+        data.features.push({
+          type: 'Feature',
+          properties: location,
+          geometry: { type: 'Point', coordinates: [lng, lat] }
+        })
+      })
+    return data
+  }
+
+  docReady(async function() {
+    if (props.caption) setCaption(props.caption)
+    main.style.visibility = 'visible'
+    let map = await initMap()
+    if (props.data) {
+      let locations = await Promise.all(Array.from(new DOMParser().parseFromString(props.data, 'text/html').querySelector('body').firstChild.querySelectorAll('li'))
+        .map(li => toObj(li.innerHTML.replace(/^\s*-\s+/, ''))))
+        
+      let markersByLayer = {}
+      locations
+        .forEach(item => {
+          let layerName = item.layer || 'Locations'
+          if (!markersByLayer[layerName]) markersByLayer[layerName] = []
+          markersByLayer[layerName].push(item)
+        })
+  
+      let geoJsonLayer = toGeoJSONLayer(toGeoJSON(markersByLayer.Locations))
+      map.addLayer(geoJsonLayer)
+    }
+  })
 
   </script>
 </body>
