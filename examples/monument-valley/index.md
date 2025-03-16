@@ -14,7 +14,7 @@ Major rock formations include [West and East Mitten Buttes](image/zoomto/675,518
 
 ## Geography and geology
 
-`map #map Q192017,5 "Monument Valley" marker right box-shadow`
+`map #map Q192017,4 "Monument Valley" marker right box-shadow`
 
 [Monument Valley](map/flyto/Q192017,11) is part of the Colorado Plateau. The elevation of the valley floor ranges from 5,000 to 6,000 feet (1,500 to 1,800 m) above sea level. The floor is largely siltstone of the Cutler Group, or sand derived from it, deposited by the meandering rivers that carved the valley. The valley's vivid red coloration comes from iron oxide exposed in the weathered siltstone. The darker, blue-gray rocks in the valley get their color from manganese oxide.
 
