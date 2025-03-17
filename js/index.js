@@ -53,8 +53,8 @@ const components = {
     positional: 'location caption'
   },
   youtube: {
-    booleans: 'nocaption',
-    positional: 'src caption',
+    booleans: 'autoplay muted nocaption',
+    positional: 'vid caption',
     aliases: 'video'
   }
 }
@@ -129,7 +129,6 @@ const makeEntityPopups = (rootEl) => {
 // setup action links to iframes on DOM mutations (e.g., zoomto, flyto, play)
 const setupActionLinks = (targetId) => {
   document.querySelectorAll('a').forEach(a => {
-    console.log(a)
     let href = a.href || a.getAttribute('data-href')
     let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
     const targetIdx = path?.findIndex(p => p == targetId)
@@ -289,7 +288,7 @@ const convertTags = (rootEl) => {
     }
     let ghBasePath = ghBase()
     if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
-    console.log(parsed)
+    // (parsed)
 
     let iframe = document.createElement('iframe')
     iframe.setAttribute('allowfullscreen', '')
@@ -306,7 +305,16 @@ const convertTags = (rootEl) => {
       let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
       iframe.src = `${ifcPrefix}/${parsed.tag}?${componentArgs}`
     }
-    code.parentElement.replaceWith(iframe)
+    let isOnlyChild = code.parentElement.children.length === 1 && code.parentElement.children[0] === code
+    if (isOnlyChild) code.parentElement.replaceWith(iframe)
+    else {
+      let nonCodeElements = Array.from(code.parentElement.children).filter(c => c.tagName !== 'CODE').length
+      if (!nonCodeElements) {
+        code.parentElement.style.display = 'flex'
+        code.parentElement.style.gap = '1em'
+      }
+      code.replaceWith(iframe)
+    }
   })
 }
 
@@ -471,13 +479,13 @@ if (main) {
         makeEntityPopups(restructured)
         nutationObserver?.disconnect()
       } else if ( ['ARTICLE', 'BODY'].includes(mutation.target.tagName) ) {
-        console.log(mutation.target.tagName)
+        // console.log(mutation.target.tagName)
         processing = true
         convertTags(mutation.target)
         nutationObserver?.disconnect()
       }
       mutation.target.querySelectorAll('iframe').forEach(iframe => {
-        console.log(iframe)
+        // console.log(iframe)
         if (iframe.id) setupActionLinks(iframe.id)
       })
     })
@@ -526,7 +534,7 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
-  let html = rootEl.innerHTML.replace(/<\/code><\/p>\s+<ul>/, '</code></p><ul data style="display:none;">')
+  let html = rootEl.innerHTML.replace(/<p><code>(.+)<\/code><\/p>\s+<ul>/g, '<p><code>$1</code></p><ul data style="display:none;">')
   rootEl.innerHTML = html
 
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level

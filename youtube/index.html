@@ -35,7 +35,6 @@
 
     <figure style="height: 100%;">
       <iframe id="youtubePlayer" class="content"
-        src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?enablejsapi=1"
         allow="autoplay; encrypted-media"
         allowfullscreen
       ></iframe>
@@ -93,21 +92,21 @@
         alt: null,
         autoplay: false,
         caption: null,
-        src: null,
-        class: null,
         end: null,
-        muted: true,
+        muted: false,
         noCaption: false,
         poster: null,
-        src: null,
-        start: 0
+        start: 0,
+        vid: null  // YouTube video id
       },
       ...Object.fromEntries( // URLSearchParams to object
         Array.from(new URLSearchParams(location.search).entries())
         .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
       )
     }
-    console.log(props)
+    // console.log(props)
+
+    youtubePlayer.setAttribute('src', `https://www.youtube-nocookie.com/embed/${props.vid}?enablejsapi=1`)
 
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
     const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
@@ -129,7 +128,9 @@
       return data
     }
 
-    youtubeMetadata(props.src).then(resp => console.log(resp))
+    youtubeMetadata(props.vid).then(metadata => {
+      caption.innerHTML = metadata.title
+    })
     youtubePlayer.addEventListener('load', e => {
       youtubePlayer.contentWindow.postMessage('{"event": "listening"}', '*')
       setWindowAspect()
