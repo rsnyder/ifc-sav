@@ -13,7 +13,7 @@
 
     figure { display: grid; grid-template-rows: 1fr auto; margin: 0; }
     .content { display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%; aspect-ratio: 16/9; }
-    figcaption { padding: 10px; font-size: 0.9rem; background-color: #f9f9f9; display: flex; align-items: center; gap: 0.5em; }
+    figcaption { padding: 6px; font-size: 0.9rem; background-color: #f9f9f9; display: flex; align-items: center; gap: 0.5em; height: 100%; }
 
     svg { width: 1.3em; height: 1.3em; }
     
@@ -78,8 +78,9 @@
     const main = document.querySelector('main')
     const figure = main.querySelector('figure')
     const youtubePlayer = figure.querySelector('iframe')
-    const caption = figure.querySelector('figcaption')
-    const drawerToggle = caption.querySelector('.drawer-toggle')
+    const captionEl = figure.querySelector('figcaption')
+    const captionLabel = captionEl.querySelector('.label')
+    const drawerToggle = captionEl.querySelector('.drawer-toggle')
 
     const drawer = document.querySelector('.drawer')
     const tabGroup = drawer.querySelector('sl-tab-group')
@@ -113,7 +114,7 @@
 
     const setWindowAspect = () => {
       let contentAspect = youtubePlayer.clientWidth/youtubePlayer.clientHeight
-      let aspect = main.clientWidth/(main.clientWidth / contentAspect + caption.clientHeight)
+      let aspect = main.clientWidth/(main.clientWidth / contentAspect + captionEl.clientHeight)
       window.parent.postMessage({ type: 'setAspect', aspect }, '*');
     }
 
@@ -129,13 +130,14 @@
     }
 
     youtubeMetadata(props.vid).then(metadata => {
-      caption.innerHTML = metadata.title
+      captionLabel.innerHTML = metadata.title
     })
     youtubePlayer.addEventListener('load', e => {
       youtubePlayer.contentWindow.postMessage('{"event": "listening"}', '*')
       setWindowAspect()
       main.style.visibility = 'visible'
       main.style.opacity = '1'
+      new ResizeObserver(() => setWindowAspect() ).observe(document.body)
     })
 
     const sendMsg = (func, args) => {

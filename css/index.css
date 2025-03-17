@@ -190,3 +190,22 @@ section::after {
 section:has(> iframe.right), section:has(> iframe.left) {
   display: flow-root;
 }
+
+.iframe-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center; /* Centers items */
+}
+
+.iframe-container iframe {
+  flex: 1 1 200px; /* Base size of 200px */
+  text-align: center;
+}
+
+/* Adjust layout for smaller screens */
+@media (max-width: 600px) {
+  .iframe-container iframe {
+    flex: 1 1 100%; /* Each item takes full width on smaller screens */
+  }
+}

@@ -17,8 +17,9 @@ Major rock formations include [West and East Mitten Buttes](image/zoomto/675,518
 `map #map Q192017,4 "Monument Valley" marker right box-shadow`
 - Q118841
 - Q777183
+- Q223969
 
-[Monument Valley](map/flyto/Q192017,11) is part of the Colorado Plateau. The elevation of the valley floor ranges from 5,000 to 6,000 feet (1,500 to 1,800 m) above sea level. The floor is largely siltstone of the Cutler Group, or sand derived from it, deposited by the meandering rivers that carved the valley. The valley's vivid red coloration comes from iron oxide exposed in the weathered siltstone. The darker, blue-gray rocks in the valley get their color from manganese oxide.
+[Monument Valley](map/flyto/Q192017,11) is part of the Colorado Plateau. The elevation of the valley floor ranges from 5,000 to 6,000 feet above sea level. The floor is largely siltstone of the Cutler Group, or sand derived from it, deposited by the meandering rivers that carved the valley. The valley's vivid red coloration comes from iron oxide exposed in the weathered siltstone. The darker, blue-gray rocks in the valley get their color from manganese oxide.  For tourists doing a national park tour, Monument Valley is situated between [Arches National Park](map/flyto/Q223969,12) and the [Grand Canyon](map/flyto/Q118841,12).
 
 The buttes arising from the valley floor are clearly stratified, with three principal layers. The lowest layer is the Organ Rock Shale, the middle is de Chelly Sandstone, and the top layer is the Moenkopi Formation capped by Shinarump Conglomerate. 
 
@@ -32,8 +33,6 @@ Monument Valley has been featured in many forms of media since the 1930s. Famed 
 
 `video yg0As_HOvJk #video1`
 `video GGyiZ7SE3V4 #video2`
-
-- ["I'm pretty tired..."](video2/play/53/61)
 
 [^1]: Scheffel, Richard L.; Wernet, Susan J., eds. (1980). Natural Wonders of the World. Reader's Digest. p. 255. ISBN 978-0895770875.
 [^2]: King, Farina (2018). "Náhookọs (North): New Hioes for Diné Students." The Earth Memory Compass: Diné Landscapes and Education in the Twentieth Century. University Press of Kansas. pp. 142–74. [doi:10.2307/j.ctv6mtdsj](https://doi.org/10.2307%2Fj.ctv6mtdsj). S2CID 135010884.

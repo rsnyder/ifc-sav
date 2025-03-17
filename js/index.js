@@ -309,10 +309,7 @@ const convertTags = (rootEl) => {
     if (isOnlyChild) code.parentElement.replaceWith(iframe)
     else {
       let nonCodeElements = Array.from(code.parentElement.children).filter(c => c.tagName !== 'CODE').length
-      if (!nonCodeElements) {
-        code.parentElement.style.display = 'flex'
-        code.parentElement.style.gap = '1em'
-      }
+      if (!nonCodeElements) code.parentElement.classList.add('iframe-container')
       code.replaceWith(iframe)
     }
   })
