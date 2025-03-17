@@ -6,6 +6,7 @@
   <title>IFC Template</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" /> 
+  <link rel="stylesheet" href="//unpkg.com/leaflet-gesture-handling/dist/leaflet-gesture-handling.min.css" type="text/css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
@@ -64,6 +65,7 @@
 
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://rsnyder.github.io/Leaflet.SmoothWheelZoom/Leaflet.SmoothWheelZoom.js"></script>
+  <script src="//unpkg.com/leaflet-gesture-handling"></script>
   <script type="module">
 
     import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
@@ -87,6 +89,8 @@
     let zoomed
     let priorLoc
 
+    const isMobile = ('ontouchstart' in document.documentElement && /mobi/i.test(navigator.userAgent) )
+
     const getLatLngZoom = (e) => {
       let point = e.type === 'click' ? e.latlng : e.target.getCenter()
       let zoom = e.target.getZoom()
@@ -105,14 +109,15 @@
         location: '51.505,-0.09,8', // map center and zoom
         marker: false,          // show marker
         caption: null,   // caption text,
-        data: null
+        data: null,
+        gestureHandling: isMobile
       },
       ...Object.fromEntries( // URLSearchParams to object
         Array.from(new URLSearchParams(location.search).entries())
         .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
       )
     }
-    // console.log(props)
+    console.log(props)
 
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
     const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
@@ -460,6 +465,7 @@
       scrollWheelZoom: false, // disable original zoom function
       smoothWheelZoom: true,  // enable smooth zoom 
       smoothSensitivity: 1.5,   // zoom speed. default is 1
+      gestureHandling: props.gestureHandling === true
     }).setView(center, zoom);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
