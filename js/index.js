@@ -534,7 +534,9 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
+  console.log(rootEl.innerHTML)
   let html = rootEl.innerHTML.replace(/<p><code>(.+)<\/code><\/p>\s+<ul>/g, '<p><code>$1</code></p><ul data style="display:none;">')
+  console.log(html)
   rootEl.innerHTML = html
 
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
