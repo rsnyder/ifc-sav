@@ -112,7 +112,7 @@
         .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
       )
     }
-    console.log(props)
+    // console.log(props)
 
     let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
     const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
@@ -527,9 +527,11 @@
 
   docReady(async function() {
     window.addEventListener('message', (event) => {
-      let action = event.data.action.toLowerCase()
+      let eventData = JSON.parse(event.data)
+      let action = eventData.action?.toLowerCase()
+      let args = eventData.args
       if (action === 'flyto') {
-        let locZoom = event.data.args[0]
+        let locZoom = args[0]
         if ((locZoom === zoomed) && priorLoc) {
           flyTo(priorLoc)
           priorLoc = null

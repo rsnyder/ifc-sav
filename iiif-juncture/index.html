@@ -211,12 +211,14 @@
       new ResizeObserver(() => { setWindowAspect() }).observe(document.body)
 
       window.addEventListener('message', (event) => {
-        let action = event.data.action.toLowerCase()
+        let eventData = JSON.parse(event.data)
+        let action = eventData.action?.toLowerCase()
+        let args = eventData.args
         if (action === 'zoomto') {
-          let region = event.data.args[0]
+          let region = args[0]
           zoomto(region)
         } else if (action === 'gotopage') {
-          gotopage(parseInt(event.data.args[0]))
+          gotopage(parseInt(args[0]))
         } else if (action === 'gotopageid') {
           gotopageid(event.data.args[0])
        } else if (action === 'getimageurl') {

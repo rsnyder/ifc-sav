@@ -25,6 +25,11 @@ body {
   aspect-ratio: 1.3;
 }
 
+.markdown-section iframe[src*="youtube"],
+.markdown-body iframe[src*="youtube"] {
+  aspect-ratio: 16/9;
+}
+
 .markdown-section iframe[src*="map"],
 .markdown-body iframe[src*="map"] {
   aspect-ratio: 1 / 1 ;

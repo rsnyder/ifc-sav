@@ -2,6 +2,8 @@
   - Core Components
     - [Image](/docs/components/image)
     - [Map](/docs/components/map)
+    - Video Players
+      - [YouTube](/docs/components/video/youtube)
   - IIIF Viewers
     - [Juncture IIIF Viewer](/docs/components/iiif/juncture)
     - [TIFY IIIF Viewer](/docs/components/iiif/tify)

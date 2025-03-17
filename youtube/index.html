@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Video</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
+    body { margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; background-color: white; }    
+    main {  display: flex; flex-direction: column; width: 100%; visibility: hidden; opacity: 0; transition: all 0.5s ease-out; }
+
+    figure { display: grid; grid-template-rows: 1fr auto; margin: 0; }
+    .content { display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%; aspect-ratio: 16/9; }
+    figcaption { padding: 10px; font-size: 0.9rem; background-color: #f9f9f9; display: flex; align-items: center; gap: 0.5em; }
+
+    svg { width: 1.3em; height: 1.3em; }
+    
+    .drawer-toggle { cursor: pointer; }
+    sl-drawer::part(body) { padding: 0; border: 1px solid #ddd; }
+    sl-tab::part(base) { padding: 0.5em 1em; }
+    sl-tab-panel::part(base) { padding: 0.5em; }
+    sl-tab-panel::part(base) div, sl-tab-panel div { margin-bottom: 0.5em; }
+    sl-copy-button::part(button) { padding-top: 0; }
+    pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+    .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; }
+    .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    .embed { display: flex; margin-bottom: 1em; }
+  </style>
+</head>
+<body>
+  
+  <main>
+
+    <figure style="height: 100%;">
+      <iframe id="youtubePlayer" class="content"
+        src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?enablejsapi=1"
+        allow="autoplay; encrypted-media"
+        allowfullscreen
+      ></iframe>
+      <figcaption>      
+        <svg class="drawer-toggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
+        <div class="label clamp"></div>
+      </figcaption>
+
+      <sl-drawer contained class="drawer" no-header style="--size: calc(100% - 32px); display: flex; flex-direction: column; height: 100%;">
+        <sl-tab-group>
+          <sl-tab slot="nav" active panel="info">Video info</sl-tab>
+          <sl-tab slot="nav" panel="embed">Embed</sl-tab>
+          <sl-tab-panel active name="info">
+            <h3>Info</h3>
+          </sl-tab-panel>
+          <sl-tab-panel name="embed">
+            <div class="embed wrap">
+              <pre><code id="embed-code"></code></pre>
+              <sl-copy-button from="embed-code"></sl-copy-button>
+            </div>
+              For more information, visit <span id="ifc-link">https://ifc.juncture-digital.org</span><sl-copy-button from="ifc-link"></sl-copy-button>
+            <div>
+          </sl-tab-panel>
+        </sl-tab-group>
+      </sl-drawer>
+    </figure>
+
+  </main>
+
+  <script type="module">
+
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js"
+
+    // import any needed Shoelace components (https://shoelace.style/)
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/copy-button/copy-button.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/drawer/drawer.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-group/tab-group.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab-panel/tab-panel.js';
+
+    const main = document.querySelector('main')
+    const figure = main.querySelector('figure')
+    const youtubePlayer = figure.querySelector('iframe')
+    const caption = figure.querySelector('figcaption')
+    const drawerToggle = caption.querySelector('.drawer-toggle')
+
+    const drawer = document.querySelector('.drawer')
+    const tabGroup = drawer.querySelector('sl-tab-group')
+    // tabGroup.addEventListener('sl-tab-show', e => { console.log(e) })
+
+    drawerToggle?.addEventListener('click', e => drawer.open = !drawer.open)
+
+    const props = {
+      ...{              // default properties
+        alt: null,
+        autoplay: false,
+        caption: null,
+        src: null,
+        class: null,
+        end: null,
+        muted: true,
+        noCaption: false,
+        poster: null,
+        src: null,
+        start: 0
+      },
+      ...Object.fromEntries( // URLSearchParams to object
+        Array.from(new URLSearchParams(location.search).entries())
+        .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
+      )
+    }
+    console.log(props)
+
+    let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
+    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
+
+    const setWindowAspect = () => {
+      let contentAspect = youtubePlayer.clientWidth/youtubePlayer.clientHeight
+      let aspect = main.clientWidth/(main.clientWidth / contentAspect + caption.clientHeight)
+      window.parent.postMessage({ type: 'setAspect', aspect }, '*');
+    }
+
+    let pauseAt
+
+    const youtubeMetadata = async (videoId) => {
+      let videoUrl = encodeURI(`https://www.youtube.com/watch?v=${videoId}`)
+      let url = `https://youtube.com/oembed?url=${videoUrl}&format=json`
+      let resp = await fetch(url)
+      let data = await resp.json()
+      data.aspect = data.width/data.height
+      return data
+    }
+
+    youtubeMetadata(props.src).then(resp => console.log(resp))
+    youtubePlayer.addEventListener('load', e => {
+      youtubePlayer.contentWindow.postMessage('{"event": "listening"}', '*')
+      setWindowAspect()
+      main.style.visibility = 'visible'
+      main.style.opacity = '1'
+    })
+
+    const sendMsg = (func, args) => {
+      youtubePlayer.contentWindow.postMessage(
+        JSON.stringify({event: 'command', func, args: args || []}), 
+        '*'
+      );
+    }
+
+    const play = (start, end) => {
+      if (start !== null) sendMsg('seekTo', [start, true])
+      pauseAt = end ? end : null
+      sendMsg('playVideo')
+    }
+
+    const pause = () => sendMsg('pauseVideo')
+
+    let playerStates = {
+      '-1': 'unstarted',
+      '0': 'ended',
+      '1': 'playing',
+      '2': 'paused',
+      '3': 'buffering',
+      '5': 'video cued',
+    }
+    let playerState
+    const watch = (event) => {
+      // console.log(event)
+      if (event.playerState !== undefined && event.playerState !== playerState) {
+        playerState = event.playerState
+        // console.log(playerStates[`${playerState}`])
+      }
+      if (pauseAt !== null && event.currentTime > pauseAt) {
+        pauseAt = null
+        pause()
+      }
+    }
+
+    window.addEventListener('message', (event) => {
+      let eventData = JSON.parse(event.data)
+      if (eventData.event === 'infoDelivery') watch(eventData.info)
+      if (eventData.channel === 'widget') return
+
+      let action = eventData.action?.toLowerCase()
+      let args = eventData.args
+      
+      if ('play' === action) {
+        let start = args.length > 0 ? parseInt(args[0]) : null
+        let end = args.length > 1 ? parseInt(args[1]) : null
+        play(start, end)
+      } else if ('pause' === action) pause()
+
+    });
+
+
+  const monitor = async () => {
+    getCurrentTime().then(time => EventBus.emit('video-at-time', { time: Math.round(time) }))
+
+    setInterval(async () => {
+      isMuted = await getIsMuted()
+      isPlaying = await getIsPlaying()
+
+      if (isPlaying) getCurrentTime().then(time => EventBus.emit('video-at-time', { time: Math.round(time) }))
+
+    }, 1000)
+  }
+
+  const getIsPlaying = async () => await mediaPlayer.getPlayerState() === 1
+
+  const getIsMuted = async () => await mediaPlayer.isMuted()
+
+  const setMuted = (mute) => {
+    if (mute) mediaPlayer.mute()
+    else mediaPlayer.unMute()
+  }
+
+  const getCurrentTime = async () => mediaPlayer.getCurrentTime()
+
+
+  const hmsToSeconds = (str) => {
+    var p = str.split(':').slice(0,3).map(pe => parseInt(pe, 10))
+    let secs = 0, m = 1
+    while (p.length > 0) {
+      let val = p.pop() || 0 
+      secs += m * val
+      m *= 60
+    }
+    return secs
+  }
+
+  let timeoutId = null
+  let forceMuteOnPlay = false
+
+  const seekTo = (start, end) => {
+    end = end || ''
+    let startSecs = hmsToSeconds(start)
+    let endSecs = end ? hmsToSeconds(end) + 1 : -1
+
+    // clear delayed pause
+    if (timeoutId) {
+      clearTimeout(timeoutId)
+      timeoutId = null
+    }
+
+    let wasMuted = isMuted
+
+    mediaPlayer.playVideo()
+    mediaPlayer.seekTo(startSecs).then((_) => {
+      if (endSecs >= startSecs) {
+        timeoutId = setTimeout(() => {
+          mediaPlayer.pauseVideo().then((_) => {
+            timeoutId = null
+            if (!wasMuted && forceMuteOnPlay) setMuted(false)
+          })
+        }, endSecs === startSecs ? 200 : (endSecs-startSecs)*1000)
+      }
+    })
+
+  }
+
+  // initYoutubePlayer()
+
+  </script>
+</body>
+</html>

@@ -98,7 +98,10 @@
     */
         
     window.addEventListener('message', (event) => {
-      if (event.data.action === 'imageurl') {
+      let eventData = JSON.parse(event.data)
+      let action = eventData.action?.toLowerCase()
+      let args = eventData.args
+      if (action === 'imageurl') {
         sendMessage(event.data.url)
       }
     })

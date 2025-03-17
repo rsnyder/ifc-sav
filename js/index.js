@@ -52,10 +52,10 @@ const components = {
     booleans: 'marker nocaption',
     positional: 'location caption'
   },
-  video: {
+  youtube: {
     booleans: 'nocaption',
     positional: 'src caption',
-    disabled: true
+    aliases: 'video'
   }
 }
 const tagMap = {}
@@ -129,6 +129,7 @@ const makeEntityPopups = (rootEl) => {
 // setup action links to iframes on DOM mutations (e.g., zoomto, flyto, play)
 const setupActionLinks = (targetId) => {
   document.querySelectorAll('a').forEach(a => {
+    console.log(a)
     let href = a.href || a.getAttribute('data-href')
     let path = href?.split('/').slice(3).filter(p => p !== '#' && p !== '')
     const targetIdx = path?.findIndex(p => p == targetId)
@@ -142,7 +143,8 @@ const setupActionLinks = (targetId) => {
         a.style.cursor = 'pointer'
         a.style.color = 'blue'
         a.addEventListener('click', () => {
-          document.getElementById(targetId)?.contentWindow.postMessage({ action, args }, '*')
+          let msg = { event: 'action', action, args }
+          document.getElementById(targetId)?.contentWindow.postMessage(JSON.stringify(msg), '*')
         })
       }
     }
@@ -287,7 +289,7 @@ const convertTags = (rootEl) => {
     }
     let ghBasePath = ghBase()
     if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
-    // console.log(parsed)
+    console.log(parsed)
 
     let iframe = document.createElement('iframe')
     iframe.setAttribute('allowfullscreen', '')
@@ -427,9 +429,9 @@ const makeColumns = (rootEl) => {
 }
 
 let main = document.querySelector(window.contentSelector || 'main.ghp')
+let nutationObserver
 
 if (main) {
-
   new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
       Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
@@ -437,7 +439,6 @@ if (main) {
       })
     })
   }).observe(document.documentElement || document.body, { childList: true, subtree: true, characterData: true })
-
   let restructured = restructure(main)
   main.replaceWith(restructured)
   convertTags(restructured)
@@ -448,10 +449,13 @@ if (main) {
   makeEntityPopups(restructured)
 
 } else {
-
-  new MutationObserver((mutations) => {
+  let processing = false
+  nutationObserver = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
+      // console.log(mutation.target)
+      // if (processing) return
       if (mutation.target.classList.contains('markdown-section') || mutation.target.classList.contains('page-content')) {
+        processing = true
         let restructured = restructure(mutation.target)
         // restructured.style.height = '80dvh'
         restructured.id = mutation.target.id
@@ -465,11 +469,15 @@ if (main) {
         makeCards(restructured)
         makeColumns(restructured)
         makeEntityPopups(restructured)
-
-      } else if (mutation.target.tagName === 'BODY') {
+        nutationObserver?.disconnect()
+      } else if ( ['ARTICLE', 'BODY'].includes(mutation.target.tagName) ) {
+        console.log(mutation.target.tagName)
+        processing = true
         convertTags(mutation.target)
+        nutationObserver?.disconnect()
       }
-      Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
+      mutation.target.querySelectorAll('iframe').forEach(iframe => {
+        console.log(iframe)
         if (iframe.id) setupActionLinks(iframe.id)
       })
     })

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube iFrame API Example</title>
+</head>
+<body>
+
+    <!-- YouTube video iframe -->
+    <iframe id="youtubePlayer"
+        width="560"
+        height="315"
+        src="https://www.youtube.com/embed/dQw4w9WgXcQ?enablejsapi=1"
+        frameborder="0"
+        allow="autoplay; encrypted-media"
+        allowfullscreen>
+    </iframe>
+
+    <button onclick="playAtTime(30)">Play from 30s</button>
+
+    <script>
+        function playAtTime(seconds) {
+            var iframe = document.getElementById("youtubePlayer");
+            // Seek to the desired time
+            iframe.contentWindow.postMessage(JSON.stringify({
+                event: "command",
+                func: "seekTo",
+                args: [seconds, true]
+            }), "*");
+            // Start playing
+            iframe.contentWindow.postMessage(JSON.stringify({
+                event: "command",
+                func: "playVideo",
+                args: []
+            }), "*");
+        }
+    </script>
+
+</body>
+</html>
