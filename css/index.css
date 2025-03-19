@@ -16,7 +16,7 @@ body {
   min-width: unset;
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 2;
+  /* aspect-ratio: 3 / 2; */
   border: none;
 }
 
@@ -208,4 +208,12 @@ section:has(> iframe.right), section:has(> iframe.left) {
   .iframe-container iframe {
     flex: 1 1 100%; /* Each item takes full width on smaller screens */
   }
+}
+
+sl-card::part(body), sl-card::part(footer) {
+  padding: 0;;
+}
+
+sl-card .content .description p:last-of-type {
+  margin-bottom: 0;
 }

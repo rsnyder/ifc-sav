@@ -15,6 +15,9 @@
     .content { display: flex; justify-content: center; align-items: center; overflow: hidden; width: 100%; aspect-ratio: 16/9; }
     figcaption { padding: 6px; font-size: 0.9rem; background-color: #f9f9f9; display: flex; align-items: center; gap: 0.5em; height: 100%; }
 
+    .info .title { font-weight:bold; margin-bottom: 0.5em; }
+    .info .thumbnail { width: 40%; max-width:200px; float: left; margin-right: 0.5em; }
+
     svg { width: 1.3em; height: 1.3em; }
     
     .drawer-toggle { cursor: pointer; }
@@ -48,7 +51,11 @@
           <sl-tab slot="nav" active panel="info">Video info</sl-tab>
           <sl-tab slot="nav" panel="embed">Embed</sl-tab>
           <sl-tab-panel active name="info">
-            <h3>Info</h3>
+            <div class="info">
+              <img class="thumbnail"></img>
+              <div class="title"></div>
+              <div class="author"></div>
+            </div>
           </sl-tab-panel>
           <sl-tab-panel name="embed">
             <div class="embed wrap">
@@ -129,8 +136,23 @@
       return data
     }
 
+    const updateInfoPanel = (metadata) => {
+      if (metadata.thumbnail_url) document.querySelector('.info .thumbnail').src = metadata.thumbnail_url
+      if (metadata.title) document.querySelector('.info .title').innerHTML = metadata.title
+      if (metadata.author_name && metadata.author_url) document.querySelector('.info .author').innerHTML = `<a href="${metadata.author_url}" target="_blank">${metadata.author_name}</a>`
+      drawer.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', e => {
+          e.stopPropagation()
+          e.preventDefault()
+          window.parent.postMessage({ type: 'openLink', url: a.href }, '*');
+        })
+      })
+    }
+
     youtubeMetadata(props.vid).then(metadata => {
+      // console.log(metadata)
       captionLabel.innerHTML = metadata.title
+      updateInfoPanel(metadata)
     })
     youtubePlayer.addEventListener('load', e => {
       youtubePlayer.contentWindow.postMessage('{"event": "listening"}', '*')
@@ -215,7 +237,6 @@
   }
 
   const getCurrentTime = async () => mediaPlayer.getCurrentTime()
-
 
   const hmsToSeconds = (str) => {
     var p = str.split(':').slice(0,3).map(pe => parseInt(pe, 10))

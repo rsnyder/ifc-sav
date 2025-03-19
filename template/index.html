@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IFC Template</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { height:100dvh; margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; background-color: white; }    
+    main { height: 100%; display: flex; flex-direction: column; width: 100%; border: 1px solid red; }
+  </style>
+</head>
+<body>
+  
+  <main></main>
+
+<script type="module">
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js"
+
+    const main = document.querySelector('main')
+
+    const props = {
+      ...{              // default properties
+        // src: null,
+      },
+      ...Object.fromEntries( // Convert URLSearchParams to object
+        Array.from(new URLSearchParams(location.search).entries())
+        .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
+      )
+    }
+
+    let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
+    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
+    const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
+
+    const setWindowAspect = () => {
+      let aspect = main.clientWidth/main.clientHeight
+      console.log(`${main.clientWidth}x${main.clientHeight} ${aspect}`)
+      window.parent.postMessage({ type: 'setAspect', aspect }, '*')
+    }
+
+    // Processing to perform when the window is resized
+    new ResizeObserver(() => { 
+      // console.log(`${main.clientWidth}x${main.clientHeight}`)
+      setWindowAspect()
+    }).observe(main)
+
+    // Listen for messages from parent
+    window.addEventListener('message', (event) => {
+      let eventData = JSON.parse(event.data)
+      let action = eventData.action?.toLowerCase()
+      let args = eventData.args
+      console.log(action, args)
+    })
+
+    // Convert links to be opened by parent rather than in Iframe
+    const convertLinks = (rootEl) => {
+      (rootEl || main).querySelectorAll('a').forEach(a => {
+        if (a.hasAttribute('data-href-forward')) return
+        a.setAttribute('data-href-forward', '') // guards against multiple processing
+        a.addEventListener('click', e => {
+          e.stopPropagation()
+          e.preventDefault()
+          window.parent.postMessage({ type: 'openLink', url: a.href }, '*');
+        })
+      })
+    }
+
+    // Perform init processing 
+    const init = () => {
+    }
+
+    docReady( async () => {
+      init()
+      convertLinks()
+   })
+
+  </script>
+</body>
+</html>

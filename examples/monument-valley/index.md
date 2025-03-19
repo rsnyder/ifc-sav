@@ -1,6 +1,8 @@
 [![](https://ifc.juncture-digital.org/badge.png)](https://ifc.juncture-digital.org)
 
-`header "Monument Valley" wc:Monument_Valley_banner.jpg height=100 alpha=0`
+`header "Monument Valley" wc:Monument_Valley_banner.jpg`
+- [Home](/)
+- [About](/about)
 
 # Monument Valley
 

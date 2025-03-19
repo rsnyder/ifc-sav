@@ -25,8 +25,7 @@ const components = {
   },
   header: {
     booleans: '',
-    positional: '',
-    disabled: true
+    positional: 'title img'
   },
   'ia-book': {
     booleans: 'cover nocaption showannos static',
@@ -51,6 +50,10 @@ const components = {
   map: {
     booleans: 'marker nocaption',
     positional: 'location caption'
+  },
+  template: {
+    booleans: '',
+    positional: ''
   },
   youtube: {
     booleans: 'autoplay muted nocaption',
@@ -109,7 +112,7 @@ const makeEntityPopups = (rootEl) => {
         content.appendChild(description)
       }
       if (entity.summaryText) {
-        let summaryText = document.createElement('p')
+        let summaryText = document.createElement('div')
         summaryText.className = 'description'
         summaryText.innerHTML = entity.summaryText
         content.appendChild(summaryText)
@@ -117,7 +120,8 @@ const makeEntityPopups = (rootEl) => {
       card.appendChild(content)
       let footer = document.createElement('div')
       footer.setAttribute('slot', 'footer')
-      footer.innerHTML = `<a href="https://www.wikidata.org/wiki/${qid}" target="_blank">View on Wikidata</a>`
+      if (entity.wikipedia)
+        footer.innerHTML = `<a href="${entity.wikipedia}" target="_blank">View on Wikipedia</a>`
       card.appendChild(footer)
       dd.appendChild(card)
       
@@ -230,7 +234,7 @@ const parseCodeEl = (el) => {
   // console.log(parsed)
 
   if (parent?.nextElementSibling?.tagName === 'UL' && parent?.nextElementSibling?.getAttribute('data') === '')
-    parsed.kwargs.data = encodeURIComponent(parent.nextElementSibling.outerHTML.trim().replace(/\n/g, ''))
+    parsed.kwargs.data = encodeURIComponent(parent.nextElementSibling.outerHTML.trim().replace(/\n/g, '').replace(/ data=\"\" style=\"display:none;\"/, ''))
 
   return parsed
 }
