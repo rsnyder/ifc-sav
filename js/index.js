@@ -142,9 +142,10 @@ const setupActionLinks = (targetId) => {
       let args = path.slice(2)
       if (a.href) {
         a.setAttribute('data-href', href)
+        a.classList.add('trigger')
         a.removeAttribute('href')
         a.style.cursor = 'pointer'
-        a.style.color = 'blue'
+        // a.style.color = 'blue'
         a.addEventListener('click', () => {
           let msg = { event: 'action', action, args }
           document.getElementById(targetId)?.contentWindow.postMessage(JSON.stringify(msg), '*')
