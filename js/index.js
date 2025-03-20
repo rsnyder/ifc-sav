@@ -293,7 +293,7 @@ const convertTags = (rootEl) => {
     }
     let ghBasePath = ghBase()
     if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
-    // (parsed)
+    console.log(parsed)
 
     let iframe = document.createElement('iframe')
     iframe.setAttribute('allowfullscreen', '')
