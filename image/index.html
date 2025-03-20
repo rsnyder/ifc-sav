@@ -398,8 +398,10 @@
           if (props.src.indexOf('http') === 0 ) img.src = props.src
           else if (props.src.indexOf('gh:') === 0 ) img.src = ghImageUrl(props.src)
           else if (props.ghbase) {
-            let [owner, repo, branch] = props.ghbase.split('/')
-            img.src = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
+            // let [owner, repo, branch, ...path] = props.ghbase.split('/')
+            // path = '/'.join(path)
+            // img.src = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
+            img.src = `https://raw.githubusercontent.com/${ghdir}${props.src[0] === '/' ? '' : '/'}${props.src}`
           } else img.src = props.src
           source.innerHTML = `<b>Source: </b> <a href="${img.src}" target="_blank">${img.src}</a>`
           setImageInfo()
