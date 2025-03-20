@@ -1,5 +1,6 @@
 - [Components](/docs/components/)
   - Core Components
+    - [Header](/docs/components/header)
     - [Image](/docs/components/image)
     - [Map](/docs/components/map)
   - Video Players

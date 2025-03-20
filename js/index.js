@@ -24,7 +24,7 @@ const components = {
     positional: 'id caption'
   },
   header: {
-    booleans: '',
+    booleans: 'bottom center left right top',
     positional: 'title img'
   },
   'ia-book': {
@@ -192,7 +192,7 @@ const parseCodeEl = (el) => {
         else parsed.kwargs[key] = value
       }
     }
-    else if ((token[0] === '.' && token[1] !== '.') || classes.has(token)) {
+    else if ((token[0] === '.' && token[1] !== '.') || (classes.has(token) && !tagObj?.booleans.has(token))) {
       let className = token.replace(/^\./,'')
       if (parsed.class) parsed.class += ` ${className}`
       else parsed.class = className
@@ -439,7 +439,7 @@ const makeColumns = (rootEl) => {
 }
 
 let main = document.querySelector(window.contentSelector || 'main.ghp')
-let nutationObserver
+let mutationObserver
 
 if (main) {
   new MutationObserver((mutations) => {
@@ -460,7 +460,7 @@ if (main) {
 
 } else {
   let processing = false
-  nutationObserver = new MutationObserver((mutations) => {
+  mutationObserver = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
       // console.log(mutation.target)
       // if (processing) return
@@ -479,12 +479,12 @@ if (main) {
         makeCards(restructured)
         makeColumns(restructured)
         makeEntityPopups(restructured)
-        nutationObserver?.disconnect()
+        mutationObserver?.disconnect()
       } else if ( ['ARTICLE', 'BODY'].includes(mutation.target.tagName) ) {
         // console.log(mutation.target.tagName)
         processing = true
         convertTags(mutation.target)
-        nutationObserver?.disconnect()
+        mutationObserver?.disconnect()
       }
       mutation.target.querySelectorAll('iframe').forEach(iframe => {
         // console.log(iframe)
@@ -536,7 +536,7 @@ const applyStyle = (el, styleObj) => {
 
 // Restructure the content to have hierarchical sections
 function restructure(rootEl) {
-  let html = rootEl.innerHTML.replace(/<p><code(.+)<\/code><\/p>\s+<ul>/g, '<p><code$1</code></p><ul data style="display:none;">')
+  let html = rootEl.innerHTML.replace(/<p><code(.+)<\/code><\/p>\s*<ul>/g, '<p><code$1</code></p><ul data style="display:none;">')
   rootEl.innerHTML = html
 
   // Converts empty headings (changed to paragraphs by markdown converter) to headings with the correct level
@@ -592,13 +592,16 @@ function restructure(rootEl) {
     let target
     if (priorEl?.tagName?.[0] === 'H') target = priorEl
     else if (['A', 'STRONG', 'EM', 'MARK'].includes(priorEl?.tagName)) target = priorEl
-    else if (parentEl?.tagName === 'LI') target = parentEl.parentElement
-    else target = parentEl
-    if (parsed.class) target.className = parsed.class
-    if (parsed.id) target.id = parsed.id
-    if (parsed.style) applyStyle(target, parsed.style)
-    if (parsed.kwargs) for (const [k,v] of Object.entries(parsed.kwargs)) target.setAttribute(k, v === 'true' ? '' : v)
-    codeEl.remove()
+    else if (parentEl?.tagName === 'LI' && Array.from(parentEl.childNodes).pop() === codeEl) target = parentEl.parentElement
+    else if (Array.from(codeEl.parentElement.childNodes).pop() === codeEl) target = parentEl
+    // else target = parentEl
+    if (target) {
+      if (parsed.class) target.className = parsed.class
+      if (parsed.id) target.id = parsed.id
+      if (parsed.style) applyStyle(target, parsed.style)
+      if (parsed.kwargs) for (const [k,v] of Object.entries(parsed.kwargs)) target.setAttribute(k, v === 'true' ? '' : v)
+      codeEl.remove()
+    }
   })
 
   let main = document.createElement('main')
@@ -609,7 +612,7 @@ function restructure(rootEl) {
   main.setAttribute('data-theme', 'light')
 
   let styleSheet = rootEl.querySelector('style')
-  if (styleSheet) main.appendChild(styleSheet.cloneNode(true))
+  // if (styleSheet) main.appendChild(styleSheet.cloneNode(true))
 
   // let article = document.createElement('article')
   // main.appendChild(article)

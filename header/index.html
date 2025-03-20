@@ -9,11 +9,11 @@
     *, *::before, *::after { box-sizing: border-box; }
     body { height:100dvh; margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; background-color: white; }    
     main { height: 100%; display: flex; flex-direction: column; width: 100%; }
-    .background-image { background-repeat: no-repeat; background-size: cover; background-position: center; }
-    .title-bar { background-color: rgba(0, 0, 0, 0.3); margin-top: auto; padding: 0.2em 0.5em; font-size: 2em; color: white; font-weight: 500; }
+    .background-image { background-repeat: no-repeat; background-size: auto; background-position: center; }
+    .title-bar { background-color: black; margin-top: auto; padding: 0.2em 0.5em; font-size: 2em; color: white; font-weight: 500; }
     nav { display: flex; }
-    nav ul { list-style: none; margin-left: auto; margin-top: 0.5em; }
-    nav ul li { display: inline-block; margin-right: 1em; }
+    nav ul { list-style: none; margin: 0 0 0 auto; padding: 0.5em 0 0.5em 1em; }
+    nav ul li { display: inline-block; padding-right: 1em; }
     nav ul li a { color: white; text-decoration: none; }
     nav ul li a:hover { text-decoration: underline; }
 
@@ -41,7 +41,7 @@
         base: null,
         color: null,      // text color
         data: null,
-        height: null,
+        height: 150,
         img: null,
         title: null,
 
@@ -121,7 +121,7 @@
 
     // Perform init processing 
     const init = () => {
-      // console.log(props)
+      console.log(props)
       if (props.height) {
         main.style.height = `${props.height}px`
         setWindowAspect()
@@ -129,9 +129,7 @@
       if (props.title) {
         titleBar.style.display = 'block'
         titleBar.innerHTML = md2Html(props.title)
-      }
-      if (props.background || props.alpha) {
-        main.style.backgroundColor = toRGBA(props.background || 'black', props.alpha !== null ? props.alpha : (props.img ? 0.5 : 1.0))
+        titleBar.style.backgroundColor = toRGBA(props.background || 'black', props.alpha !== null ? props.alpha : (props.img ? 0.3 : 1.0))
       }
       if (props.color) {
         titleBar.style.color = props.color;
@@ -140,10 +138,16 @@
         if (props.img.indexOf('wc:') === 0) props.img = wcImageUrl(props.img.slice(3))
         main.classList.add('background-image')
         main.style.backgroundImage = `url("${props.img}")`
-        main.style.backgroundPosition = props.position || (props.top && 'top') || (props.bottom && 'bottom') || (props.left && 'left') || (props.right && 'right') || (props.center && 'center') || 'center'
+        if (!props.position) {
+          let positionX = (props.left && 'left') || (props.right && 'right') || 'center'
+          let positionY = (props.top && 'top') || (props.bottom && 'bottom') || 'center'
+          props.position = `${positionX} ${positionY}`
+        }
+        main.style.backgroundPosition = props.position
       }
       if (props.data) {
         nav.innerHTML = props.data
+        nav.firstChild.style.backgroundColor = toRGBA(props.background || 'black', props.alpha !== null ? props.alpha : (props.img ? 0.3 : 1.0))
         convertLinks()
       }
     }
