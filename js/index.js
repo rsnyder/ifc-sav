@@ -293,7 +293,7 @@ const convertTags = (rootEl) => {
     }
     let ghBasePath = ghBase()
     if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
-    console.log(parsed)
+    // console.log(parsed)
 
     let iframe = document.createElement('iframe')
     iframe.setAttribute('allowfullscreen', '')
@@ -308,7 +308,6 @@ const convertTags = (rootEl) => {
         .forEach(([key, value]) => iframe.setAttribute(key, value))
     } else {
       let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
-      console.log(componentArgs)
       iframe.src = `${ifcPrefix}/${parsed.tag}?${componentArgs}`
     }
     let isOnlyChild = code.parentElement.children.length === 1 && code.parentElement.children[0] === code
