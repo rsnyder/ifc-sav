@@ -221,7 +221,6 @@
         } else if (action === 'gotopageid') {
           gotopageid(event.data.args[0])
        } else if (action === 'getimageurl') {
-        console.log('getimageurl')  
           event.source.postMessage({ action: 'imageurl', url: img.src }, '*')
         }
     });
@@ -321,12 +320,18 @@
       drawer.open = false
     }
     const toggleAnnotations = () => { 
-      if (annoLayer.style.visibility === 'hidden') showAnnotations(); else hideAnnotations() 
+      if (annoLayer) {
+        if (annoLayer.style.visibility === 'hidden') showAnnotations(); else hideAnnotations() 
+        annosBadge.style.visibility = annotations.length ? annoLayer.style.visibility === 'hidden' ? 'visible' : 'hidden' : 'hidden'
+      } else {
+        initViewer().then(viewer => {
+          if (annoLayer.style.visibility === 'hidden') showAnnotations(); else hideAnnotations() 
+          annosBadge.style.visibility = annotations.length ? annoLayer.style.visibility === 'hidden' ? 'visible' : 'hidden' : 'hidden'
+        })
+      }
     }
-    annosIcon.onclick = () => {
-      toggleAnnotations()
-      annosBadge.style.visibility = annotations.length ? annoLayer.style.visibility === 'hidden' ? 'visible' : 'hidden' : 'hidden'
-    }
+    annosIcon.onclick = () => toggleAnnotations()
+
 
     document.querySelector('#showAnnos')?.addEventListener('click', () => { enableAnnotations() })
     document.querySelector('#copyAnnos')?.addEventListener('click', () => { navigator.clipboard.writeText(JSON.stringify(annotations, null, 2)) })
@@ -352,7 +357,7 @@
     }
 
     const initViewer = async () => {
-      console.log('initViewer')
+      // console.log('initViewer')
       if (viewer) return viewer
       if (iiifManifest) {
         img.style.display = 'none'
@@ -390,7 +395,6 @@
 
 
     const loadImage = (url) => {
-      console.log('loadImage')
       img.onload = (e) => {
         imageAspect = img.naturalWidth/img.naturalHeight
         setWindowAspect()
@@ -400,7 +404,7 @@
     }
 
     const loadManifest = (manifestUrl) => {
-      console.log(`loadManifest: ${manifestUrl}`)
+      // console.log(`loadManifest: ${manifestUrl}`)
       return fetch(manifestUrl).then(resp => resp.json())
       .then( async manifest => {
         const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
@@ -577,7 +581,7 @@
 
     const updateAnnos = () => {
       let annosDiv = document.querySelector('#annos')
-      annosDiv.innerHTML = `<div>URL: ${getAnnossUrl()}</div>`
+      annosDiv.innerHTML = `<div>URL: ${getAnnosUrl()}</div>`
       const annos = Array.from(annotorious.getAnnotations())
       annos.forEach(anno => {
         let id = anno.id.split('-')[0].slice(1)
@@ -640,11 +644,10 @@
       }
     }
 
-    const getAnnossUrl = () => {
+    const getAnnosUrl = () => {
       let annosUrl
       const itemInfo = findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq)?.body
-      const annosFileName = `${decodeURIComponent(itemInfo.id.split('/').pop().split('.')[0])}.json`
-      console.log(`getAnnosFile: ${annosFileName} ${props.base} ${props.ghbase}`)
+      const annosFileName = `${decodeURIComponent((itemInfo?.id || img.src).split('/').pop().split('.')[0]).replace(/^\d+px-/,'')}.json`
       if (props.annos) {
         if (props.annos.indexOf('gh:') === 0) {
           let [acct, repo, branch, ...path] = props.annos.slice(3).split('/')
@@ -656,7 +659,6 @@
         annosUrl = `${props.base}${annosFileName}`
       } else if (props.ghbase) {
         annosUrl = `https://raw.githubusercontent.com/${props.ghbase}/${annosFileName}`
-        console.log(annosUrl)
       } else if (props.src) {
         if (props.src.indexOf('gh:') === 0) {
           let [acct, repo, branch, ...path] = props.src.slice(3).split('/')
@@ -667,6 +669,13 @@
       }
       return annosUrl
     }
+
+    let annosUrl = getAnnosUrl()
+    if (annosUrl) fetch(annosUrl).then(resp => resp.ok && resp.json())
+      .then(annos => {
+        annotations = annos
+        setCaption()
+      })
 
     const initOsd = async (tileSources) => {
       // create the OpenSeadragon viewer
@@ -736,7 +745,7 @@
       annoLayer.style.visibility = 'hidden'
       if (props.showannos) showAnnotations()
 
-      let annosUrl = getAnnossUrl()
+      let annosUrl = getAnnosUrl()
       if (annosUrl) {
         annotorious.loadAnnotations(annosUrl).then(loaded => { 
           setTimeout(() => annotationsChanged(), 500) 
