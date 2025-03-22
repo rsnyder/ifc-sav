@@ -55,7 +55,7 @@
     
     <figure>
       <div class="content">
-        <img id="static">
+        <img>
         <div id="osd">
           <div class="page-info"><div class="pageid"></div><img class="thumbnail" draggable="true"></div>
           <div class="coords">region</div>
@@ -159,6 +159,8 @@
     const source = drawer.querySelector('#source')
     const embedCode = drawer.querySelector('#embed-code')
 
+    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
+
     let viewer
     let annoLayer
     let iiifManifest
@@ -170,22 +172,18 @@
         caption: null,  // caption text
         cover: false,
         format: null,
-        height: null,
+        ghbase: null,
         language: 'en',
         manifest: null,
         nocaption: false,
         options: null,  // IIIF region, size, rotation, quality, format
-        page: null,     // page number to display (same as seq)
-        pageid: null,   // page identifier to display
         quality: null,
         region: null,   // initial region to zoom to
         rotation: 0,
         seq: 1,         // sequence number of image in multi-image manifest, default is 1 for first image
         size: null,     // size of image to display
         showannos: false,
-        src: null,
-        static: false,
-        width: null
+        src: null
       },
       ...Object.fromEntries(
         (location.href.split('?')[1] || '')
@@ -194,9 +192,9 @@
         .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
       )
     };
-    ['height', 'rotation', 'seq', 'width'].forEach(prop => props[prop] = parseInt(props[prop]) || props[prop]) // convert to number if possible
-    if (props.options || props.size || props.quality || props.format) props.static = true
-    // console.log(props)
+    ['rotation', 'seq'].forEach(prop => props[prop] = parseInt(props[prop]) || props[prop]) // convert to number if possible
+    // if (props.options || props.size || props.quality || props.format) props.static = true
+    console.log(props)
 
     let imageAspect;
 
@@ -208,6 +206,7 @@
 
     const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
     docReady(function() {
+      
       new ResizeObserver(() => { setWindowAspect() }).observe(document.body)
 
       window.addEventListener('message', (event) => {
@@ -223,7 +222,7 @@
           gotopageid(event.data.args[0])
        } else if (action === 'getimageurl') {
         console.log('getimageurl')  
-          event.source.postMessage({ action: 'imageurl', url: staticImageUrl() }, '*')
+          event.source.postMessage({ action: 'imageurl', url: img.src }, '*')
         }
     });
       main.style.visibility = 'visible'
@@ -233,6 +232,7 @@
     const pageIdEl = pageInfo.querySelector('.pageid')
     pageIdEl.onclick = () => navigator.clipboard.writeText(pageIdEl.textContent)
     const thumbnailEl = pageInfo.querySelector('.thumbnail')
+    
     thumbnailEl.addEventListener('dragstart', (e) => {
       let imgURL = staticImageUrl()
       e.dataTransfer.setData('text/plain', imgURL)
@@ -290,20 +290,20 @@
     let annotations = []
 
     const staticImageUrl = (width) => {
-      width = width || props.width
       let itemInfo = iiifManifest && findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq).body
       if (!itemInfo) return ''
+      if (!imageAspect) imageAspect = itemInfo.width/itemInfo.height
       let url
       let [region, size, rotation, rest] = props.options?.split('/') || []
       let [quality, format] = rest?.split('.') || []
       region = props.region || region || 'full'
-      size = props.size || size || 'max'
-      if (width) {
-        size = props.height
-          ? `${width},${props.height}`
+      size = width
+        ? width === 'max'
+          ? 'max'
           : `${width},`
-      } else if (props.height) size = `,${props.height}`
-
+        : props.size
+          ? props.size
+          : `${main.clientWidth},`
       rotation = parseInt(props.rotation || rotation || 0)
       quality = props.quality || quality || 'default'
       format = props.format || format || 'jpg'
@@ -331,29 +331,56 @@
     document.querySelector('#showAnnos')?.addEventListener('click', () => { enableAnnotations() })
     document.querySelector('#copyAnnos')?.addEventListener('click', () => { navigator.clipboard.writeText(JSON.stringify(annotations, null, 2)) })
 
-    const initViewer = async () => {
-      if (viewer) return viewer
-      let img = document.querySelector('#static')
-      const canvases = findItems({type:'Canvas'}, iiifManifest)
-      const tiledSources = canvases.map(canvas => {
-        const page = findItem({type:'AnnotationPage'}, canvas)
-        const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
-        return itemInfo.service
-          ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
-          : { url: itemInfo.id, type: 'image', buildPyramid: true }
-      })
-      img.style.display = 'none'
-      osd.style.display = 'block'
-      osd.style.opacity = 1
-      //img.remove()
-      return initOsd(tiledSources)
+    const mwImage = (mwImg, width) => {
+      width = width | 0
+      // Converts Wikimedia commons image URL to a thumbnail link
+      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
+      mwImg = decodeURIComponent(mwImg).replace(/ /g,'_')
+      const _md5 = md5(mwImg)
+      const extension = mwImg.split('.').pop()
+      let url = `https://upload.wikimedia.org/wikipedia/commons${width ? '/thumb' : ''}`
+      url += `/${_md5.slice(0,1)}/${_md5.slice(0,2)}/${mwImg}`
+      if (width > 0) {
+        url += `/${width}px-${mwImg}`
+        if (extension === 'svg') {
+          url += '.png'
+        } else if (extension === 'tif' || extension === 'tiff') {
+          url += '.jpg'
+        }
+      }
+      return url
     }
 
-    const setCaption = () => {
+    const initViewer = async () => {
+      console.log('initViewer')
+      if (viewer) return viewer
+      if (iiifManifest) {
+        img.style.display = 'none'
+        osd.style.display = 'block'
+        osd.style.opacity = 1
+        return initOsd(getTileSources())
+      } else {
+        return loadManifest(props.manifest)
+          .then(manifest => {
+            img.style.display = 'none'
+            osd.style.display = 'block'
+            osd.style.opacity = 1
+            return initOsd(getTileSources())
+          })
+      }
+    }
+
+    const setCaption = (text) => {
       if (props.nocaption) {
         caption.style.display = 'none'
       } else {
-        captionText.innerHTML = props.caption || (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
+        captionText.innerHTML = text
+          ? md2Html(text)
+          : props.caption
+            ? md2Html(props.caption)
+            : iiifManifest
+              ? (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
+              : img.src.split('/').pop().replace(/^\d+px-/,'').replace(/\.\S+$/,'').replace(/[-_]+/g,' ')
         caption.style.display = 'flex'
       }
       annosBadge.innerHTML = annotations.length
@@ -361,23 +388,20 @@
       annosBadge.style.display = annotations.length ? 'inline' : 'none'
     }
 
-    if (props.src) {
-      if (props.src.indexOf('wc:') === 0 || props.src.indexOf('gh:') === 0) {
-        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
-      } else if (props.src.indexOf('ia:') === 0) {
-        props.manifest = `https://iiif.archive.org/iiif/3/${props.src.replace('ia:', '')}/manifest.json`
-      } else if (props.src.indexOf('wikimedia.org') > -1 || (props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1)) {
-        const mwFile = props.src.split('/').pop().replace(/File:/, '')
-        props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
-      } else if (props.src.indexOf('http') === 0) {
-        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
-      } else {
-        props.manifest = `https://iiif.mdpress.io${props.base}${props.src}/manifest.json`
+
+    const loadImage = (url) => {
+      console.log('loadImage')
+      img.onload = (e) => {
+        imageAspect = img.naturalWidth/img.naturalHeight
+        setWindowAspect()
       }
+      img.src = url
+      img.addEventListener('click', () => initViewer())
     }
-    
-    if (props.manifest) {
-      fetch(props.manifest).then(resp => resp.json())
+
+    const loadManifest = (manifestUrl) => {
+      console.log(`loadManifest: ${manifestUrl}`)
+      return fetch(manifestUrl).then(resp => resp.json())
       .then( async manifest => {
         const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
         const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
@@ -387,37 +411,47 @@
       })
       .then(manifest => {
         iiifManifest = manifest
-        if (props.static) {
-          // location.href = staticImageUrl()
-          let img = document.querySelector('#static')
-          img.onload = (e) => {
-            imageAspect = img.naturalWidth/img.naturalHeight
-            setWindowAspect()
-          }
-          img.src = staticImageUrl(400)
-          img.addEventListener('click', () => initViewer())
-        } else {
-          const canvases = findItems({type:'Canvas'}, iiifManifest)
-          const tiledSources = canvases.map(canvas => {
-            const page = findItem({type:'AnnotationPage'}, canvas)
-            const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
-            return itemInfo.service
-              ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
-              : { url: itemInfo.id, type: 'image', buildPyramid: true }
-          })
-          
-          /*
-          const itemInfo = findItem({type:'Annotation', motivation:'painting'}, manifest, props.seq)?.body
-          const tileSource = itemInfo.service
-            ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
-            : { url: itemInfo.id, type: 'image', buildPyramid: true }
-          */
-          initOsd(tiledSources)
-        }
         setCaption()
         updateManifestPanel()
+        if (!img.src) loadImage(staticImgUrl())
       })
+      return iiifManifest
     }
+
+    const getTileSources = () => {
+      const canvases = findItems({type:'Canvas'}, iiifManifest)
+      const tiledSources = canvases.map(canvas => {
+        const page = findItem({type:'AnnotationPage'}, canvas)
+        const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
+        return itemInfo.service
+          ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+          : { url: itemInfo.id, type: 'image', buildPyramid: true }
+      })
+      return tiledSources
+    }
+
+    if (props.src) {
+      
+      if (props.src.indexOf('http') === 0) {
+        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+        loadImage(props.src)
+      } else if (props.src.indexOf('wc:') === 0 || props.src.indexOf('wikimedia.org') > -1 || props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1) {
+        let mwFile = props.src.replace(/^wc:/,'').replace(/Special:FilePath\//, 'File:').split('File:').pop()
+        props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
+        loadImage(mwImage(mwFile, main.clientWidth))
+      } else if (props.src.indexOf('gh:') === 0) {
+        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+        loadImage(`https://raw.githubusercontent.com/${props.src.slice(3)}`)
+      } else { // TODO: verify this
+        props.manifest = `https://iiif.mdpress.io${props.base}${props.src}/manifest.json`
+        loadImage(`https://raw.githubusercontent.com/${props.ghbase}${props.src[0] === '/' ? '' : '/'}${props.src}`)
+      }
+    
+    } else if (props.manifest) {
+      initViewer()
+    }
+
+    setCaption()
 
     const parseManifest = () =>{
 
@@ -610,6 +644,7 @@
       let annosUrl
       const itemInfo = findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq)?.body
       const annosFileName = `${decodeURIComponent(itemInfo.id.split('/').pop().split('.')[0])}.json`
+      console.log(`getAnnosFile: ${annosFileName} ${props.base} ${props.ghbase}`)
       if (props.annos) {
         if (props.annos.indexOf('gh:') === 0) {
           let [acct, repo, branch, ...path] = props.annos.slice(3).split('/')
@@ -619,6 +654,9 @@
         }
       } else if (props.base) {
         annosUrl = `${props.base}${annosFileName}`
+      } else if (props.ghbase) {
+        annosUrl = `https://raw.githubusercontent.com/${props.ghbase}/${annosFileName}`
+        console.log(annosUrl)
       } else if (props.src) {
         if (props.src.indexOf('gh:') === 0) {
           let [acct, repo, branch, ...path] = props.src.slice(3).split('/')
@@ -639,7 +677,7 @@
         tileSources,
         crossOriginPolicy: 'Anonymous',
         sequenceMode: tileSources.length > 1,
-        initialPage: (props.page || props.seq) - 1,
+        initialPage: props.seq - 1,
         showReferenceStrip: tileSources.length > 1,
         zoomPerClick: 1.25,
         gestureSettingsMouse: {

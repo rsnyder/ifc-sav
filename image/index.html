@@ -406,6 +406,9 @@
           source.innerHTML = `<b>Source: </b> <a href="${img.src}" target="_blank">${img.src}</a>`
           setImageInfo()
         }
+        img.addEventListener('click', () => {
+          console.log('click')
+        })
       }
       embedCode.textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`
     }

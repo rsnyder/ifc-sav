@@ -262,13 +262,11 @@ const makeBreadcrumbs = () => {
 }
 
 const ghBase = () => {
-  console.log(window.ghbase)
   if (window.ghbase) return window.ghbase
   else if (window.jekyll?.site?.github?.owner_name) {
     let owner = window.jekyll.site.github.owner_name
     let repo = window.jekyll.site.github.repository_name
     let branch = window.jekyll.site.github.source.branch
-    console.log(owner, repo, branch)
     return `${owner}/${repo}/${branch}`
   }
 }
@@ -295,7 +293,7 @@ const convertTags = (rootEl) => {
     }
     let ghBasePath = ghBase()
     if (ghBasePath) parsed.kwargs.ghbase = ghBasePath
-    console.log(parsed)
+    // console.log(parsed)
 
     let iframe = document.createElement('iframe')
     iframe.setAttribute('allowfullscreen', '')

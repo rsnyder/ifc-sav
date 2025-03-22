@@ -1,4 +1,21 @@
+<style>
+  .markdown-section table { display: table; margin-top: 1em; }
+  .markdown-section td { padding: 1em; }
+  td:first-of-type { font-weight: 500; }
+  td:last-of-type, th:last-of-type { }
+  .markdown-section td, .markdown-section th { border: none; }
+  th { text-align: left; }
+  .markdown-section tr:nth-child(2n) { background-color: unset; }
+  .markdown-section tr { border-top: none; border-bottom: 1px solid #ddd; }
+</style>
+
 # Image Viewer
+
+The `image` tag creates an image viewer displaying the image found at the URL specified in the `src` tag.  Additional properties, such as label, may optionally be provided for display in the image metadata and caption bar.  
+
+## Zoomto
+
+The image viewer supports interactivity via a `zoomto` action that is triggered from a text link.  The zoomto action causes the image to zoom in on a region of interest.  A 
 
 ## Properties
 
