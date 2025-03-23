@@ -19,7 +19,7 @@
 
 # Map
 
-The `map` tag creates ...
+The `map` tag displays an interactive map centered on a specified location.
 
 ## Properties
 
@@ -37,7 +37,7 @@ Notes:
 
 ### Basic map
 
-Displays a title with default background.
+Displays a map with a caption and marker.
 
 ####
 `.tabs`
@@ -45,100 +45,18 @@ Displays a title with default background.
 ##### Markdown
 
 ```markup
-`header "Monument Valley"`
+`map 32.051,-81.104,8 "Savannah, GA" marker`
 ```
 
 ##### HTML
 
 ```html
 <iframe
-  src="https://ifc.juncture-digital.org/header?title=Monument+Valley"
+  src="https://ifc.juncture-digital.org/header?location=32.051,-81.104,8&title=Savannah,+GA"
   allowfullscreen
 ></iframe>
 ```
 
 ##### Rendered
 
-`header "Monument Valley"`
-
-
-### Header with background image
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`header "Monument Valley" wc:Monument_Valley_banner.jpg`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="https://ifc.juncture-digital.org/header?title=Monument+Valley&img=wc:Monument_Valley_banner.jpg"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`header "Monument Valley" wc:Monument_Valley_banner.jpg`
-
-
-### Header with background image, title and navigation
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`header "Monument Valley" wc:Monument_Valley_banner.jpg`
-- [Home](/)
-- [About](/about)
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="https://ifc.juncture-digital.org/header?title=Monument+Valley&img=wc:Monument_Valley_banner.jpg&data=<ul><li><a href=\"/\">Home</a></li><li><a href=\"/about\">About</a></li></ul>"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`header "Monument Valley" wc:Monument_Valley_banner.jpg`
-- [Home](/)
-- [About](/about)
-
-### Header with background image and navigation
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`header img=wc:Monument_Valley_banner.jpg`
-- [Home](/)
-- [About](/about)
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="https://ifc.juncture-digital.org/header?img=wc:Monument_Valley_banner.jpg&data=<ul><li><a href=\"/\">Home</a></li><li><a href=\"/about\">About</a></li></ul>"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`header img=wc:Monument_Valley_banner.jpg`
-- [Home](/)
-- [About](/about)
+`map 32.051,-81.104,8 "Savannah, GA" marker`
