@@ -3,89 +3,133 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IFC Template</title>
+  <title>Document</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@recogito/annotorious-openseadragon@2.7.14/dist/annotorious.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     @keyframes fadeInOpacity { 0% { opacity: 0; } 100% { opacity: 1; } }
     body { height:100dvh; margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; background-color: white; }    
-    main { height: 100%; display: flex; flex-direction: column; width: 100%; visibility: hidden; }
+    main { height: 100%; display: flex; flex-direction: column; width: 100%; visibility: hidden; } 
     figure { display: grid; grid-template-rows: 1fr auto; height: 100%; margin: 0; }
     .content { display: flex; justify-content: center; align-items: center; overflow: hidden; }
     .content img { width: 100%; height: 100%; object-fit: contain; }
     figcaption { padding: 10px; font-size: 0.9rem; background-color: #f9f9f9; display: flex; align-items: center; gap: 0.5em; }
-    .drawer-toggle { cursor: pointer; }
     svg { width: 1.3em; height: 1.3em; }
-    sl-drawer::part(body) { padding: 0; }
+
+    #osd { display:none; height: 100%; width:100%; position: relative; opacity: 0; animation: fadeInOpacity ease 1s; }
+    .a9s-annotationlayer { visibility: hidden; }
+    .r6o-widget.comment { line-height: 1.5; }
+    svg.a9s-annotationlayer .a9s-selection .a9s-inner, svg.a9s-annotationlayer .a9s-annotation .a9s-inner  { stroke-width: 3; stroke: rgba(255,255,0,1.0); }
+    .a9s-selection-mask { stroke: none; fill: rgba(0,0,0,0.4); pointer-events: none; }
+    .captionBar { display: flex; align-items: center; gap: 0.2em; padding: 0.3em 0.5em; min-height: 2em; background-color: inherit; } 
+    .annos { margin-left: auto; display: flex; position: relative; cursor: pointer; }
+    .manifestButton { width: 1.3em; height: 1.3em; cursor: pointer; }
+    #annosIcon, #annosEditIcon { display: none; }
+    .annos svg { width: 1.3em; height: 1.3em; fill: #777; margin-right: 10px; }
+    #annosIcon { cursor: pointer; }
+    .annos sl-badge { position: absolute; top: 0; left: 16px; }
+    .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    /* sl-drawer::part(base) { height: calc(100% - 32px); } */
+    sl-drawer::part(body) { padding: 0; margin: 3px; box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; }
     sl-tab::part(base) { padding: 0.5em 1em; }
     sl-tab-panel::part(base) { padding: 0.5em; }
-    sl-tab-panel::part(base) div, sl-tab-panel div { margin-bottom: 0.5em; }
-    sl-copy-button::part(button) { padding-top: 0; }
-    pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
-    .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; }
-    .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-    .embed { display: flex; margin-bottom: 1em; }
-    #label { font-size: 1.1em; font-weight: bold; margin-bottom: 0.5em; }
-    #summary { margin-bottom: 0.5em; display: none; }
-    #navDate, #requiredStatement, #rights, #source, #navPlace, #camera, #size { margin-bottom: 0.3em; display: none; }
-    #summary:not(:empty), #navDate:not(:empty), #requiredStatement:not(:empty), #rights:not(:empty), #source:not(:empty), #navPlace:not(:empty), #camera:not(:empty), #size:not(:empty) { display: block; }
-    a, #ifc-link, #source a { color: #0969da; }
-    #map { height: 500px; width: 100%; border: 1px solid #ccc; }
-
+    .drawerToggle { width: 1.3em; height: 1.3em; cursor: pointer; }
+    pre { white-space: pre-wrap; word-wrap: break-word; }
+    .wrap { overflow-wrap: break-word; word-wrap: break-word; -ms-word-break: break-all; word-break: break-all; word-break: break-word; }
+    .coords { font-size: .8em; opacity: 0; position: absolute; top: 0; right: 0; background-color: white; border: 1px solid #ccc; padding: 0.5em; z-index: 10; transition: all 0.5s ease-out; }
+    .coords:hover { opacity: 1; cursor: copy; }
+    .manifest > * { margin: 0.5em; display: none; }
+    .manifest > div:not(:empty) { display: block; }
+    .manifest .label { font-size: 1.2em; font-weight: bold; }
+    .manifest .rights, .manifest .required  { display: flex !important; align-items: center; gap: 1em;}
+    .page-info { position: absolute; top: 32px; left: 0; width: 60px; z-index: 1000; background-color: rgba(255, 255, 255, 0.5); padding: 5px; border-radius: 5px; display: flex; flex-direction: column; align-items: center; gap: 3px; opacity: 0; transition: all 0.5s ease-out; }
+    .page-info:hover { opacity: 1; }
+    .pageid { cursor: copy; }
+    .thumbnail { cursor: move; width: 100%; }
+    img { max-width: 100%; max-height: 100%; object-fit: contain; }
   </style>
 </head>
 <body>
-  
-  <main>
-
-    <figure style="height: 100%;">
+  <main style="aspect-ratio:1;">
+    
+    <figure>
       <div class="content">
-        <img draggable="true">
+        <img>
+        <div id="osd">
+          <div class="page-info"><div class="pageid"></div><img class="thumbnail" draggable="true"></div>
+          <div class="coords">region</div>
+        </div>
       </div>
       <figcaption>      
         <svg class="drawer-toggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
-        <div class="label clamp"></div>
+        <div class="title clamp"></div>
+        <div class="annos">
+          <!-- edit icon -->
+          <svg xmlns="http://www.w3.org/2000/svg" id="annosEditIcon" viewBox="0 0 512 512"><path d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"/></svg>
+          <!-- anno icon -->
+          <div id="annosIcon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M160 368c26.5 0 48 21.5 48 48v16l72.5-54.4c8.3-6.2 18.4-9.6 28.8-9.6H448c8.8 0 16-7.2 16-16V64c0-8.8-7.2-16-16-16H64c-8.8 0-16 7.2-16 16V352c0 8.8 7.2 16 16 16h96zm48 124l-.2 .2-5.1 3.8-17.1 12.8c-4.8 3.6-11.3 4.2-16.8 1.5s-8.8-8.2-8.8-14.3V474.7v-6.4V468v-4V416H112 64c-35.3 0-64-28.7-64-64V64C0 28.7 28.7 0 64 0H448c35.3 0 64 28.7 64 64V352c0 35.3-28.7 64-64 64H309.3L208 492z"/></svg>
+            <sl-badge variant="primary" pill>1</sl-badge>
+          </div>
+        </div>
+  
       </figcaption>
     </figure>
 
-    <sl-drawer contained class="drawer" no-header style="--size: calc(100% - 32px); display: flex; flex-direction: column; height: 100%;">
+    <sl-drawer contained class="drawer" no-header style="--size: calc(100% - 30px);">
       <sl-tab-group>
-        <sl-tab slot="nav" active panel="info">Image info</sl-tab>
-        <sl-tab slot="nav" panel="location" style="display: none;">Location</sl-tab>
-        <sl-tab slot="nav" panel="embed">Embed</sl-tab>
-        <sl-tab-panel active name="info">
-          <div id="label"></div>
-          <div id="summary"></div>
-          <div id="navDate"></div>
-          <div id="requiredStatement"></div>
-          <div id="rights"></div>
-          <div id="source"></div>
-          <div id="navPlace"></div>
-          <div id="camera"></div>
-          <div id="size"></div>
-        </sl-tab-panel>
-        <sl-tab-panel name="location" style="display:none;">
-          <iframe id="map" src="https://ifc.juncture-digital.org/map" width="100%" allowfullscreen></iframe>
-        </sl-tab-panel>
-        <sl-tab-panel name="embed">
-          <div class="embed wrap">
-            <pre><code id="embed-code"></code></pre>
-            <sl-copy-button from="embed-code"></sl-copy-button>
+        <sl-tab slot="nav" active panel="manifest">Image info</sl-tab>
+        <sl-tab slot="nav" panel="annotations">Annotations</sl-tab>
+        <sl-tab-panel active name="manifest">
+          <div class="manifest">
+            <div class="label"></div>
+            <div class="summary"></div>
+            <div class="required"></div>
+            <div class="rights"></div>
+            <div class="source"></div>
+            <div style="display:flex;align-items: center;gap:0.5em;">
+              <span>Page:</span>
+              <span id=pageId></span>
+              <sl-copy-button></sl-copy-button>
+            </div>
           </div>
-            For more information, visit <span id="ifc-link">https://ifc.juncture-digital.org</span><sl-copy-button from="ifc-link"></sl-copy-button>
-          <div>
+        </sl-tab-panel>
+        <sl-tab-panel name="annotations">
+          <sl-button id="copyAnnos">Copy annotations to clipboard</sl-button>
+          <sl-button id="showAnnos">Enable annotator</sl-button>
+          <div id="annos"></div>
         </sl-tab-panel>
       </sl-tab-group>
-    </sl-drawer>
+    </sl-drawer>  
+
+    <div class="captionBar" style="display: none;">
+      <svg class="drawerToggle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg>
+      <div class="label clamp"></div>
+      <div class="annos">
+        <!-- edit icon -->
+        <svg xmlns="http://www.w3.org/2000/svg" id="annosEditIcon" viewBox="0 0 512 512"><path d="M441 58.9L453.1 71c9.4 9.4 9.4 24.6 0 33.9L424 134.1 377.9 88 407 58.9c9.4-9.4 24.6-9.4 33.9 0zM209.8 256.2L344 121.9 390.1 168 255.8 302.2c-2.9 2.9-6.5 5-10.4 6.1l-58.5 16.7 16.7-58.5c1.1-3.9 3.2-7.5 6.1-10.4zM373.1 25L175.8 222.2c-8.7 8.7-15 19.4-18.3 31.1l-28.6 100c-2.4 8.4-.1 17.4 6.1 23.6s15.2 8.5 23.6 6.1l100-28.6c11.8-3.4 22.5-9.7 31.1-18.3L487 138.9c28.1-28.1 28.1-73.7 0-101.8L474.9 25C446.8-3.1 401.2-3.1 373.1 25zM88 64C39.4 64 0 103.4 0 152L0 424c0 48.6 39.4 88 88 88l272 0c48.6 0 88-39.4 88-88l0-112c0-13.3-10.7-24-24-24s-24 10.7-24 24l0 112c0 22.1-17.9 40-40 40L88 464c-22.1 0-40-17.9-40-40l0-272c0-22.1 17.9-40 40-40l112 0c13.3 0 24-10.7 24-24s-10.7-24-24-24L88 64z"/></svg>
+        <!-- anno icon -->
+        <div id="annosIcon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M160 368c26.5 0 48 21.5 48 48v16l72.5-54.4c8.3-6.2 18.4-9.6 28.8-9.6H448c8.8 0 16-7.2 16-16V64c0-8.8-7.2-16-16-16H64c-8.8 0-16 7.2-16 16V352c0 8.8 7.2 16 16 16h96zm48 124l-.2 .2-5.1 3.8-17.1 12.8c-4.8 3.6-11.3 4.2-16.8 1.5s-8.8-8.2-8.8-14.3V474.7v-6.4V468v-4V416H112 64c-35.3 0-64-28.7-64-64V64C0 28.7 28.7 0 64 0H448c35.3 0 64 28.7 64 64V352c0 35.3-28.7 64-64 64H309.3L208 492z"/></svg>
+          <sl-badge variant="primary" pill>1</sl-badge>
+        </div>
+      </div>
+    </div>
 
   </main>
 
-<script src="https://cdn.jsdelivr.net/npm/exif-js"></script>
-<script type="module">
-    import 'https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js';
-    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js"
+  <script src="https://cdn.jsdelivr.net/npm/openseadragon@5.0.0/build/openseadragon/openseadragon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@recogito/annotorious-openseadragon@2.7.14/dist/openseadragon-annotorious.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
 
-    // import any needed Shoelace components (https://shoelace.style/)
+  <script type="module">
+
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js";
+    import 'https://cdn.jsdelivr.net/npm/marked-footnote/dist/index.umd.min.js'
+
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/badge/badge.js';
+    import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/button/button.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/copy-button/copy-button.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/drawer/drawer.js';
     import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/components/tab/tab.js';
@@ -95,102 +139,206 @@
     const main = document.querySelector('main')
     const figure = main.querySelector('figure')
     const img = figure.querySelector('img')
+    const osd = figure.querySelector('#osd')
+
+    const coords = osd.querySelector('.coords')
+    if (coords) coords.onclick = () => navigator.clipboard.writeText(coords.innerHTML)
+
     const caption = figure.querySelector('figcaption')
     const drawerToggle = caption.querySelector('.drawer-toggle')
-    img.addEventListener('dragstart', (e) => {
-      let imgURL = props.src.indexOf('wc:') === 0
-        ? wcImageUrl(props.src.slice(3))
-        : props.src.indexOf('gh:') === 0
-          ? ghImageUrl(props.src)
-          : props.src
+
+    // const caption = document.querySelector('.captionBar')
+    const captionText = caption.querySelector('.title')
+    const annosEl = caption.querySelector('.annos')
+    const annosIcon = annosEl?.querySelector('#annosIcon')
+    const annosEditIcon = annosEl?.querySelector('#annosEditIcon')
+    const annosBadge = annosEl?.querySelector('sl-badge')
+
+    const drawer = document.querySelector('.drawer')
+    const title = drawer.querySelector('#title')
+    const source = drawer.querySelector('#source')
+    const embedCode = drawer.querySelector('#embed-code')
+
+    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
+
+    let viewer
+    let annoLayer
+    let iiifManifest
+    
+    const props = {
+      ...{ // default properties
+        annos: null,    // URL to image annotations
+        base: null,     // base URL for relative links
+        caption: null,  // caption text
+        cover: false,
+        format: null,
+        ghbase: null,
+        language: 'en',
+        manifest: null,
+        nocaption: false,
+        options: null,  // IIIF region, size, rotation, quality, format
+        quality: null,
+        region: null,   // initial region to zoom to
+        rotation: 0,
+        seq: 1,         // sequence number of image in multi-image manifest, default is 1 for first image
+        size: null,     // size of image to display
+        showannos: false,
+        src: null
+      },
+      ...Object.fromEntries(
+        (location.href.split('?')[1] || '')
+        .split('&')
+        .map(p => p.split('='))
+        .map(([key, value]) => [key, value ? decodeURIComponent(value.replace(/\+/g, ' ')) : true])
+      )
+    };
+    ['rotation', 'seq'].forEach(prop => props[prop] = parseInt(props[prop]) || props[prop]) // convert to number if possible
+    // if (props.options || props.size || props.quality || props.format) props.static = true
+    console.log(props)
+
+    let imageAspect;
+
+    const setWindowAspect = () => {
+      if (!imageAspect) return
+      let aspect = main.clientWidth/(main.clientWidth / imageAspect + caption.clientHeight)
+      window.parent.postMessage({ type: 'setAspect', aspect }, '*');
+    }
+
+    const docReady = (fn) => { if (document.readyState === 'complete' || document.readyState === 'interactive') setTimeout(fn, 1); else document.addEventListener('DOMContentLoaded', fn) }
+    docReady(function() {
+      
+      new ResizeObserver(() => { setWindowAspect() }).observe(document.body)
+
+      window.addEventListener('message', (event) => {
+        let eventData = JSON.parse(event.data)
+        let action = eventData.action?.toLowerCase()
+        let args = eventData.args
+        if (action === 'zoomto') {
+          let region = args[0]
+          zoomto(region)
+        } else if (action === 'gotopage') {
+          gotopage(parseInt(args[0]))
+        } else if (action === 'gotopageid') {
+          gotopageid(event.data.args[0])
+       } else if (action === 'getimageurl') {
+          event.source.postMessage({ action: 'imageurl', url: img.src }, '*')
+        }
+    });
+      main.style.visibility = 'visible'
+    })
+
+    const pageInfo = document.querySelector('.page-info')
+    const pageIdEl = pageInfo.querySelector('.pageid')
+    pageIdEl.onclick = () => navigator.clipboard.writeText(pageIdEl.textContent)
+    const thumbnailEl = pageInfo.querySelector('.thumbnail')
+    
+    thumbnailEl.addEventListener('dragstart', (e) => {
+      let imgURL = staticImageUrl()
       e.dataTransfer.setData('text/plain', imgURL)
       e.dataTransfer.setData('text/uri-list', imgURL)
     })
-
-    const drawer = document.querySelector('.drawer')
-    const tabGroup = drawer.querySelector('sl-tab-group')
-    const map = drawer.querySelector('#map')
-    tabGroup.addEventListener('sl-tab-show', e => {
-      // console.dir(e)
-      let figure = document.querySelector('figure')
-      drawer.querySelector('iframe').style.height = `${figure.clientHeight - 54}px`
-    })
-    const locationTab = drawer.querySelector('sl-tab[panel="location"]')
-    const locationTabPanel = drawer.querySelector('sl-tab-panel[name="location"]')
-
-    // Page Info fields
-    const label = drawer.querySelector('#label')
-    const summary = drawer.querySelector('#summary')
-    const navDate = drawer.querySelector('#navDate')
-    const requiredStatement = drawer.querySelector('#requiredStatement')
-    const rights = drawer.querySelector('#rights')
-    const source = drawer.querySelector('#source')
-    const navPlace = drawer.querySelector('#navPlace')
-    const camera = drawer.querySelector('#camera')
-    const size = drawer.querySelector('#size')
-    const embedCode = drawer.querySelector('#embed-code')
-
-    drawerToggle?.addEventListener('click', e => drawer.open = !drawer.open)
-
-    const props = {
-      ...{              // default properties
-        artist: null,
-        aspect: 'auto',  // aspect ratio of iframe
-        attribution: null,
-        date: null,
-        ghbase: null,
-        label: null,
-        manifest: null,
-        page: 1,
-        required: null,
-        rights: null,
-        src: null,
-        summary: null
-      },
-      ...Object.fromEntries( // URLSearchParams to object
-        Array.from(new URLSearchParams(location.search).entries())
-        .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
-      )
+    thumbnailEl.addEventListener('click', (e) => navigator.clipboard.writeText(currentImageUrl()))
+    const setPageInfo = (pageId) => {
+      pageIdEl.innerHTML = props.seq
+      let thumb = staticImageUrl(200)
+      thumbnailEl.src = thumb
     }
-    console.log(props)
 
-    let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
-    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
-    
-    const licenses = {
-      // Creative Commons Licenses
-      'PD': {codelabel: 'Public Domain', url: ''},
-      'PUBLIC DOMAIN': {label: 'Public Domain', url: ''},
-      'PDM': {label: 'Public Domain Mark', url: ''},
-    
-      'CC0': {label: 'Public Domain Dedication', url: 'http://creativecommons.org/publicdomain/zero/1.0/'},
-      'CC-BY': {label: 'Attribution', url: 'http://creativecommons.org/licenses/by/4.0/'},
-      'CC-BY-SA': {label: 'Attribution-ShareAlike', url: 'http://creativecommons.org/licenses/by-sa/4.0/'},
-      'CC-BY-ND': {label: 'Attribution-NoDerivs', url: 'http://creativecommons.org/licenses/by-nd/4.0/'},
-      'CC-BY-NC': {label: 'Attribution-NonCommercial', url: 'http://creativecommons.org/licenses/by-nc/4.0/'},
-      'CC-BY-NC-SA': {label: 'Attribution-NonCommercial', url: 'http://creativecommons.org/licenses/by-nc-sa/4.0/'},
-      'CC-BY-NC-ND': {label: 'Attribution-NonCommercial-NoDerivs', url: 'http://creativecommons.org/licenses/by-nc-nd/4.0/'},
-    
-      // Rights Statements 
-      'InC': {label: 'IN COPYRIGHT', url: 'http://rightsstatements.org/vocab/InC/1.0/'},
-      'InC-OW-EU': {label: 'IN COPYRIGHT - EU ORPHAN WORK', url: 'http://rightsstatements.org/vocab/InC-OW-EU/1.0/'},
-      'InC-EDU': {label: 'IN COPYRIGHT - EDUCATIONAL USE PERMITTED', url: 'http://rightsstatements.org/vocab/InC-EDU/1.0/'},
-      'InC-NC': {label: 'IN COPYRIGHT - NON-COMMERCIAL USE PERMITTED', url: 'http://rightsstatements.org/vocab/InC-NC/1.0/'},
-      'InC-RUU': {label: 'IN COPYRIGHT - RIGHTS-HOLDER(S) UNLOCATABLE OR UNIDENTIFIABLE', url: 'http://rightsstatements.org/vocab/InC-RUU/1.0/'},
-      'NoC-CR': {label: 'NO COPYRIGHT - CONTRACTUAL RESTRICTIONS', url: 'http://rightsstatements.org/vocab/NoC-CR/1.0/'},
-      'NoC-NC': {label: 'NO COPYRIGHT - NON-COMMERCIAL USE ONLY', url: 'http://rightsstatements.org/vocab/NoC-NC/1.0/'},
-      'NoC-OKLR': {label: 'NO COPYRIGHT - OTHER KNOWN LEGAL RESTRICTIONS', url: 'http://rightsstatements.org/vocab/NoC-OKLR/1.0/'},
-      'NoC-US': {label: 'NO COPYRIGHT - UNITED STATES', url: 'http://rightsstatements.org/vocab/NoC-US/1.0/'},
-      'CNE': {label: 'COPYRIGHT NOT EVALUATED', url: 'http://rightsstatements.org/vocab/CNE/1.0/'},
-      'UND': {label: 'COPYRIGHT UNDETERMINED', url: 'http://rightsstatements.org/vocab/UND/1.0/'},
-      'NKC': {label: 'NO KNOWN COPYRIGHT', url: 'http://rightsstatements.org/vocab/NKC/1.0/'}
+    const setTileSource = (canvas) => {
+      const page = findItem({type:'AnnotationPage'}, canvas)
+      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
+      const tileSource = itemInfo.service
+      ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+      : { url: itemInfo.id, type: 'image', buildPyramid: true }
+      viewer.open(tileSource)
     }
-    const licensesByCode = Object.fromEntries(Object.entries(licenses).map(([code, value]) => [ code.replace(/-/g, ' ').toLowerCase(), { ...value, ...{code} } ]))
-    const licensesByUrl = Object.fromEntries(Object.entries(licenses).map(([code, value]) => [value.url.split('/').filter(p => p).slice(1,-1).join('/').toLowerCase(), { ...value, ...{code} }]))
-    
-    function wcImageUrl(mwImg, width) {
-      width = width || 0
-      // Converts Wikimedia commons image references to URLs
+
+    const gotopage = (pageNum) => {
+      setTileSource(findItems({type:'Canvas'}, iiifManifest)[pageNum-1])
+    }
+
+    const gotopageid = (pageId) => {
+      setTileSource(findItems({type:'Canvas'}, iiifManifest)
+        .find(c => (c.label[props.language] || c.label.none || Object.values(c.label))?.[0] === pageId))
+    }
+
+    // const drawer = document.querySelector('.drawer')
+    const drawerButton = caption.querySelector('.drawer-toggle')
+    drawerButton.addEventListener('click', e => drawer.open = !drawer.open)
+
+    // recursive helper for finding items in a IIIF manifest
+    const findItems = (toMatch, current, found) => {
+      found = found || []
+      if (current?.items) {
+        for (let i = 0; i < current.items.length; i++ ) {
+          let item = current.items[i]
+          let isMatch = !Object.entries(toMatch).find(([attr, val]) => item[attr] && item[attr] !== val)
+          if (isMatch) found.push(item)
+          else findItems(toMatch, item, found)
+        }
+      }
+      return found
+    }
+
+    // find an item in a IIIF manifest
+    const findItem = (toMatch, current, seq) => {
+      seq = seq || 1
+      const found = findItems(toMatch, current)
+      return found.length >= seq ? found[seq-1] : null
+    }
+    let annotations = []
+
+    const staticImageUrl = (width) => {
+      let itemInfo = iiifManifest && findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq).body
+      if (!itemInfo) return ''
+      if (!imageAspect) imageAspect = itemInfo.width/itemInfo.height
+      let url
+      let [region, size, rotation, rest] = props.options?.split('/') || []
+      let [quality, format] = rest?.split('.') || []
+      region = props.region || region || 'full'
+      size = width
+        ? width === 'max'
+          ? 'max'
+          : `${width},`
+        : props.size
+          ? props.size
+          : `${main.clientWidth},`
+      rotation = parseInt(props.rotation || rotation || 0)
+      quality = props.quality || quality || 'default'
+      format = props.format || format || 'jpg'
+      url =`${itemInfo.service[0].id || itemInfo.service[0]['@id']}/${region}/${size}/${rotation}/${quality}.${format}`
+      return url
+    }
+
+    const showAnnotations = () => annoLayer.style.visibility = 'visible'
+    const hideAnnotations = () => annoLayer.style.visibility = 'hidden'
+    const enableAnnotations = () => {
+      annotorious.readOnly = false
+      showAnnotations()
+      annosIcon.style.display = 'none'
+      annosEditIcon.style.display = 'inline'
+      drawer.open = false
+    }
+    const toggleAnnotations = () => { 
+      if (annoLayer) {
+        if (annoLayer.style.visibility === 'hidden') showAnnotations(); else hideAnnotations() 
+        annosBadge.style.visibility = annotations.length ? annoLayer.style.visibility === 'hidden' ? 'visible' : 'hidden' : 'hidden'
+      } else {
+        initViewer().then(viewer => {
+          if (annoLayer.style.visibility === 'hidden') showAnnotations(); else hideAnnotations() 
+          annosBadge.style.visibility = annotations.length ? annoLayer.style.visibility === 'hidden' ? 'visible' : 'hidden' : 'hidden'
+        })
+      }
+    }
+    annosIcon.onclick = () => toggleAnnotations()
+
+
+    document.querySelector('#showAnnos')?.addEventListener('click', () => { enableAnnotations() })
+    document.querySelector('#copyAnnos')?.addEventListener('click', () => { navigator.clipboard.writeText(JSON.stringify(annotations, null, 2)) })
+
+    const mwImage = (mwImg, width) => {
+      width = width | 0
+      // Converts Wikimedia commons image URL to a thumbnail link
       mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
       mwImg = decodeURIComponent(mwImg).replace(/ /g,'_')
       const _md5 = md5(mwImg)
@@ -199,222 +347,431 @@
       url += `/${_md5.slice(0,1)}/${_md5.slice(0,2)}/${mwImg}`
       if (width > 0) {
         url += `/${width}px-${mwImg}`
-        if (extension === 'svg') url += '.png'
-        else if (extension === 'tif' || extension === 'tiff') url += '.jpg'
+        if (extension === 'svg') {
+          url += '.png'
+        } else if (extension === 'tif' || extension === 'tiff') {
+          url += '.jpg'
+        }
       }
       return url
     }
 
-    const ghImageUrl = (s) => `https://raw.githubusercontent.com/${s.slice(3)}`
-
-    const getWcMetadata = (mwImg) => {
-      mwImg = (Array.isArray(mwImg) ? mwImg[0] : mwImg).replace(/Special:FilePath\//, 'File:').split('File:').pop()
-      let title = decodeURIComponent(mwImg).replace(/ /g,'_')
-      let url = `https://commons.wikimedia.org/w/api.php?origin=*&format=json&action=query&titles=File:${title}&prop=imageinfo&iiprop=extmetadata|size|mime`
-      return fetch (url)
-        .then(response => response.json()).then(data => Object.values(data.query.pages)[0] )
-        .then(page => {
-          let imageInfo = page.imageinfo[0]
-          return {
-            ...{title: page.title},
-            ...{height: imageInfo.height, width: imageInfo.width, size: imageInfo.size, mime: imageInfo.mime},
-            ...Object.fromEntries(Object.entries(imageInfo.extmetadata).map(([key, value]) => [key, value.value]))
-          }
-        })
-    }
-
-    const setImageInfo = (obj) => {
-      obj = obj || {}
-      /* Set the image info in the drawer
-      obj: object with the following properties:
-        - label: string
-        - summary: string
-        - navDate: string
-        - navPlace: string
-        - requiredStatement: string
-        - rights: url
-        - source: string
-        - camera: string
-        - size: string
-=      */
-      if (props.label) obj.label = props.label
-      if (props.summary) obj.summary = props.summary
-      if (props.date) obj.navDate = props.date
-      if (props.required) obj.requiredStatement = props.required
-      if (props.rights) obj.rights = props.rights
-      
-      if (!obj.label && props.src) obj.label = props.src.split('/').pop().split('.')[0].split('__')[0]
-      if (obj.label) {
-        caption.querySelector('.label').innerHTML = obj.label
-        label.innerHTML = obj.label
-      }
-      if (obj.summary) summary.innerHTML = obj.summary
-      if (obj.navDate) navDate.innerHTML = `<b>Created: </b><span>${obj.navDate}</span>`
-      if (obj.navPlace) {
-        navPlace.innerHTML = `<b>Location: </b><span>${obj.navPlace}</span>`
-        locationTab.style.display = 'block'
-        locationTabPanel.style.display = 'block'
-        map.src = `/map?center=${obj.navPlace}&zoom=6&marker`
-      }
-      if (obj.requiredStatement) requiredStatement.innerHTML = `<b>RequiredStatement: </b><span>${obj.requiredStatement}</span>`
-      if (obj.source) source.innerHTML = `<b>Source: </b> <a href="${obj.source}" target="_blank">${obj.source}</a>`
-      if (obj.rights) {
-        let match
-        if (obj.rights.indexOf('http') === 0) {
-          match = licensesByUrl[obj.rights.split('/').filter(p => p).slice(1,-1).join('/').toLowerCase()]
-          if (match) match.url = obj.rights
-        } else match = licensesByCode[obj.rights.replace(/-/g, ' ').toLowerCase()]
-        rights.innerHTML = match ? `<b>Rights: </b><a href="${match.url}" target="_blank">${match.code}</a>` : `<b>Rights: </b>${props.rights}`
-      }
-      if (obj.camera) camera.innerHTML = `<b>Camera: </b><span>${obj.camera}</span>`
-      if (obj.size) size.innerHTML = `<b>Size: </b><span>${obj.size}</span>`
-      drawer.querySelectorAll('a').forEach(a => {
-        a.addEventListener('click', e => {
-          e.stopPropagation()
-          e.preventDefault()
-          window.parent.postMessage({ type: 'openLink', url: a.href }, '*');
-        })
-      })
-    }
-
-    const getExifData = (img) => {
-      
-      const gpsToDecimal = (gpsArray, ref) => {
-        const [degrees, minutes, seconds] = gpsArray;
-        let decimal = degrees + minutes / 60 + seconds / 3600;
-        if (ref === 'S' || ref === 'W') decimal = -decimal; // Adjust for hemisphere
-        return decimal;
-      }
-      
-      // Convert GPS EXIF data to Lat/Lon string
-      const convertGPSToLatLonString = (exifData) => {
-        const latitude = gpsToDecimal(exifData.GPSLatitude, exifData.GPSLatitudeRef);
-        const longitude = gpsToDecimal(exifData.GPSLongitude, exifData.GPSLongitudeRef);
-        return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`; // Format to 6 decimal places
-      }
-
-      let info = {}
-      EXIF.getData(img, function () {
-        const exifData = EXIF.getAllTags(this);
-        // console.log(JSON.stringify(exifData, null, 2))
-        if (exifData.Orientation) info.orientation = exifData.Orientation
-        if (exifData.DateTimeOriginal) info.created = exifData.DateTimeOriginal.split(' ')[0]
-        if (exifData.GPSLongitude && exifData.GPSLatitude) info.location = convertGPSToLatLonString(exifData)
-        if (exifData.Make && exifData.Model) info.camera = `${exifData.Make} ${exifData.Model}`
-        if (exifData.FocalLength && exifData.ExposureTime && exifData.FNumber && exifData.ISOSpeedRatings)
-          info.exposure = `${exifData.FocalLengthIn35mmFilm || exifData.FocalLength}mm 1/${exifData.ExposureTime < 1 ? Math.round(1/exifData.ExposureTime) : exifData.ExposureTime}s f/${exifData.FNumber} ISO ${exifData.ISOSpeedRatings}`
-        if (exifData.ExposureMode && exifData.ExposureProgram) info.mode = `${exifData.ExposureMode}, ${exifData.ExposureProgram}`
-        if (exifData.PixelXDimension) info.size = `${exifData.PixelXDimension.toLocaleString()} x ${exifData.PixelYDimension.toLocaleString()} jpeg`
-        
-        if (info.camera && info.exposure) camera.innerHTML = `<b>Camera: </b><span>${info.camera} - ${info.exposure}</span>`
-        if (info.size) size.innerHTML = `<b>Size: </b><span>${info.size}</span>`
-        if (info.location) {
-          navPlace.innerHTML = `<b>Location: </b><span>${info.location}</span>`
-          map.src = `/map?center=${info.location}&zoom=6&marker`
-          locationTab.style.display = 'block'
-          locationTabPanel.style.display = 'block'
-        }
-        if (info.created) navDate.innerHTML = `<b>Created: </b><span>${info.created}</span>`
-      })
-    }
-
-    const init = async () => {
-
-      img.onload = () => {
-        main.style.visibility = 'visible'
-        let aspect = props.aspect === 'auto'
-          ? window.innerWidth / (img.naturalHeight * window.innerWidth / img.naturalWidth + caption.clientHeight)
-          : aspect = parseFloat(props.aspect)
-        if (aspect) window.parent.postMessage({ type: 'setAspect', aspect }, '*');
-        getExifData(img)
-      }
-
-      if (props.manifest) {
-        if (props.manifest.indexOf('wc:') === 0 || props.manifest.indexOf('gh:') === 0) props.manifest = `https://iiif.mdpress.io/${props.manifest}/manifest.json`
-        let manifest = await fetch(props.manifest).then(resp => resp.json())
-        .then( async manifest => {
-          const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
-          const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
-          return isV3Manifest 
-            ? manifest 
-            : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
-        })
-        // console.log(manifest)
-
-        let page = manifest.items[props.page - 1]
-        let metadata = Object.fromEntries((manifest.metadata || []).map(({label, value}) => [(label?.en || label?.none || Object.values(label)).join(' '), (value?.en || value?.none || Object.values(value)).join(' ')]))
-        let manifestLabel = (manifest.label?.en || manifest?.label?.none || Object.values(manifest.label)).join(' ')
-        let pageLabel = page.label && (page.label.en || page.label.none || Object.values(page.label)).join(' ')
-        let imageId = page.items[0].items[0].body.service[0]['@id'] || page.items[0].items[0].body.service[0].id
-        let source = page.items[0].items[0].body['@id'] || page.items[0].items[0].body.id
-        let imageUrl = `${imageId}/full/!800,800/0/default.jpg`
-        let requiredStatement
-        if (manifest.requiredStatement) {
-          let rsLabel = (manifest.requiredStatement.label?.en || manifest.requiredStatement.label?.none || Object.values(manifest.requiredStatement.label)).join(' ')
-          let rsValue = (manifest.requiredStatement.value?.en || manifest.requiredStatement.value?.none || Object.values(manifest.requiredStatement.value)).join(' ')
-          requiredStatement = rsLabel.toLowerCase() === 'attribution' ? rsValue : `${rsLabel}: ${rsValue}`
-        }
-        let imageInfoData = {
-          label: page.label ? `${manifestLabel} - ${pageLabel}` : manifestLabel,
-          summary: manifest.summary?.en || manifest.summary?.none || Object.values(manifest.summary || {}),
-          navDate: manifest.navDate?.split('T')[0],
-          navPlace: manifest.navPlace?.features?.find(f => f.geometry.type === 'Point')?.geometry.coordinates.join(', '),
-          requiredStatement,
-          rights: manifest.rights,
-          source,
-          camera: metadata.camera && metadata.exposure ? `${metadata.camera} - ${metadata.exposure}` : null,
-          size: `${page.items[0].items[0].body.width.toLocaleString()} x ${page.items[0].items[0].body.height.toLocaleString()} ${page.items[0].items[0].body.format.split('/').pop()}`
-        }
-        img.src = imageUrl
-        setImageInfo(imageInfoData)
-
-      } else if (props.src) {
-        if (props.src.indexOf('wc:') === 0) {
-          img.src = wcImageUrl(props.src.slice(3), window.innerWidth)
-          let metadata = getWcMetadata(props.src.slice(3)).then(metadata => {
-            // console.log(metadata)
-            let requiredStatement
-            let attributionRequired = metadata.AttributionRequired === 'true' || metadata.Copyrighted === 'true' || metadata.LicenseShortName?.toLowerCase().replace(/-/g, ' ').split(' ').includes('by')
-            if (attributionRequired) {
-              if (metadata.Credit) requiredStatement = metadata.Credit
-              else requiredStatement = `Image by ${metadata.Artist || metadata.Author}`
-              if (metadata.LicenseShortName) requiredStatement += `, licensed under <a href="${metadata.LicenseUrl}">${metadata.LicenseShortName}</a>.`
-              if (metadata.UsageTerms) requiredStatement += ` ${metadata.UsageTerms}`
-            }
-
-            let imageInfoData = {
-              label: metadata.ObjectName || metadata.title,
-              summary: metadata.ImageDescription,
-              navDate: metadata.DateTimeOriginal || metadata.DateTime,
-              navPlace: metadata.GPSLatitude && metadata.GPSLongitude ? `${metadata.GPSLatitude}, ${metadata.GPSLongitude}` : null,
-              requiredStatement,
-              rights: metadata.LicenseUrl,
-              source: `https://commons.wikimedia.org/wiki/${metadata.title}`,
-              size: `${metadata.width.toLocaleString()} x ${metadata.height.toLocaleString()} ${metadata.mime.split('/').pop()}`
-            }
-            setImageInfo(imageInfoData)
+    const initViewer = async () => {
+      // console.log('initViewer')
+      if (viewer) return viewer
+      if (iiifManifest) {
+        img.style.display = 'none'
+        osd.style.display = 'block'
+        osd.style.opacity = 1
+        return initOsd(getTileSources())
+      } else {
+        return loadManifest(props.manifest)
+          .then(manifest => {
+            img.style.display = 'none'
+            osd.style.display = 'block'
+            osd.style.opacity = 1
+            return initOsd(getTileSources())
           })
-        } else {
-          if (props.src.indexOf('http') === 0 ) img.src = props.src
-          else if (props.src.indexOf('gh:') === 0 ) img.src = ghImageUrl(props.src)
-          else if (props.ghbase) {
-            // let [owner, repo, branch, ...path] = props.ghbase.split('/')
-            // path = '/'.join(path)
-            // img.src = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}${props.src[0] === '/' ? '' : '/'}${props.src}`
-            img.src = `https://raw.githubusercontent.com/${props.ghbase}${props.src[0] === '/' ? '' : '/'}${props.src}`
-          } else img.src = props.src
-          source.innerHTML = `<b>Source: </b> <a href="${img.src}" target="_blank">${img.src}</a>`
-          setImageInfo()
-        }
-        img.addEventListener('click', () => {
-          console.log('click')
-        })
       }
-      embedCode.textContent = `<iframe src="${location.href}" width="100%" height="100%" frameborder="0" allowfullscreen></iframe>`
     }
 
-    // Initialize the app when the component is ready
-    new ResizeObserver(() => { if (window.innerWidth > 0 && main.style.visibility !== 'visible') init() }).observe(main)
+    const setCaption = (text) => {
+      if (props.nocaption) {
+        caption.style.display = 'none'
+      } else {
+        captionText.innerHTML = text
+          ? md2Html(text)
+          : props.caption
+            ? md2Html(props.caption)
+            : iiifManifest
+              ? (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
+              : img.src.split('/').pop().replace(/^\d+px-/,'').replace(/\.\S+$/,'').replace(/[-_]+/g,' ')
+        caption.style.display = 'flex'
+      }
+      annosBadge.innerHTML = annotations.length
+      annosIcon.style.display = annotations.length ? 'inline' : 'none'
+      annosBadge.style.display = annotations.length ? 'inline' : 'none'
+    }
+
+
+    const loadImage = (url) => {
+      img.onload = (e) => {
+        imageAspect = img.naturalWidth/img.naturalHeight
+        setWindowAspect()
+      }
+      img.src = url
+      img.addEventListener('click', () => initViewer())
+    }
+
+    const loadManifest = (manifestUrl) => {
+      // console.log(`loadManifest: ${manifestUrl}`)
+      return fetch(manifestUrl).then(resp => resp.json())
+      .then( async manifest => {
+        const contexts = Array.isArray(manifest['@context']) ? manifest['@context'] : [manifest['@context']]
+        const isV3Manifest = contexts.find(ctx => ctx.indexOf('shared-canvas.org') > 0 || parseFloat(ctx.split('/').slice(-2,-1).pop()) < 3) ? false : true
+        return isV3Manifest 
+          ? manifest 
+          : await fetch(`https://iiif.mdpress.io/prezi2to3/`, { method: 'POST', body: JSON.stringify(manifest) }).then(resp => resp.json())
+      })
+      .then(manifest => {
+        iiifManifest = manifest
+        setCaption()
+        updateManifestPanel()
+        if (!img.src) loadImage(staticImgUrl())
+      })
+      return iiifManifest
+    }
+
+    const getTileSources = () => {
+      const canvases = findItems({type:'Canvas'}, iiifManifest)
+      const tiledSources = canvases.map(canvas => {
+        const page = findItem({type:'AnnotationPage'}, canvas)
+        const itemInfo = findItem({type:'Annotation', motivation:'painting'}, page).body
+        return itemInfo.service
+          ? `${(itemInfo.service[0].id || itemInfo.service[0]['@id'])}/info.json`
+          : { url: itemInfo.id, type: 'image', buildPyramid: true }
+      })
+      return tiledSources
+    }
+
+    if (props.src) {
+      
+      if (props.src.indexOf('http') === 0) {
+        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+        loadImage(props.src)
+      } else if (props.src.indexOf('wc:') === 0 || props.src.indexOf('wikimedia.org') > -1 || props.src.indexOf('wikipedia.org') > -1 && props.src.indexOf('/media/File:') > -1) {
+        let mwFile = props.src.replace(/^wc:/,'').replace(/Special:FilePath\//, 'File:').split('File:').pop()
+        props.manifest = `https://iiif.mdpress.io/wc:${mwFile}/manifest.json`
+        loadImage(mwImage(mwFile, main.clientWidth))
+      } else if (props.src.indexOf('gh:') === 0) {
+        props.manifest = `https://iiif.mdpress.io/${props.src}/manifest.json`
+        loadImage(`https://raw.githubusercontent.com/${props.src.slice(3)}`)
+      } else { // TODO: verify this
+        props.manifest = `https://iiif.mdpress.io${props.base}${props.src}/manifest.json`
+        loadImage(`https://raw.githubusercontent.com/${props.ghbase}${props.src[0] === '/' ? '' : '/'}${props.src}`)
+      }
+    
+    } else if (props.manifest) {
+      initViewer()
+    }
+
+    setCaption()
+
+    const parseManifest = () =>{
+
+      const valueOf = (langObj, language) => {
+        language = language || props.language
+        return typeof langObj === 'object' && !Array.isArray(langObj)
+          ? langObj[language] || langObj.none || langObj[Object.keys(langObj).sort()[0]]
+          : langObj
+      }
+
+      const licenseBadge = (rights) => {
+        let config = {
+          cc: {
+            badgeWidth: 88,
+            badgeHeight: 31,
+            badgeTemplate: 'https://licensebuttons.net/l/${this.rightsCode}${this.rightsCode === "publicdomain" ? "" : "/"+this.version}/${this.badgeWidth}x${this.badgeHeight}.png'
+          },
+          rs: {
+            badgeTemplate: 'https://rightsstatements.org/files/buttons/${this.rightsCode}.white.svg',
+            backgroundColor: '318ac7'
+          }
+        }
+        const fillTemplate = (templateString, templateVars) => new Function("return `"+templateString +"`;").call(templateVars)
+  
+        let badgeHtml = ''
+        let [rightsType, _, rightsCode, version] = rights.split('/').slice(2)
+        if (rightsType === 'creativecommons.org') {
+          rightsCode = rightsCode === 'zero' ? 'publicdomain' : rightsCode
+          // rightsCode = rightsCode === 'zero' ? 'publicdomain' : `CC ${rightsCode}`
+          badgeHtml = `<img src="${fillTemplate(config.cc.badgeTemplate, {...config.cc, ...{rightsCode, version}})}"/>` 
+        } else if (rightsType === 'rightsstatements.org') {
+          badgeHtml = `<div style="display:inline-block;height:25px;padding:3px;background-color:#${config.rs.backgroundColor};"><img style="height:100%;" src="${fillTemplate(config.rs.badgeTemplate, {...config.rs, ...{rightsCode}})}"/></div>`
+        }
+        return badgeHtml
+      }  
+
+      let parsed = {}
+  
+      parsed.id = valueOf(iiifManifest.id)
+      parsed.label = valueOf(iiifManifest.label)
+  
+      if (iiifManifest.summary) parsed.summary = valueOf(iiifManifest.summary)
+      if (iiifManifest.rights) {
+        let [rightsType, _, rightsCode, version] = iiifManifest.rights.split('/').slice(2)
+        if (rightsType === 'creativecommons.org') rightsCode = rightsCode === 'zero' ? 'publicdomain' : `CC ${rightsCode}`
+        parsed.rights = {
+          code: `${rightsCode} ${version}`.toUpperCase(),
+          url: iiifManifest.rights,
+          badge: licenseBadge(iiifManifest.rights)
+        }
+      }
+      if (iiifManifest.thumbnail) parsed.thumbnail = iiifManifest.thumbnail[0].id || iiifManifest.thumbnail
+      
+      if (iiifManifest.metadata) {
+        parsed.metadata = iiifManifest.metadata.map((item) => ({label: valueOf(item.label)[0], value: valueOf(item.value)}))
+        let sourceUrl = parsed.metadata.find((item) => item.label == 'source_url' || item.label == 'source')
+        parsed.sourceUrl = sourceUrl ? sourceUrl.value[0] : null
+  
+        let depicts = parsed.metadata.find((md) => md.label === 'depicts')
+        if (depicts) parsed.depicts = depicts.value
+      }
+  
+      if (iiifManifest.provider) {
+        parsed.provider = iiifManifest.provider.map((provider) => {
+          let entry = {label: valueOf(provider.label), href:provider.id}
+          if (provider.logo) entry.logo = {src:provider.logo[0].id}
+          return entry
+        })
+      }
+  
+      if (iiifManifest.logo) {
+        parsed.logo = iiifManifest.logo.map((item) => {
+          let logoObj = { src: typeof item === 'object' ? item.id || item['@id'] : item }
+          if (typeof item === 'object') {
+            if (item.width) logoObj.width = item.width
+            if (item.height) logoObj.height = item.height
+          }
+          return logoObj
+        })
+      }
+  
+      parsed.imageData = findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq)?.body
+      parsed.service = parsed.imageData.service && `${(parsed.imageData.service[0].id || parsed.imageData.service[0]['@id'])
+        .replace(/\/info\.json$/,'')}/info.json`
+        if (iiifManifest.requiredStatement) {
+          let rs = iiifManifest.requiredStatement
+          parsed.requiredStatement = {label: valueOf(rs.label)[0], value: valueOf(rs.value)}
+        }
+  
+      if (iiifManifest.homepage) {
+        parsed.homepage = {label: iiifManifest.homepage.label ? valueOf(iiifManifest.homepage.label) : iiifManifest.homepage.id, href: iiifManifest.homepage.id}
+      }
+  
+      if (iiifManifest.seeAlso) {
+        parsed.seeAlso = iiifManifest.seeAlso.map((seeAlso) => ({label: seeAlso.label ? valueOf(seeAlso.label) : seeAlso.id, href: seeAlso.id}))
+      }
+      
+      return parsed
+    }
+
+    const updateManifestPanel = () => {
+      let parsed = parseManifest()      
+      if (parsed.label) document.querySelector('.manifest .label').innerHTML = parsed.label.join(' ')
+      if (parsed.summary) document.querySelector('.manifest .summary').innerHTML = parsed.summary.join(' ')
+      if (parsed.requiredStatement) document.querySelector('.manifest .required').innerHTML = `<span><b>Attribution:</b></span> <span>${parsed.requiredStatement.value.join(' ')}</span>`
+      if (parsed.rights) document.querySelector('.manifest .rights').innerHTML = `<span><b>Reuse rights:</b></span><a href="${parsed.rights.url}">${parsed.rights.code}</a>` + (parsed.rights.badge || '')
+      if (parsed.sourceUrl) document.querySelector('.manifest .source').innerHTML = `<span><b>Source:</b></span> <a href="${parsed.sourceUrl}">${parsed.sourceUrl}</a>`
+    }
+
+    let annotorious
+    let annotationsInitialHash
+    let annotationsCurrentHash
+    const annotationsChanged = () => {
+      annotations = annotorious.getAnnotations()
+      let _hash = md5(JSON.stringify(annotations))
+      if (!annotationsInitialHash) annotationsInitialHash = _hash
+      if (_hash !== annotationsCurrentHash) {
+        annotationsCurrentHash = _hash
+        setCaption()
+        updateAnnos()
+      }
+    }
+
+    const updateAnnos = () => {
+      let annosDiv = document.querySelector('#annos')
+      annosDiv.innerHTML = `<div>URL: ${getAnnosUrl()}</div>`
+      const annos = Array.from(annotorious.getAnnotations())
+      annos.forEach(anno => {
+        let id = anno.id.split('-')[0].slice(1)
+        let text = anno.body.map(b => b.value).join(' ')
+        let [x,y,w,h] = anno.target.selector.value.split('pixel:')[1].split(',').map(v => Math.round(parseFloat(v)))
+        let region = `${x},${y},${w},${h}`
+        let annoDiv = document.createElement('div')
+        annoDiv.innerHTML = `<div>${id}</div><div>${text}</div><div>${region}</div>`
+        annosDiv.appendChild(annoDiv)
+      })
+    }
+
+    const parseRegionString = (region) => {
+      let viewportRect
+      const s1 = region.split(':')
+      let [x,y,w,h] = s1[s1.length-1].split(',').map(v => parseInt(v))
+      const size = viewer.world.getItemAt(0)?.getContentSize()
+      if (!size) return
+      if (s1.length === 2 && (s1[0] === 'pct' || s1[0] === 'percent')) {
+        x = Math.round(size.x * x/100),
+        y = Math.round(size.y * y/100),
+        w = Math.round(size.x * w/100), 
+        h = Math.round(size.y * h/100)
+      }
+      return viewer.viewport.imageToViewportRectangle(x,y,w,h)
+    }
+
+    let zoomedToRegion = ''
+    const zoomto = (region) => {
+      initViewer().then(resp => {
+        if (region) {
+          if (zoomedToRegion === region) {
+            viewer.viewport.goHome()
+            zoomedToRegion = ''
+          } else {
+            zoomedToRegion = region
+            let rect = parseRegionString(region, viewer)
+            setTimeout(() => viewer.viewport.fitBounds(rect, false), 100)
+          }
+        }
+      })
+    }
+
+    const setCoords = () => {
+      const tiledImage = viewer.world.getItemAt(0)
+      const round = (val) => val % 1 === 0 ? val : parseFloat(val.toFixed(2))
+      if (tiledImage) {
+        let bounds = viewer.viewport.getBounds()
+        const imageBounds = bounds ? tiledImage.viewportToImageRectangle(bounds) : null
+        const imageDimensions = tiledImage.getContentSize()
+        const boundingBoxPct = {
+          x: (imageBounds.x / imageDimensions.x) * 100,
+          y: (imageBounds.y / imageDimensions.y) * 100,
+          width: (imageBounds.width / imageDimensions.x) * 100,
+          height: (imageBounds.height / imageDimensions.y) * 100
+        }
+        const asCoords = `${Math.ceil(imageBounds.x)},${Math.ceil(imageBounds.y)},${Math.ceil(imageBounds.width)},${Math.ceil(imageBounds.height)}`
+        const asPct = `pct:${round(boundingBoxPct.x)},${round(boundingBoxPct.y)},${round(boundingBoxPct.width)},${round(boundingBoxPct.height)}`
+        coords.innerHTML = asPct
+      }
+    }
+
+    const getAnnosUrl = () => {
+      let annosUrl
+      const itemInfo = findItem({type:'Annotation', motivation:'painting'}, iiifManifest, props.seq)?.body
+      const annosFileName = `${decodeURIComponent((itemInfo?.id || img.src).split('/').pop().split('.')[0]).replace(/^\d+px-/,'')}.json`
+      if (props.annos) {
+        if (props.annos.indexOf('gh:') === 0) {
+          let [acct, repo, branch, ...path] = props.annos.slice(3).split('/')
+          annosUrl = `https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path.join('/')}`
+        } else {
+          annosUrl = props.annos[props.annos.length-1] === '/' ? `${props.annos}${annosFileName}` : props.annos
+        }
+      } else if (props.base) {
+        annosUrl = `${props.base}${annosFileName}`
+      } else if (props.ghbase) {
+        annosUrl = `https://raw.githubusercontent.com/${props.ghbase}/${annosFileName}`
+      } else if (props.src) {
+        if (props.src.indexOf('gh:') === 0) {
+          let [acct, repo, branch, ...path] = props.src.slice(3).split('/')
+          annosUrl = `https://raw.githubusercontent.com/${acct}/${repo}/${branch}/${path.join('/')}`.replace(/\.\w+$/, '.json')
+        } else {
+          annosUrl = `${props.src.split('/').slice(0,-1).join('/')}/${annosFileName}`
+        }
+      }
+      return annosUrl
+    }
+
+    let annosUrl = getAnnosUrl()
+    if (annosUrl) fetch(annosUrl).then(resp => resp.ok && resp.json())
+      .then(annos => {
+        annotations = annos
+        setCaption()
+      })
+
+    const initOsd = async (tileSources) => {
+      // create the OpenSeadragon viewer
+      viewer = OpenSeadragon({
+        id: 'osd',
+        prefixUrl: 'https://openseadragon.github.io/openseadragon/images/',
+        homeFillsViewer: props.cover,
+        tileSources,
+        crossOriginPolicy: 'Anonymous',
+        sequenceMode: tileSources.length > 1,
+        initialPage: props.seq - 1,
+        showReferenceStrip: tileSources.length > 1,
+        zoomPerClick: 1.25,
+        gestureSettingsMouse: {
+          dragToPan: true,
+          scrollToZoom: false,
+          clickToZoom: true,
+          dblClickToZoom: false,
+          dblClickDragToZoom: false,
+          pinchToZoom: false,
+          zoomToRefPoint: false,
+          flickEnabled: false,
+          flickMinSpeed: 120,
+          flickMomentum: 0.25,
+          pinchRotate: false
+        },
+        gestureSettingsTouch: {
+          dragToPan: true,
+          scrollToZoom: false,
+          clickToZoom: false,
+          dblClickToZoom: true,
+          dblClickDragToZoom: true,
+          pinchToZoom: true,
+          zoomToRefPoint: false,
+          flickEnabled: false,
+          flickMinSpeed: 120,
+          flickMomentum: 0.25,
+          pinchRotate: false
+        }
+      })
+      setPageInfo()
+
+      // display the region coordinates
+      let debounce = null
+
+      viewer.addHandler('page', (e) => { 
+        props.seq = e.page+1
+        setPageInfo()
+      })
+
+      viewer.addHandler('viewport-change', () => {
+        if (debounce !== null) {
+          clearTimeout(debounce)
+          debounce = null
+        }
+        debounce = window.setTimeout(() => setCoords(), 100)
+      })
+
+      // Initialize the Annotorious plugin
+      annotorious = OpenSeadragon.Annotorious(viewer, { readOnly: true })
+      annotorious.on('createAnnotation', () => annotationsChanged())
+      annotorious.on('updateAnnotation', () => annotationsChanged())
+      annotorious.on('deleteAnnotation', () => annotationsChanged())
+      annotorious.on('selectAnnotation', async (anno) => { if (navigator.clipboard) navigator.clipboard.writeText(anno.id.split('-')[0].slice(1)) })
+
+      annoLayer = osd.querySelector('.a9s-annotationlayer')
+      annoLayer.style.visibility = 'hidden'
+      if (props.showannos) showAnnotations()
+
+      let annosUrl = getAnnosUrl()
+      if (annosUrl) {
+        annotorious.loadAnnotations(annosUrl).then(loaded => { 
+          setTimeout(() => annotationsChanged(), 500) 
+        })
+      }
+
+      viewer.world.addHandler('add-item', (e) => {
+        if (props.rotation) e.item.setRotation(parseInt(props.rotation), true)
+        if (props.region) {
+          let rect = parseRegionString(props.region)
+          setTimeout(() => viewer.viewport.fitBounds(rect, true), 0)
+        }
+        setCoords() 
+      })
+
+      return new Promise((resolve, reject) => {
+        
+        // Listen for the 'open' event which fires when the initial image is loaded
+        viewer.addOnceHandler('open', () => resolve(viewer))
+        
+        // Listen for errors
+        viewer.addOnceHandler('open-failed', (event) => reject(new Error('Failed to load image: ' + event.message)))
+
+      })
+
+    }
 
   </script>
 </body>

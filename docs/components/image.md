@@ -11,7 +11,86 @@
 
 # Image Viewer
 
-The `image` tag creates an image viewer displaying the image found at the URL specified in the `src` tag.  Additional properties, such as label, may optionally be provided for display in the image metadata and caption bar.  
+The `image` tag creates an image viewer displaying the image found at the URL specified in the `src` tag.  Additional properties, such as label, may optionally be provided for display in the image metadata and caption bar.
+
+## Examples
+
+### Wikimedia Commons example
+
+This example uses an image hosted by Wikimedia Commons.  When using Wikimedia Commons images the `wc:` prefix may be used instead of the full URL and image information (title, summary, rights, etc) is automatically retrieved from the Wikimedia Commons site and added to the viewer.  Click on the <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512" height="1em" width="1em"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg> icon in the caption to see the image info.
+
+####
+`.tabs`
+
+##### Rendered
+
+`image wc:Incense_in_Vietnam.jpg medium center box-shadow static`
+
+##### Markdown
+
+```markup
+`image wc:Incense_in_Vietnam.jpg medium center box-shadow static`
+```
+
+##### HTML
+
+```markup
+<iframe
+  src="image?src=wc:Incense_in_Vietnam.jpg&static"
+  class="medium center box-shadow"
+  allowfullscreen
+></iframe>
+```
+
+### GitHub example
+
+####
+`.tabs`
+
+##### Rendered
+
+`image gh:rsnyder/ifc/main/docs/components/monument-valley.jpg medium center box-shadow static`
+
+##### Markdown
+
+```markup
+`image gh:rsnyder/ifc/main/docs/components/monument-valley.jpg medium center box-shadow static`
+```
+
+##### HTML
+
+```markup
+<iframe
+  src="image?src=gh:rsnyder/ifc/main/docs/components/monument-valley.jpg&static"
+  class="medium center box-shadow"
+  allowfullscreen
+></iframe>
+```
+
+### Annotated image example
+
+####
+`.tabs`
+
+##### Rendered
+
+`image wc:Monument_Valley,_Utah,_USA_(23611451292).jpg medium center box-shadow static`
+
+##### Markdown
+
+```markup
+`image wc:Monument_Valley,_Utah,_USA_(23611451292).jpg medium center box-shadow static`
+```
+
+##### HTML
+
+```markup
+<iframe
+  src="image?src=wc:Monument_Valley,_Utah,_USA_(23611451292).jpg&static"
+  class="medium center box-shadow"
+  allowfullscreen
+></iframe>
+```
 
 ## Zoomto
 
@@ -21,16 +100,25 @@ The image viewer supports interactivity via a `zoomto` action that is triggered 
 
 | Name  |  Type | Pos | Description |
 |---|:--|:-:|:--|
-| artist | text | | The image creator/owner.  This can be a text string or an HTML link. |
-| aspect | text or number | | The aspect ratio to use for the image.  A correct aspect ratio will be automatically set for the image unless this property is defined.  In most cases the automatically defined value should be sufficient. When defined, the value may be expressed as a number such as `1.3`, or a width/height ratio such as `16/9`. |
-| date | text | | The image creation date.  When used this should be specified in the form of `YYYY-MM-DD`. |
-| label | text | 2 | The label to use for the image.  This appears in the image info text and caption bar. |
-| manifest | url | | The URL to the IIIF Manifest to use for the image. |
-| page | integer | | When using a multi-image IIIF Manifest this property defines the page to use.  The default is 1. |
-| required | text | | Any text that must be provided with the image, such as an attribution statement required by an image license' |
-| rights | text | | Defines the reuse rights for the image.  The rights are defined using a code from the lists defined below in the [Rights Codes](#rights-codes) section.  For instance, `CC-BY-SA` for a Creative Commons Attribution-ShareAlike license.|
-| src | url | 1 | The URL to the image to load. |
-| summary | text | | The summary (description) to use for the image.  This appears in the image info. |
+| annos | | | |
+| aspect | | | |
+| caption | | | |
+| cover | | | |
+| format | | | |
+| height | | | |
+| language  | | | |
+| manifest | | | |
+| nocaption | | | |
+| options | | | |
+| quality | | | |
+| region | | | |
+| rotation | | | |
+| seq | | | Image to display  when using a multi-image IIIF manifest. |
+| size | | | |
+| showannos | | | |
+| src | | | |
+| static | | | |
+| width | | | |
 
 Notes:
 - Boolean properties are specified using the property name only, for instance, `center`.
@@ -73,190 +161,3 @@ The `rights` options asserts the reuse rights for an image and any attribution (
 | **CNE** | Copyright Not Evaluated | [http://rightsstatements.org/vocab/CNE/1.0/](http://rightsstatements.org/vocab/CNE/1.0/) |
 | **UND** | Copyright Undertermined | [http://rightsstatements.org/vocab/UND/1.0/](http://rightsstatements.org/vocab/UND/1.0/) |
 | **NKC** | No Known Copyright | [http://rightsstatements.org/vocab/NKC/1.0/](http://rightsstatements.org/vocab/NKC/1.0/) |
-
-## Examples
-
-### Basic example
-
-This basic example uses an image hosted in the same GitHub repository as the Markdown file containing the `image` tag referencing the image.  In this case the `src` property is a relative URL.  Note that this example also uses the positional property notation, omitting property names for the `src` and `label` properties.
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`image monument-valley.jpg "Monument Valley"`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="image?src=image monument-valley.jpg&label=Monument+Valley"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`image monument-valley.jpg "Monument Valley"`
-
-
-### Wikimedia Commons example
-
-This example uses an image hosted by Wikimedia Commons.  When using Wikimedia Commons images the `wc:` prefix may be used instead of the full URL and image information (title, summary, rights, etc) is automatically retrieved from the Wikimedia Commons site and added to the viewer.  Click on the <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512" height="1em" width="1em"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg> icon in the caption to see the image info.
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`image wc:Incense_in_Vietnam.jpg medium center box-shadow`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="image?src=wc:Incense_in_Vietnam.jpg"
-  class="medium center box-shadow"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`image wc:Incense_in_Vietnam.jpg medium center box-shadow`
-
-
-### Pexels example
-
-This example uses an image hosted by Pexels.  Note that a full URL to the image must be used and image information must be explicitly defined.
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`image https://images.pexels.com/photos/1530259/pexels-photo-1530259.jpeg "Low Angle Photo of Eiffel Tower" rights=CC-BY medium center box-shadow`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="image?src=https://images.pexels.com/photos/1530259/pexels-photo-1530259.jpeg&label=Low+Angle+Photo+of+Eiffel+Tower"
-  class="medium center box-shadow"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`image https://images.pexels.com/photos/1530259/pexels-photo-1530259.jpeg "Low Angle Photo of Eiffel Tower" rights=CC-BY required="Image provided by https://www.pexels.com/@suissounet/" medium center box-shadow`
-
-### Manifest example
-
-This example uses an IIIF manifest rather than an image URL.  The image URL is extracted from the manifest using the page number as an index when the manifest contains multiple images.  When using an IIIF manifest as the image source any available image metadata (label, description, license, etc) is automatically extracted and added to the image viewer.
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`image manifest=https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json page=10 medium center box-shadow`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="image?manifest=https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json&page=10"
-  class="medium center box-shadow"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`image manifest=https://iiif.bodleian.ox.ac.uk/iiif/manifest/e32a277e-91e2-4a6d-8ba6-cc4bad230410.json page=10 medium center box-shadow`
-
-### Manifest example #2
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`image manifest=https://iiif.harvardartmuseums.org/manifests/object/299843 medium center box-shadow`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="image?manifest=https://iiif.harvardartmuseums.org/manifests/object/299843"
-  class="medium center box-shadow"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`image manifest=https://iiif.harvardartmuseums.org/manifests/object/299843 medium center box-shadow`
-
-
-### Github hosted image with EXIF data
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`image gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="image?src=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg"
-  class="medium center box-shadow"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`image gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
-
-### IIIF Manifest generated from Github hosted image
-
-####
-`.tabs`
-
-##### Markdown
-
-```markup
-`image manifest=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
-```
-
-##### HTML
-
-```markup
-<iframe
-  src="image?manifest=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg"
-  class="medium center box-shadow"
-  allowfullscreen
-></iframe>
-```
-
-##### Rendered
-
-`image manifest=gh:rsnyder/media/main/italy/amalfi-coast/Amalfi__1.jpg medium center box-shadow`
