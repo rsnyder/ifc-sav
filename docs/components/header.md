@@ -1,12 +1,20 @@
-<style>
-  .markdown-section table { display: table; margin-top: 1em; }
-  .markdown-section td { padding: 1em; }
-  td:first-of-type { font-weight: 500; }
-  td:last-of-type, th:last-of-type { }
-  .markdown-section td, .markdown-section th { border: none; }
-  th { text-align: left; }
-  .markdown-section tr:nth-child(2n) { background-color: unset; }
-  .markdown-section tr { border-top: none; border-bottom: 1px solid #ddd; }
+<style> 
+  .markdown-section h2 ~ p > strong > a { color: crimson; font-size: 110%; text-decoration: none; }
+  .markdown-section table { 
+    margin-left:3rem; 
+    width: calc(100% - 6rem); 
+    border:1px solid #555;
+  }
+  .markdown-section td, .markdown-section th {
+    border:1px solid #555;
+    padding: 8px;
+    line-height: 1.2;
+  }
+  .markdown-section th {
+    background-color:#E2F0F7;
+    font-weight:bold !important;
+    text-align:center !important;
+  }
 </style>
 
 # Header
@@ -24,20 +32,29 @@ If navigation links are specified a navigation bar will be positioned at the top
 
 ## Properties
 
-| Name  |  Type | Description |
-|---|:--|:--|
-| alpha | float | The opacity level of the title bar when a background image is used.  The value is a number between 0 (no opacity) and 1.0 (full opacity). The default is 0.3. |
-| background | text | The background color used for the title bar. |
-| color | text | The color used for all text elements in the header, including the title and navigation links |
-| height | integer | The header height; default is 150 pixels |
-| img | url | The header background image |
-| title | text | The header title text |
-| position | text | Specifies the positioning of the background image within the header.  By default the image is centered both vertically and horizontally.  When using this property the X and Y positioning is defined, for instance `left center` for left horizontal alignment and centered vertical alignment, or `left bottom` for left horizontal alignment and bottom vertical alignment, etc. |
-| bottom | boolean | The bottom of the background image is aligned with the bottom of the header. |
-| center | boolean | The background image is centered, both vertically and horizontally within the header. |
-| left | boolean | The left side of the background image is aligned with the left side of the header. |
-| right | boolean | The right side of the background image is aligned with the right side of the header. |
-| top | boolean | The top of the background image is aligned with the top of the header. |
+**[alpha](#examples)** (_float_):  The opacity level of the title bar when a background image is used.  The value is a number between 0 (no opacity) and 1.0 (full opacity). The default is 0.3.
+
+**[background](#examples)** (_string_):  The background color used for the title bar.
+
+**[color](#examples)** (_string_):  The color used for all text elements in the header, including the title and navigation links.
+
+**[height](#examples)** (_integer_):  The header height; default is 150 pixels.
+
+**[img](#examples)** (_url_):  The header background image.
+
+**[title](#examples)** (_string_):  The header title text.
+
+**[position](#examples)** (_string_):  Specifies the positioning of the background image within the header.  By default the image is centered both vertically and horizontally.  When using this property the X and Y positioning is defined, for instance ***"left center"*** for left horizontal alignment and centered vertical alignment, or ***"left bottom"*** for left horizontal alignment and bottom vertical alignment, etc..
+
+**[bottom](#examples)** (_boolean_):  The bottom of the background image is aligned with the bottom of the header.
+
+**[center](#examples)** (_boolean_):  The background image is centered, both vertically and horizontally within the header.
+
+**[left](#examples)** (_boolean_):  The left side of the background image is aligned with the left side of the header.
+
+**[right](#examples)** (_boolean_):  The right side of the background image is aligned with the right side of the header.
+
+**[top](#examples)** (_boolean_):  The top of the background image is aligned with the top of the header.
 
 Notes:
 - Boolean properties are specified using the property name only, for instance - `center`.
@@ -46,17 +63,12 @@ Notes:
 
 ## Examples
 
-
 ### Basic header
 
 Displays a title with default background.
 
 ####
 `.tabs`
-
-##### Rendered
-
-`header "Monument Valley"`
 
 ##### Markdown
 
@@ -73,15 +85,15 @@ Displays a title with default background.
 ></iframe>
 ```
 
+##### Rendered
+
+`header "Monument Valley"`
+
 
 ### Header with background image
 
 ####
 `.tabs`
-
-##### Rendered
-
-`header "Monument Valley" wc:Monument_Valley_banner.jpg`
 
 ##### Markdown
 
@@ -98,17 +110,15 @@ Displays a title with default background.
 ></iframe>
 ```
 
+##### Rendered
+
+`header "Monument Valley" wc:Monument_Valley_banner.jpg`
+
 
 ### Header with background image, title and navigation
 
 ####
 `.tabs`
-
-##### Rendered
-
-`header "Monument Valley" wc:Monument_Valley_banner.jpg`
-- [Home](/)
-- [About](/about)
 
 ##### Markdown
 
@@ -127,16 +137,16 @@ Displays a title with default background.
 ></iframe>
 ```
 
+##### Rendered
+
+`header "Monument Valley" wc:Monument_Valley_banner.jpg`
+- [Home](/)
+- [About](/about)
+
 ### Header with background image and navigation
 
 ####
 `.tabs`
-
-##### Rendered
-
-`header img=wc:Monument_Valley_banner.jpg`
-- [Home](/)
-- [About](/about)
 
 ##### Markdown
 
@@ -154,3 +164,9 @@ Displays a title with default background.
   allowfullscreen
 ></iframe>
 ```
+
+##### Rendered
+
+`header img=wc:Monument_Valley_banner.jpg`
+- [Home](/)
+- [About](/about)

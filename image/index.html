@@ -167,6 +167,7 @@
     
     const props = {
       ...{ // default properties
+        alt: null,    // Alt text string
         annos: null,    // URL to image annotations
         base: null,     // base URL for relative links
         caption: null,  // caption text
@@ -376,23 +377,24 @@
     }
 
     const setCaption = (text) => {
+      text = text
+        ? text
+        : props.caption
+          ? props.caption
+          : iiifManifest
+            ? (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
+            : img.src.split('/').pop().replace(/^\d+px-/,'').replace(/\.\S+$/,'').replace(/[-_]+/g,' ')
       if (props.nocaption) {
         caption.style.display = 'none'
       } else {
-        captionText.innerHTML = text
-          ? md2Html(text)
-          : props.caption
-            ? md2Html(props.caption)
-            : iiifManifest
-              ? (iiifManifest?.label?.en || iiifManifest?.label?.none || Object.values(iiifManifest.label)).join(' ')
-              : img.src.split('/').pop().replace(/^\d+px-/,'').replace(/\.\S+$/,'').replace(/[-_]+/g,' ')
+        captionText.innerHTML = md2Html(text)    
         caption.style.display = 'flex'
+        annosBadge.innerHTML = annotations.length
+        annosIcon.style.display = annotations.length ? 'inline' : 'none'
+        annosBadge.style.display = annotations.length ? 'inline' : 'none'
       }
-      annosBadge.innerHTML = annotations.length
-      annosIcon.style.display = annotations.length ? 'inline' : 'none'
-      annosBadge.style.display = annotations.length ? 'inline' : 'none'
+      img.setAttribute('atl', props.alt || text)
     }
-
 
     const loadImage = (url) => {
       img.onload = (e) => {
