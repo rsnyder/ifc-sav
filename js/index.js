@@ -10,7 +10,7 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 
 const isGHP = location.hostname.indexOf('github.io') > 0
 
-const classes = new Set('left right center medium small box-shadow'.split(' '))
+const classes = new Set('left right center large medium small box-shadow'.split(' '))
 const components = {
   aichat: {
     booleans: 'nocaption',
