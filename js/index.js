@@ -319,7 +319,7 @@ const convertTags = (rootEl) => {
       let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
       iframe.src = `${ifcPrefix}/${parsed.tag}?${componentArgs}`
     }
-    let isOnlyChild = code.parentElement?.children.length === 1 && code.parentElement.children[0] === code
+    let isOnlyChild = code.parentElement?.children.length === 1 && code.parentElement?.children[0] === code
     if (isOnlyChild) code.parentElement.replaceWith(iframe)
     else {
       let nonCodeElements = Array.from(code.parentElement?.children).filter(c => c.tagName !== 'CODE').length
@@ -334,7 +334,7 @@ const makeDetails = (rootEl) => {
     let heading = section.querySelector('h1, h2, h3, h4, h5, h6')?.textContent
     let details = document.createElement('sl-details')
     details.setAttribute('summary', heading)
-    Array.from(section.children).slice(1).forEach(child => details.appendChild(child))
+    Array.from(section?.children).slice(1).forEach(child => details.appendChild(child))
     section.replaceWith(details)
   })
 }
