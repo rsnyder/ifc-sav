@@ -11,6 +11,7 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 const isGHP = location.hostname.indexOf('github.io') > 0
 
 const addLink = (attrs) => {
+  console.log('addLink', attrs)
   let stylesheet = document.createElement('link')
   Object.entries(attrs).map(([key, value]) => stylesheet.setAttribute(key, value))
   document.head.appendChild(stylesheet)
@@ -446,7 +447,7 @@ const makeColumns = (rootEl) => {
   })
 }
 
-let main = document.querySelector(window.contentSelector || 'main.ghp')
+let main = document.querySelector(window.contentSelector || 'main.ghp, body')
 let mutationObserver
 
 if (main) {
