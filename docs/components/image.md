@@ -133,11 +133,10 @@ Many of the image-specific properties used in the ve-image viewer are based on t
 
 **[showannos](#annotation-examples)** (_boolean_):  When this property is set any annotations associated with the image will be shown initially.  When this property is not set the user can toggle the display of annotations by clicking on the annotation icon located in the right section of the caption bar.
 
-**[src](#basic-examples)** (_url_) :  The URL to the image to display.  This property is omitted when using the `manifest` tag.
+**[src](#basic-examples)** (_url_) :  The URL to the image to display.  This property is omitted when using the `manifest` tag.  A `src` URL may be a full URL, a relative URL (relative to the URL of the Markdown file containing the image tag), or a short-hand URL when using images hosted by Wikimedia Commons or GitHub.  In those cases a `wc:` or `gh:` prefix may be used for convenience.  
 
-## Wikimedia Commons
-
-TODO: This section will include information about Wikimedia Commons and how to use hosted images
+- When using the `wc:` prefix only the Wikimedia Commons file name is required.
+- When using the `gh:` prefix the GitHub account, repository, branch, and file path are added after the prefix.  Each value is separated by the slash (`/`) character.
 
 ## Examples
 
@@ -147,31 +146,38 @@ TODO: This section will include information about Wikimedia Commons and how to u
 
 This example uses an image hosted by Wikimedia Commons.  When using Wikimedia Commons images the `wc:` prefix may be used instead of the full URL and image information (title, summary, rights, etc) is automatically retrieved from the Wikimedia Commons site and added to the viewer.  Click on the <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 512" height="1em" width="1em"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg> icon in the caption to see the image info.
 
+In this example the positioning properties `medium` and `center` are used to display the image in the center of the window at 50% of the window width. 
+
 #####
 `.tabs`
 
 ###### Markdown
 
 ```markup
-`image wc:Incense_in_Vietnam.jpg medium center box-shadow static`
+`image wc:Incense_in_Vietnam.jpg medium center`
 ```
 
 ###### HTML
 
 ```markup
 <iframe
-  src="image?src=wc:Incense_in_Vietnam.jpg&static"
-  class="medium center box-shadow"
+  src="image?src=wc:Incense_in_Vietnam.jpg"
+  class="medium center"
   allowfullscreen
 ></iframe>
 ```
 
 ###### Rendered
 
-`image wc:Incense_in_Vietnam.jpg medium center box-shadow static`
+`image wc:Incense_in_Vietnam.jpg medium center`
 
 
 #### GitHub example
+
+In this example a GitHub hosted image is used and the `gh:` short-hand prefix is used in the `src` property.  The image is hosted in the `ifc` repository in the `rsnyder` GitHub account.  It is in the `main` branch and is located at the `docs/components/monument-valley.jpg` path.  The full `src` value is `gh:rsnyder/ifc/main/docs/components/monument-valley.jpg`.
+
+In this example the positioning properties `medium` and `center` are used to display the image in the center of the window at 50% of the window width. The `box-shadow` property is also set to add a subtle box shadow effect to the component.
+
 
 #####
 `.tabs`

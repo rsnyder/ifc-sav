@@ -10,6 +10,14 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 
 const isGHP = location.hostname.indexOf('github.io') > 0
 
+const addLink = (attrs) => {
+  let stylesheet = document.createElement('link')
+  Object.entries(attrs).map(([key, value]) => stylesheet.setAttribute(key, value))
+  document.head.appendChild(stylesheet)
+}
+let stylesheets = Array.from(document.getElementsByTagName('link')).filter(link => link.type == 'text/css'&& link.href).map(link => link.href)
+if (!stylesheets.find(href => href === 'https://ifc.juncture-digital.org/css/index.css'))addLink({rel: 'stylesheet', type: 'text/css', href: 'https://ifc.juncture-digital.org/css/index.css'})
+
 const classes = new Set('left right center large medium small box-shadow'.split(' '))
 const components = {
   aichat: {
