@@ -319,10 +319,10 @@ const convertTags = (rootEl) => {
       let componentArgs = [...Object.entries(parsed.kwargs || {}).map(([key, value]) => `${key}=${value}`), ...(parsed.booleans || [])].join('&')
       iframe.src = `${ifcPrefix}/${parsed.tag}?${componentArgs}`
     }
-    let isOnlyChild = code.parentElement.children.length === 1 && code.parentElement.children[0] === code
+    let isOnlyChild = code.parentElement?.children.length === 1 && code.parentElement.children[0] === code
     if (isOnlyChild) code.parentElement.replaceWith(iframe)
     else {
-      let nonCodeElements = Array.from(code.parentElement.children).filter(c => c.tagName !== 'CODE').length
+      let nonCodeElements = Array.from(code.parentElement?.children).filter(c => c.tagName !== 'CODE').length
       if (!nonCodeElements) code.parentElement.classList.add('iframe-container')
       code.replaceWith(iframe)
     }
@@ -451,6 +451,7 @@ let main = document.querySelector(window.contentSelector || 'main.ghp, body')
 let mutationObserver
 
 if (main) {
+  console.log(main)
   new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
       Array.from(mutation.addedNodes).filter(node => node.tagName === 'IFRAME').forEach(iframe => {
