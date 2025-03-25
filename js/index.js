@@ -470,7 +470,7 @@ if (main) {
   let processing = false
   mutationObserver = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
-      // console.log(mutation.target)
+      console.log(mutation.target)
       // if (processing) return
       if (mutation.target.classList.contains('markdown-section') || mutation.target.classList.contains('page-content')) {
         processing = true
@@ -489,7 +489,7 @@ if (main) {
         makeEntityPopups(restructured)
         mutationObserver?.disconnect()
       } else if ( ['ARTICLE', 'BODY'].includes(mutation.target.tagName) ) {
-        // console.log(mutation.target.tagName)
+        console.log(mutation.target.tagName)
         processing = true
         convertTags(mutation.target)
         mutationObserver?.disconnect()

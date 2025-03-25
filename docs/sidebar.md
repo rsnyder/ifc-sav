@@ -1,4 +1,4 @@
-- [Quick Start](/docs/quick-start)
+- [Quick Start](/docs/quick-start/)
 - [Components](/docs/components/)
   - Core Components
     - [Header](/docs/components/header)
