@@ -12,7 +12,8 @@ body {
 }
 
 .markdown-section iframe,
-.markdown-body iframe {
+.markdown-body iframe, 
+iframe {
   min-width: unset;
   position: relative;
   width: 100%;
