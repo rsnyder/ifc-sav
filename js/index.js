@@ -17,13 +17,17 @@ const addLink = (attrs) => {
   document.head.appendChild(stylesheet)
 }
 let stylesheets = Array.from(document.getElementsByTagName('link')).filter(link => link.type == 'text/css'&& link.href).map(link => link.href)
-if (!stylesheets.find(href => href === 'https://ifc.juncture-digital.org/css/index.css'))addLink({rel: 'stylesheet', type: 'text/css', href: 'https://ifc.juncture-digital.org/css/index.css'})
+// if (!stylesheets.find(href => href === 'https://ifc.juncture-digital.org/css/index.css'))addLink({rel: 'stylesheet', type: 'text/css', href: 'https://ifc.juncture-digital.org/css/index.css'})
 
 const classes = new Set('left right center large medium small box-shadow'.split(' '))
 const components = {
   aichat: {
     booleans: 'nocaption',
     positional: 'model'
+  },
+  audio: {
+    booleans: 'autoplay muted nocaption',
+    positional: 'src caption'
   },
   chatlog: {
     positional: 'src'
@@ -447,7 +451,8 @@ const makeColumns = (rootEl) => {
   })
 }
 
-let main = document.querySelector(window.contentSelector || 'main.ghp, body')
+// let main = document.querySelector(window.contentSelector || 'main.ghp, body')
+let main = document.querySelector(window.contentSelector || 'main.ghp')
 let mutationObserver
 
 if (main) {

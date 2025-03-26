@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/themes/light.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; background-color: white; }    
+    main {  display: flex; flex-direction: column; width: 100%; }
+    figure { display: grid; grid-template-rows: 1fr auto; margin: 0; }
+    figcaption { display:none; padding: 6px; font-size: 0.9rem; align-items: center; gap: 0.5em; height: 100%; }
+    .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+    audio { width: 100%; }
+  </style>
+</head>
+<body>
+  
+  <main>
+
+    <figure style="height: 100%;">
+      <figcaption>      
+        <div class="label clamp"></div>
+      </figcaption>
+    </figure>
+
+  </main>
+
+  <script type="module">
+
+    import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js"
+
+    const main = document.querySelector('main')
+    const figure = main.querySelector('figure')
+    let player = figure.querySelector('audio')
+    const captionEl = figure.querySelector('figcaption')
+    const captionLabel = captionEl.querySelector('.label')
+ 
+    const props = {
+      ...{              // default properties
+        caption: null,
+        src: null
+      },
+      ...Object.fromEntries( // URLSearchParams to object
+        Array.from(new URLSearchParams(location.search).entries())
+        .map(([key, value]) => [key, (value === 'true' || !value) ? true : value === 'false' ? false : value])
+      )
+    }
+    console.log(props)
+
+    let inIframe = window.location !== window.parent.location // flag indicating if the page is in an iframe
+    const md2Html = (md) => marked.parse(md).slice(3, -5) // convert markdown to HTML
+
+    const setWindowAspect = () => {
+      let aspect = main.clientWidth/(player.clientHeight + captionEl.clientHeight)
+      window.parent.postMessage({ type: 'setAspect', aspect }, '*');
+    }
+
+    const hmsToSeconds = (str) => {
+      var p = str.split(':').slice(0,3).map(pe => parseInt(pe, 10))
+      let secs = 0, m = 1
+      while (p.length > 0) {
+        let val = p.pop() || 0 
+        secs += m * val
+        m *= 60
+      }
+      return secs
+    }
+
+    let pauseAt
+    const play = (start) => {
+      if (start !== null) player.currentTime = hmsToSeconds(start)
+      player.play()
+    }
+
+    const pause = () => player.pause()
+
+    window.addEventListener('message', (event) => {
+      let eventData = JSON.parse(event.data)
+      if (eventData.event === 'infoDelivery') watch(eventData.info)
+      if (eventData.channel === 'widget') return
+
+      let action = eventData.action?.toLowerCase()
+      let args = eventData.args
+      
+      if ('play' === action) {
+        let start = args.length > 0 ? args[0] : null
+        pauseAt = args.length > 1 ? hmsToSeconds(args[1]) : null
+        play(start)
+      } 
+      else if ('pause' === action) pause()
+      else if ('mute' === action) mute()
+    });
+
+    const mute = (mute) => player.muted = !player.muted
+
+    const createPlayer = (src) => {
+      player = document.createElement('audio')
+      player.setAttribute('controls', '')
+      let source = document.createElement('source')
+      source.setAttribute('src', src)
+      player.appendChild(source)
+      figure.insertBefore(player, figure.firstChild)
+      if (props.caption) {
+        console.log(props.caption)
+        captionLabel.innerHTML = md2Html(props.caption)
+        captionEl.style.display = 'flex'
+      }
+      return player
+    }
+
+    const monitor = () => {
+      setInterval(() => {
+        if (player.currentTime >= pauseAt && pauseAt !== null) {
+          pauseAt = null
+          player.pause()
+        }
+      }, 1000)
+    }
+
+    createPlayer(props.src)
+    monitor()
+
+    new ResizeObserver(() => setWindowAspect() ).observe(document.body)
+
+    window.addEventListener('message', (event) => {
+      let eventData = JSON.parse(event.data)
+      let action = eventData.action?.toLowerCase()
+      let args = eventData.args
+      if (action === 'play') {
+        player.play()
+      } else if (action === 'pause') {
+        player.pause()
+      }
+    })
+
+  </script>
+</body>
+</html>

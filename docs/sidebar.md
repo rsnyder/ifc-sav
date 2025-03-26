@@ -1,6 +1,7 @@
 - [Quick Start](/docs/quick-start/)
 - [Components](/docs/components/)
   - Core Components
+    - [Audio](/docs/components/audio)
     - [Header](/docs/components/header)
     - [Image](/docs/components/image)
     - [Map](/docs/components/map)
