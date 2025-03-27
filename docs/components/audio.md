@@ -19,20 +19,13 @@
 
 # Audio
 
-The `audio` tag displays an audio player with a specified file.
-
-`audio https://schh-commons.org/podcasts/sunsations-april-2025.mp3 #audioPlayer "SunSations April 2025 Podcast" large center`
-
-Controls
-
-- [Play](audioPlayer/play/1:00/1:05)
-- [Pause](audioPlayer/pause)
-- [Mute](audioPlayer/mute)
-- [Sun City Chorus and Orchestra](audioPlayer/play/9:13)
+The `audio` tag displays an HTML audio player with a specified file.
 
 ## Properties
 
 **[caption](#basic-example)** (_string_): Defines the text to use for a caption that is displayed below the video player.
+
+**[nocaption](#basic-examples)** (_boolean_):  This property inhibits the display of the caption at the bottom of the player.
 
 **[src](#basic-example)** (_url_):  A URL to the audio file to play.
 
@@ -55,3 +48,26 @@ Controls
 
 ### Basic examples
 
+#### Simple Audio player
+
+#####
+`.tabs`
+
+###### Markdown
+
+```markup
+`audio https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
+```
+
+###### HTML
+
+```html
+<iframe
+  src="https://ifc.juncture-digital.org/audio?src=https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia_-_Earth_(spoken_by_AI_voice).mp3"
+  allowfullscreen
+></iframe>
+```
+
+###### Rendered
+
+`audio https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`

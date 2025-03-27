@@ -10,7 +10,7 @@
     body { margin: 0; padding: 0; font-family: 'Source Sans Pro', 'Helvetica Neue', Arial, sans-serif; animation: fadeInOpacity ease 1s; background-color: white; }    
     main {  display: flex; flex-direction: column; width: 100%; }
     figure { display: grid; grid-template-rows: 1fr auto; margin: 0; }
-    figcaption { display:none; padding: 6px; font-size: 0.9rem; align-items: center; gap: 0.5em; height: 100%; }
+    figcaption { display:none; padding: 6px; font-size: 1em; align-items: center; gap: 0.5em; height: 100%; justify-content: center; font-weight: 500; }
     .clamp { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
     audio { width: 100%; }
   </style>
@@ -40,6 +40,7 @@
     const props = {
       ...{              // default properties
         caption: null,
+        nocaption: false,
         src: null
       },
       ...Object.fromEntries( // URLSearchParams to object
@@ -103,9 +104,8 @@
       source.setAttribute('src', src)
       player.appendChild(source)
       figure.insertBefore(player, figure.firstChild)
-      if (props.caption) {
-        console.log(props.caption)
-        captionLabel.innerHTML = md2Html(props.caption)
+      if (!props.nocaption) {
+        captionLabel.innerHTML = md2Html(props.caption || props.src.split('/').pop().replace(/\.\S+$/,'').replace(/[_]+/g,' '))
         captionEl.style.display = 'flex'
       }
       return player
