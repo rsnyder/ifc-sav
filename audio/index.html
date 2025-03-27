@@ -27,6 +27,7 @@
 
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/js-md5@0.8.3/src/md5.min.js"></script>
   <script type="module">
 
     import { marked } from "https://cdn.jsdelivr.net/npm/marked/lib/marked.esm.js"
@@ -96,12 +97,22 @@
 
     const mute = (mute) => player.muted = !player.muted
 
+
+    const mime = (src) => {
+      let extension = src.split('.').pop()
+      return extension === 'mp3'
+        ? 'audio/mpeg'
+        : extension === 'ogg' || extension === 'oga'
+          ? 'audio/ogg'
+          : `audio/${extension}`
+    }
+
     const createPlayer = (src) => {
       player = document.createElement('audio')
       player.setAttribute('controls', '')
-      // player.setAttribute('autoplay', '')
       let source = document.createElement('source')
       source.setAttribute('src', src)
+      source.setAttribute('type', mime(src))
       player.appendChild(source)
       figure.insertBefore(player, figure.firstChild)
       if (!props.nocaption) {
@@ -120,7 +131,21 @@
       }, 1000)
     }
 
-    createPlayer(props.src)
+    const mwUrl = (url) => {
+      // Converts Wikimedia commons prefixed URL to a full URL
+      let mwFile = (Array.isArray(url) ? url[0] : url).replace(/^wc:/,'').replace(/Special:FilePath\//, 'File:').split('File:').pop()
+      mwFile = decodeURIComponent(mwFile).replace(/ /g,'_')
+      const _md5 = md5(mwFile)
+      return `https://upload.wikimedia.org/wikipedia/commons/${_md5.slice(0,1)}/${_md5.slice(0,2)}/${mwFile}`
+    }
+
+    const getAudioSourceUrl = () => {
+      if (props.src.indexOf('http') === 0) return props.src
+      else if (props.src.indexOf('wc:') === 0 || props.src.indexOf('wikimedia.org') > -1) return mwUrl(props.src)
+      else if (props.src.indexOf('gh:') === 0) return `https://raw.githubusercontent.com/${props.src.slice(3)}`
+    }
+      
+    createPlayer(getAudioSourceUrl())
     monitor()
 
     new ResizeObserver(() => setWindowAspect() ).observe(document.body)

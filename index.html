@@ -15,9 +15,7 @@
     <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
     <script src="js/index.js" type="module"></script>
     <script>
-      console.log(location)
       const dir = location.hash.split('/').slice(1,-1).join('/')
-      console.log(dir)
       window.ghbase = `rsnyder/ifc/main/${dir}`
       window.$docsify = {
         name: 'Juncture IFC',
