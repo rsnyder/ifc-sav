@@ -98,6 +98,7 @@
     const createPlayer = (src) => {
       player = document.createElement('audio')
       player.setAttribute('controls', '')
+      player.setAttribute('autoplay', '')
       let source = document.createElement('source')
       source.setAttribute('src', src)
       player.appendChild(source)
