@@ -11,6 +11,7 @@ import 'https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.18.0/cdn/compone
 const isGHP = location.hostname.indexOf('github.io') > 0
 
 const addLink = (attrs) => {
+  console.log('addLin', attrs)
   let stylesheet = document.createElement('link')
   Object.entries(attrs).map(([key, value]) => stylesheet.setAttribute(key, value))
   document.head.appendChild(stylesheet)
@@ -311,6 +312,7 @@ const convertTags = (rootEl) => {
     iframe.setAttribute('allowfullscreen', '')
     iframe.setAttribute('allow', 'clipboard-write')
     if (parsed.tag === 'audio') iframe.setAttribute('allow', 'autoplay')
+
     if (parsed.id) iframe.id = parsed.id
     if (parsed.class) iframe.className = parsed.class
     if (parsed.style) applyStyle(iframe, parsed.style)
