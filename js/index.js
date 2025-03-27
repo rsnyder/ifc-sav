@@ -311,6 +311,7 @@ const convertTags = (rootEl) => {
     let iframe = document.createElement('iframe')
     iframe.setAttribute('allowfullscreen', '')
     iframe.setAttribute('allow', 'clipboard-write')
+    if (parsed.tag === 'audio') iframe.setAttribute('allow', 'autoplay')
     if (parsed.id) iframe.id = parsed.id
     if (parsed.class) iframe.className = parsed.class
     if (parsed.style) applyStyle(iframe, parsed.style)
