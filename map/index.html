@@ -293,9 +293,7 @@
   }
 
   const toObj = async (s) => {
-    let tokens = tokenize(s)
-    let geoJsonRegex = /\.?(geo)?json$/i
-    let iiifRegex = /^[a-z0-9\-]+:.+/
+    let tokens = tokenize(s.replace(/&/g, ' ')).map(token => token.trim())
     let obj = {}
     let booleans = new Set(['disabled', 'prefer-geojson'])
     for (let i = 0; i < tokens.length; i++) {
@@ -306,41 +304,23 @@
         let value = rest.join('=')
         value = '"' && value[value.length-1] === '"' ? value.slice(1,-1) : value
 
-        if (key === 'qid') {
+        if ((key === 'location' && isQid(value)) || key === 'qid') {
           let entity = await getEntity(value)
           obj = {...entityToInfoObj(entity, token), ...obj}          
-        } else if (key === 'iiif') {
+        }
+        else if (key === 'iiif') {
           let manifest = await getManifest(token)
           obj = {...manifestToInfoObj(manifest, token), ...obj}
         } else {
           obj[key] = value
         }
-      
-      } else if (isZoom(token)) {
-        obj.zoom = parseInt(token)
-      
-      } else if (isCoords(token)) {
-        obj.coords = token
-        obj.id = token
-      
-      } else if (isQid(token)) {
-        let entity = await getEntity(token)
-        obj = {...entityToInfoObj(entity, token), ...obj}
-      
-      } else if (geoJsonRegex.test(token)) {
-        obj.geojson = token
-
-      } else if (iiifRegex.test(token)) {
-        let manifest = await getManifest(token)
-        obj = {...manifestToInfoObj(manifest, token), ...obj}
-
       } else if (booleans.has(token)) {
         obj[kebabToCamel(token)] = true
 
       } else {
-        let text = token[0] === '"' && token[token.length-1] === '"' ? token.slice(1,-1) : token
-        if (obj.label) obj.description = text
-        else obj.label = text
+        // let text = token[0] === '"' && token[token.length-1] === '"' ? token.slice(1,-1) : token
+        // if (obj.label) obj.description = text
+        // else obj.label = text
       }
     }
     obj.preferGeojson = (obj.preferGeojson || (props.preferGeojson) && obj.geojson ) || (obj.geojson && !obj.coords) ? true : false
@@ -554,9 +534,10 @@
     main.style.visibility = 'visible'
     map = await initMap()
     if (props.data) {
-      let locations = await Promise.all(Array.from(new DOMParser().parseFromString(props.data, 'text/html').querySelector('body').firstChild.querySelectorAll('li'))
-        .map(li => toObj(li.innerHTML.replace(/^\s*-\s+/, ''))))
-        
+      let locations = await Promise.all(props.data.split('|').map(rec => toObj(rec)))
+      // let locations = await Promise.all(Array.from(new DOMParser().parseFromString(props.data, 'text/html').querySelector('body').firstChild.querySelectorAll('li'))
+      //  .map(li => toObj(li.innerHTML.replace(/^\s*-\s+/, ''))))
+      console.log(locations)
       let markersByLayer = {}
       locations
         .forEach(item => {
