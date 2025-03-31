@@ -146,7 +146,9 @@
         main.style.backgroundPosition = props.position
       }
       if (props.data) {
-        nav.innerHTML = props.data
+        let navList = `<ul><li>${props.data.split('|').map(md => md2Html(md)).join('</li><li>')}</li></ul>`
+        console.log(navList)
+        nav.innerHTML = navList
         nav.firstChild.style.backgroundColor = toRGBA(props.background || 'black', props.alpha !== null ? props.alpha : (props.img ? 0.3 : 1.0))
         convertLinks()
       }

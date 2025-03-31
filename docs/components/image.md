@@ -31,7 +31,7 @@ The most basic use of the `image` tag is to specify the URL of the image to be d
 ###### Markdown
 
 ```markup
-`image wc:Sunflower_sky_backdrop.jpg`
+`image src=wc:Sunflower_sky_backdrop.jpg`
 ```
 
 ###### HTML
@@ -44,7 +44,7 @@ The most basic use of the `image` tag is to specify the URL of the image to be d
 
 ###### Rendered
 
-`image wc:Sunflower_sky_backdrop.jpg`
+`image src=wc:Sunflower_sky_backdrop.jpg`
 
 ## Properties
 
@@ -154,7 +154,7 @@ In this example the positioning properties `medium` and `center` are used to dis
 ###### Markdown
 
 ```markup
-`image wc:Incense_in_Vietnam.jpg medium center`
+`image src=wc:Incense_in_Vietnam.jpg medium center`
 ```
 
 ###### HTML
@@ -169,7 +169,7 @@ In this example the positioning properties `medium` and `center` are used to dis
 
 ###### Rendered
 
-`image wc:Incense_in_Vietnam.jpg medium center`
+`image src=wc:Incense_in_Vietnam.jpg medium center`
 
 
 #### GitHub example
@@ -185,7 +185,7 @@ In this example the positioning properties `medium` and `center` are used to dis
 ###### Markdown
 
 ```markup
-`image gh:rsnyder/ifc/main/docs/components/monument-valley.jpg medium center box-shadow static`
+`image src=gh:rsnyder/ifc/main/docs/components/monument-valley.jpg medium center box-shadow static`
 ```
 
 ###### HTML
@@ -200,7 +200,7 @@ In this example the positioning properties `medium` and `center` are used to dis
 
 ###### Rendered
 
-`image gh:rsnyder/ifc/main/docs/components/monument-valley.jpg medium center box-shadow static`
+`image src=gh:rsnyder/ifc/main/docs/components/monument-valley.jpg medium center box-shadow static`
 
 ### Annotations 
 
@@ -212,7 +212,7 @@ In this example the positioning properties `medium` and `center` are used to dis
 ###### Markdown
 
 ```markup
-`image wc:Monument_Valley,_Utah,_USA_(23611451292).jpg medium center box-shadow static`
+`image src=wc:Monument_Valley,_Utah,_USA_(23611451292).jpg medium center box-shadow static`
 ```
 
 ###### HTML
@@ -227,5 +227,5 @@ In this example the positioning properties `medium` and `center` are used to dis
 
 ###### Rendered
 
-`image wc:Monument_Valley,_Utah,_USA_(23611451292).jpg medium center box-shadow static`
+`image src=wc:Monument_Valley,_Utah,_USA_(23611451292).jpg medium center box-shadow static`
 
