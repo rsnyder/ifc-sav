@@ -73,7 +73,7 @@ Notes:
 ###### Markdown
 
 ```markup
-`youtube dQw4w9WgXcQ`
+`youtube vid=dQw4w9WgXcQ`
 ```
 
 ###### HTML
@@ -87,7 +87,7 @@ Notes:
 
 ###### Rendered
 
-`youtube dQw4w9WgXcQ`
+`youtube vid=dQw4w9WgXcQ`
 
 ### Positioning examples
 
@@ -99,7 +99,7 @@ Notes:
 ###### Markdown
 
 ```markup
-`youtube dQw4w9WgXcQ large center`
+`youtube vid=dQw4w9WgXcQ large center`
 ```
 
 ###### HTML
@@ -113,7 +113,7 @@ Notes:
 
 ###### Rendered
 
-`youtube dQw4w9WgXcQ large center`
+`youtube vid=dQw4w9WgXcQ large center`
 
 
 #### Right
@@ -124,7 +124,7 @@ Notes:
 ###### Markdown
 
 ```markup
-`youtube dQw4w9WgXcQ right`
+`youtube vid=dQw4w9WgXcQ right`
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 ```
@@ -140,6 +140,6 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ###### Rendered
 
-`youtube dQw4w9WgXcQ right`
+`youtube vid=dQw4w9WgXcQ right`
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.

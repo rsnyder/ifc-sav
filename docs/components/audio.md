@@ -56,7 +56,7 @@ The `audio` tag displays an HTML audio player with a specified file.
 ###### Markdown
 
 ```markup
-`audio https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
+`audio src=https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
 ```
 
 ###### HTML
@@ -70,7 +70,7 @@ The `audio` tag displays an HTML audio player with a specified file.
 
 ###### Rendered
 
-`audio https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
+`audio src=https://upload.wikimedia.org/wikipedia/commons/6/65/Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
 
 
 #### Using Wikimedia Commons "wc:"" Prefix
@@ -81,7 +81,7 @@ The `audio` tag displays an HTML audio player with a specified file.
 ###### Markdown
 
 ```markup
-`audio wc:Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
+`audio src=wc:Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
 ```
 
 ###### HTML
@@ -95,7 +95,7 @@ The `audio` tag displays an HTML audio player with a specified file.
 
 ###### Rendered
 
-`audio wc:Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
+`audio src=wc:Wikipedia_-_Earth_(spoken_by_AI_voice).mp3`
 
 
 #### Using GitHub Hosted Audio File
@@ -106,7 +106,7 @@ The `audio` tag displays an HTML audio player with a specified file.
 ###### Markdown
 
 ```markup
-`audio gh:schh-commons/podcasts/main/SunSations_April_2025.mp3`
+`audio src=gh:schh-commons/podcasts/main/SunSations_April_2025.mp3`
 ```
 
 ###### HTML
@@ -120,4 +120,4 @@ The `audio` tag displays an HTML audio player with a specified file.
 
 ###### Rendered
 
-`audio gh:schh-commons/podcasts/main/SunSations_April_2025.mp3`
+`audio src=gh:schh-commons/podcasts/main/SunSations_April_2025.mp3`

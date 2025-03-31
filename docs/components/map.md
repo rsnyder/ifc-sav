@@ -57,7 +57,7 @@ Displays a map with a caption and marker.  The location consists of comma-separa
 ###### Markdown
 
 ```markup
-`map 32.051,-81.104,8 "Savannah, GA" marker`
+`map location=32.051,-81.104,8 caption="Savannah, GA" marker`
 ```
 
 ###### HTML
@@ -71,7 +71,7 @@ Displays a map with a caption and marker.  The location consists of comma-separa
 
 ###### Rendered
 
-`map 32.051,-81.104,8 "Savannah, GA" marker`
+`map location=32.051,-81.104,8 caption="Savannah, GA" marker`
 
 #### Zoom level comparison
 
@@ -81,8 +81,10 @@ Displays a map with a caption and marker.  The location consists of comma-separa
 ###### Markdown
 
 ```markup
-`map 32.051,-81.104,6 "Savannah, GA" marker`
-`map 32.051,-81.104,10 "Savannah, GA" marker`
+`map location=32.051,-81.104,3 caption="Savannah, GA" marker`
+`map location=32.051,-81.104,6 caption="Savannah, GA" marker`
+`map location=32.051,-81.104,9 caption="Savannah, GA" marker`
+`map location=32.051,-81.104,12 caption="Savannah, GA" marker`
 ```
 
 ###### HTML
@@ -100,7 +102,7 @@ Displays a map with a caption and marker.  The location consists of comma-separa
 
 ###### Rendered
 
-`map 32.051,-81.104,3 "Savannah, GA" marker`
-`map 32.051,-81.104,6 "Savannah, GA" marker`
-`map 32.051,-81.104,9 "Savannah, GA" marker`
-`map 32.051,-81.104,12 "Savannah, GA" marker`
+`map location=32.051,-81.104,3 caption="Savannah, GA" marker`
+`map location=32.051,-81.104,6 caption="Savannah, GA" marker`
+`map location=32.051,-81.104,9 caption="Savannah, GA" marker`
+`map location=32.051,-81.104,12 caption="Savannah, GA" marker`
