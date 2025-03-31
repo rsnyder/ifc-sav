@@ -207,8 +207,8 @@
       let args = eventData.args
       
       if ('play' === action) {
-        let start = args.length > 0 ? parseInt(args[0]) : null
-        let end = args.length > 1 ? parseInt(args[1]) : null
+        let start = args.length > 0 ? hmsToSeconds(args[0]) : null
+        let end = args.length > 1 ? hmsToSeconds(args[1]) : null
         play(start, end)
       } else if ('pause' === action) pause()
 
